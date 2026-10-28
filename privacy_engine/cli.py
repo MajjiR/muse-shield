@@ -22,6 +22,13 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("demo", help="scripted run ending in a leak audit (uses a throwaway vault)")
 
+    bench = sub.add_parser("bench", help="benchmark privacy vs utility on synthetic data")
+    bench.add_argument("--n", type=int, default=160)
+    bench.add_argument("--seed", type=int, default=7)
+    bench.add_argument("--llm", action="store_true", help="include the local Llama detector")
+    bench.add_argument("--online", type=int, default=0, metavar="K",
+                       help="also score K samples per strategy against the cloud model (sends synthetic raw prompts)")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "serve":
@@ -37,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "demo":
         return demo()
+    if args.cmd == "bench":
+        return run_bench(args)
 
     text = args.text if args.text is not None else sys.stdin.read()
     engine = PrivacyEngine()
@@ -86,6 +95,32 @@ def demo() -> int:
     attack = engine.attempt_raw_send(DEMO_PROMPTS[0])
     print(f"ATTACK raw send {'refused ✓' if not attack['sent'] else 'SENT ✗'}: {attack['refused']}")
     return 0 if a["clean"] and not attack["sent"] else 1
+
+
+def run_bench(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from . import bench
+    from .cloud import CloudLLM
+    from .config import Settings
+    from .detector import Detector, LlamaDetector
+
+    settings = Settings()
+    llama = LlamaDetector(settings.local_llm_base_url, settings.local_llm_model) if args.llm else None
+    if llama and not llama.available():
+        print(f"local model {settings.local_llm_model} not reachable at {settings.local_llm_base_url}; using rules only")
+        llama = None
+    ask = None
+    if args.online:
+        cloud = CloudLLM(settings.cloud_base_url, settings.cloud_model, settings.cloud_api_key)
+        if cloud.mock:
+            print("--online needs CLOUD_API_KEY; skipping online scoring")
+        else:
+            ask = lambda text: cloud.complete([{"role": "user", "content": text}], {})  # noqa: E731
+    report = bench.run(args.n, args.seed, use_llm=bool(llama), detector=Detector(llama), online=ask, online_n=args.online)
+    print(bench.render(report))
+    print(f"\nsaved {bench.save(report, Path('runs'))}")
+    return 0
 
 
 if __name__ == "__main__":
