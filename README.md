@@ -26,6 +26,11 @@ cp .env.example .env
 brew install ollama && ollama serve & ollama pull llama3.2:1b
 ```
 
+```bash
+.venv/bin/privacy-engine serve          # dashboard at http://127.0.0.1:8787
+.venv/bin/privacy-engine protect "Email Sarah Chen about the $1.2B deal"
+```
+
 Without Ollama the detector falls back to rules only; without `CLOUD_API_KEY` the
 cloud call goes to an offline mock, so the whole demo runs on a laptop with no network.
 
@@ -42,3 +47,5 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | `privacy_engine/cloud.py` | cloud gateway: egress guard, wire-level network inspector, offline mock cloud |
 | `privacy_engine/reconstruct.py` | on-device token -> value restore, tolerant of model drift |
 | `privacy_engine/pipeline.py` | `PrivacyEngine.ask()`: the full detect -> mask -> cloud -> restore loop, multi-turn |
+| `privacy_engine/server.py`, `web/index.html` | local dashboard (127.0.0.1 only): chat panes, policy editor, vault |
+| `privacy_engine/cli.py` | `privacy-engine serve \| protect \| ask` |

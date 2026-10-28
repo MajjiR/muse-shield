@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Engine</title>
+<style>
+:root {
+  --bg: #0b0d12; --panel: #12151d; --panel-2: #181c26; --line: #252a37;
+  --text: #e7e9ee; --muted: #8b92a5; --accent: #5b8cff;
+  --pii: #ff5d73; --conf: #ffb547; --pub: #3ccf91; --tok: #a78bfa;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; }
+header { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(11,13,18,.92); backdrop-filter: blur(8px); z-index: 5; flex-wrap: wrap; }
+header h1 { font-size: 16px; margin: 0; letter-spacing: .2px; }
+header h1 span { color: var(--muted); font-weight: 400; }
+.pills { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.pill { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); white-space: nowrap; }
+.pill b { color: var(--text); font-weight: 600; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--muted); vertical-align: middle; }
+.dot.ok { background: var(--pub); } .dot.warn { background: var(--conf); } .dot.bad { background: var(--pii); }
+nav { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+nav button { background: none; border: 0; color: var(--muted); padding: 12px 14px; font: inherit; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+nav button.active { color: var(--text); border-bottom-color: var(--accent); }
+main { padding: 20px 24px 60px; max-width: 1400px; margin: 0 auto; }
+section[data-tab] { display: none; } section[data-tab].active { display: block; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 960px) { .grid3 { grid-template-columns: 1fr; } }
+.pane h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.pane .sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.pane .body { white-space: pre-wrap; word-break: break-word; min-height: 120px; font-size: 14px; }
+textarea { width: 100%; min-height: 96px; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font: inherit; resize: vertical; }
+input[type=text], input[type=number], select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: inherit; }
+button.btn { background: var(--accent); color: #fff; border: 0; border-radius: 9px; padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+button.btn.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+button.btn:disabled { opacity: .5; cursor: wait; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.composer { margin-bottom: 16px; }
+.composer .row { margin-top: 10px; }
+.examples button { font-size: 12px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+mark { background: none; color: inherit; border-radius: 4px; padding: 0 2px; }
+mark.PII { background: rgba(255,93,115,.18); box-shadow: inset 0 -2px 0 var(--pii); }
+mark.CONFIDENTIAL { background: rgba(255,181,71,.16); box-shadow: inset 0 -2px 0 var(--conf); }
+mark.PUBLIC { box-shadow: inset 0 -1px 0 var(--pub); }
+mark.restored { background: rgba(60,207,145,.14); box-shadow: inset 0 -2px 0 var(--pub); }
+.tok { font-family: var(--mono); font-size: 12.5px; color: var(--tok); background: rgba(167,139,250,.12); border: 1px solid rgba(167,139,250,.3); border-radius: 5px; padding: 0 4px; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 12px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; }
+.badge.PII { color: var(--pii); background: rgba(255,93,115,.12); }
+.badge.CONFIDENTIAL { color: var(--conf); background: rgba(255,181,71,.12); }
+.badge.PUBLIC { color: var(--pub); background: rgba(60,207,145,.12); }
+.badge.mask { color: var(--tok); background: rgba(167,139,250,.12); }
+.badge.block { color: #fff; background: var(--pii); }
+.badge.allow { color: var(--muted); background: var(--panel-2); }
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); font-size: 12.5px; }
+.stack { display: grid; gap: 14px; }
+.split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+@media (max-width: 960px) { .split { grid-template-columns: 1fr; } }
+.banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 13px; display: none; }
+.banner.show { display: block; }
+.banner.bad { background: rgba(255,93,115,.12); border: 1px solid rgba(255,93,115,.4); }
+.banner.ok { background: rgba(60,207,145,.1); border: 1px solid rgba(60,207,145,.35); }
+.timings { font-size: 12px; color: var(--muted); margin-top: 10px; font-family: var(--mono); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 12px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 2px 4px 2px 10px; display: inline-flex; align-items: center; gap: 4px; }
+.chip button { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; }
+label.switch { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Privacy Engine <span>· raw data stays on this device</span></h1>
+  <div class="pills">
+    <span class="pill" id="pill-local"><span class="dot"></span>local model</span>
+    <span class="pill" id="pill-cloud"><span class="dot"></span>cloud</span>
+    <span class="pill" id="pill-egress"><span class="dot ok"></span>egress</span>
+    <span class="pill" id="pill-vault">vault</span>
+  </div>
+</header>
+<nav id="tabs">
+  <button data-tab="chat" class="active">Chat</button>
+  <button data-tab="policy">Policy</button>
+  <button data-tab="vault">Vault</button>
+</nav>
+<main>
+
+<section data-tab="chat" class="active">
+  <div class="card composer">
+    <textarea id="prompt" placeholder="Ask anything. Names, numbers, deals, and secrets get masked on-device before the cloud sees them."></textarea>
+    <div class="row">
+      <button class="btn" id="send">Send through engine</button>
+      <button class="btn ghost" id="preview">Preview mask only</button>
+      <button class="btn ghost" id="newconv">New conversation</button>
+      <span class="muted" id="conv-label"></span>
+    </div>
+    <div class="row examples" style="margin-top:10px" id="examples"></div>
+  </div>
+  <div class="banner" id="chat-banner"></div>
+  <div class="grid3">
+    <div class="card pane"><h3>1 · You typed</h3><div class="sub">detected on-device</div><div class="body" id="pane-raw"></div></div>
+    <div class="card pane"><h3>2 · Cloud saw</h3><div class="sub" id="pane-cloud-sub">only this leaves the device</div><div class="body" id="pane-masked"></div></div>
+    <div class="card pane"><h3>3 · You see</h3><div class="sub">reconstructed locally from the vault</div><div class="body" id="pane-answer"></div></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--pii)"></i>PII</span>
+    <span><i style="background:var(--conf)"></i>Confidential</span>
+    <span><i style="background:var(--pub)"></i>Public (allowed)</span>
+    <span><i style="background:var(--tok)"></i>Token</span>
+  </div>
+  <div class="timings" id="timings"></div>
+  <div class="card" style="margin-top:14px">
+    <h2>Decisions</h2>
+    <table><thead><tr><th>Span</th><th>Type</th><th>Class</th><th>Action</th><th>Token</th><th>Why</th><th>Source</th></tr></thead><tbody id="decisions"></tbody></table>
+    <div class="muted" id="context-reason" style="margin-top:10px;font-size:12px"></div>
+  </div>
+</section>
+
+<section data-tab="policy">
+  <div class="split">
+    <div class="card">
+      <h2>Entity rules</h2>
+      <table><thead><tr><th>Entity</th><th>Classification</th><th>Action override</th><th>Escalate if confidential</th></tr></thead><tbody id="policy-types"></tbody></table>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h2>Actions by class</h2>
+        <table><tbody id="policy-actions"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>Thresholds & model</h2>
+        <div class="row" style="margin-bottom:10px">Money is confidential at ≥ <input type="number" id="money-threshold" style="width:160px"></div>
+        <label class="switch"><input type="checkbox" id="use-llm"> Use local Llama detector</label>
+      </div>
+      <div class="card">
+        <h2>Always public</h2>
+        <div class="chips" id="allow-terms"></div>
+        <div class="row" style="margin-top:10px"><input type="text" id="allow-input" placeholder="e.g. Llama"><button class="btn ghost" id="allow-add">Add</button></div>
+      </div>
+      <div class="row"><button class="btn" id="policy-save">Save policy</button><span class="muted" id="policy-status"></span></div>
+    </div>
+  </div>
+</section>
+
+<section data-tab="vault">
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">Encrypted token vault</h2>
+      <button class="btn ghost" id="vault-wipe">Wipe vault</button>
+    </div>
+    <p class="muted" style="margin-top:0">AES-256-GCM in SQLite on this machine. Values are decrypted only when you click reveal.</p>
+    <table><thead><tr><th>Token</th><th>Kind</th><th>Created</th><th>Value</th></tr></thead><tbody id="vault-rows"></tbody></table>
+  </div>
+</section>
+
+</main>
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const api = async (path, opts = {}) => {
+  const r = await fetch(path, { headers: { "content-type": "application/json" }, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  return r.json();
+};
+const TOKEN_RE = /\b(?:[A-Z]+_)*(?:PERSON|ORG|PROJECT|EMAIL|PHONE|ADDRESS|LOCATION|SECRET|SSN|CARD_NUMBER|BANK_ACCOUNT|IP_ADDRESS|CONFIDENTIAL_TERM|TRANSACTION_VALUE)(?:_\d+)?\b/g;
+const tokenize = s => esc(s).replace(TOKEN_RE, t => `<span class="tok">${t}</span>`);
+
+// tabs
+const tabs = {};
+function showTab(name) {
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll("section[data-tab]").forEach(s => s.classList.toggle("active", s.dataset.tab === name));
+  tabs[name]?.();
+  try { localStorage.setItem("pe-tab", name); } catch {}
+}
+$("#tabs").addEventListener("click", e => e.target.dataset.tab && showTab(e.target.dataset.tab));
+
+// status
+async function refreshStatus() {
+  try {
+    const s = await api("/api/status");
+    $("#pill-local").innerHTML = `<span class="dot ${s.local_model_up ? "ok" : "warn"}"></span>local <b>${esc(s.local_model || "rules")}</b>${s.local_model_up ? "" : " · rules only"}`;
+    $("#pill-cloud").innerHTML = `<span class="dot ${s.cloud_mock ? "warn" : "ok"}"></span>cloud <b>${s.cloud_mock ? "offline mock" : esc(s.cloud.split(" · ").pop())}</b>`;
+    const i = s.inspector;
+    $("#pill-egress").innerHTML = `<span class="dot ${i.leaks ? "bad" : "ok"}"></span><b>${i.requests}</b> requests · <b>${i.leaks}</b> leaks`;
+    $("#pill-vault").innerHTML = `vault <b>${s.vault_entries}</b> tokens · policy v${s.policy_version}`;
+  } catch {}
+}
+
+// chat
+const EXAMPLES = [
+  "Draft an email to Sarah Chen (sarah.chen@northwind.io) confirming Northwind Capital's $1.2B offer for Project Falcon closes Friday.",
+  "Confidential: we're acquiring Meta's AR unit. Summarize risks for the board and how to brief Dr. Patel.",
+  "My card 4111 1111 1111 1111 was charged twice by Globex Corp. Call me at (415) 555-0134. Write a dispute letter.",
+  "What did Meta announce at Connect this year? I paid $20 for the stream.",
+];
+EXAMPLES.forEach(t => {
+  const b = document.createElement("button");
+  b.textContent = t.slice(0, 48) + "…";
+  b.title = t;
+  b.onclick = () => { $("#prompt").value = t; };
+  $("#examples").append(b);
+});
+
+let conversationId = null;
+function setConv(id) { conversationId = id; $("#conv-label").textContent = id ? `conversation ${id}` : ""; }
+
+function highlightRaw(text, decisions) {
+  let out = "", cur = 0;
+  for (const d of [...decisions].sort((a, b) => a.start - b.start)) {
+    out += esc(text.slice(cur, d.start));
+    out += `<mark class="${d.sensitivity}" title="${d.type} · ${d.sensitivity} · ${esc(d.reason)}">${esc(text.slice(d.start, d.end))}</mark>`;
+    cur = d.end;
+  }
+  return out + esc(text.slice(cur));
+}
+
+function highlightRestored(text, mapping, restored) {
+  let html = esc(text);
+  const values = restored.map(t => mapping[t]).filter(Boolean).sort((a, b) => b.length - a.length);
+  for (const v of values) html = html.split(esc(v)).join(`<mark class="restored">${esc(v)}</mark>`);
+  return html;
+}
+
+function banner(el, msg, kind) { el.className = `banner show ${kind}`; el.textContent = msg; }
+
+function renderProtected(text, p) {
+  const tokenFor = {};
+  for (const r of p.masked.replaced) tokenFor[`${r.start}:${r.end}`] = r.token;
+  $("#pane-raw").innerHTML = highlightRaw(text, p.policy.decisions);
+  $("#pane-masked").innerHTML = tokenize(p.masked.masked);
+  $("#decisions").innerHTML = p.policy.decisions.map(d => `<tr>
+    <td>${esc(d.text)}</td><td class="mono">${d.type}</td>
+    <td><span class="badge ${d.sensitivity}">${d.sensitivity}</span></td>
+    <td><span class="badge ${d.action}">${d.action}</span></td>
+    <td>${tokenFor[`${d.start}:${d.end}`] ? `<span class="tok">${tokenFor[`${d.start}:${d.end}`]}</span>` : ""}</td>
+    <td class="muted">${esc(d.reason)}</td><td class="muted">${d.source}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">Nothing sensitive found.</td></tr>`;
+  const ctx = p.detection.context;
+  $("#context-reason").textContent = ctx.confidential ? `Confidential context: ${ctx.reasons.join("; ")}` : "Context: public";
+}
+
+async function run(withCloud) {
+  const text = $("#prompt").value.trim();
+  if (!text) return;
+  const buttons = [$("#send"), $("#preview")];
+  buttons.forEach(b => b.disabled = true);
+  $("#chat-banner").className = "banner";
+  try {
+    if (!withCloud) {
+      const p = await api("/api/protect", { method: "POST", body: { text } });
+      renderProtected(text, p);
+      $("#pane-answer").innerHTML = `<span class="muted">Preview only: nothing was sent.</span>`;
+      $("#timings").textContent = `detect ${p.timings_ms.detect.toFixed(0)}ms · mask ${p.timings_ms.mask.toFixed(1)}ms · backends: ${p.detection.backends.join(", ")}`;
+      return;
+    }
+    const r = await api("/api/ask", { method: "POST", body: { text, conversation_id: conversationId } });
+    setConv(r.conversation_id);
+    renderProtected(text, r.protected);
+    $("#pane-cloud-sub").textContent = `sent to ${r.cloud}`;
+    if (r.error) {
+      banner($("#chat-banner"), r.blocked ? `⛔ ${r.error}. Nothing left the device.` : r.error, "bad");
+      $("#pane-answer").innerHTML = "";
+    } else {
+      $("#pane-masked").innerHTML = tokenize(r.protected.masked.masked) + `<hr style="border:0;border-top:1px dashed var(--line);margin:12px 0"><span class="muted">cloud replied:</span>\n` + tokenize(r.masked_reply);
+      const mapping = r.protected.masked.mapping;
+      const rec = r.reconstruction;
+      const restoredMap = { ...mapping };
+      $("#pane-answer").innerHTML = highlightRestored(rec.text, restoredMap, rec.restored);
+      if (rec.unresolved.length) banner($("#chat-banner"), `Cloud invented tokens it was never given: ${rec.unresolved.join(", ")}`, "bad");
+    }
+    const t = r.timings_ms;
+    $("#timings").textContent = Object.entries(t).map(([k, v]) => `${k} ${v.toFixed(v < 10 ? 1 : 0)}ms`).join(" · ") + ` · backends: ${r.protected.detection.backends.join(", ")}`;
+    refreshStatus();
+  } catch (e) {
+    banner($("#chat-banner"), e.message, "bad");
+  } finally {
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+$("#send").onclick = () => run(true);
+$("#preview").onclick = () => run(false);
+$("#newconv").onclick = () => setConv(null);
+$("#prompt").addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(true); });
+
+// policy
+const TYPES = ["PERSON", "ORG", "LOCATION", "ADDRESS", "EMAIL", "PHONE", "SSN", "CREDIT_CARD", "IBAN", "IP_ADDRESS", "API_KEY", "MONEY", "PROJECT", "CONFIDENTIAL_TERM"];
+const CLASSES = ["PII", "CONFIDENTIAL", "PUBLIC"];
+const ACTIONS = ["mask", "block", "allow"];
+let policy = null;
+const select = (opts, value, attrs) => `<select ${attrs}>${opts.map(o => `<option ${o === value ? "selected" : ""}>${o}</option>`).join("")}</select>`;
+
+async function loadPolicy() {
+  policy = await api("/api/policy");
+  $("#policy-types").innerHTML = TYPES.map(t => `<tr><td class="mono">${t}</td>
+    <td>${select(CLASSES, policy.classification[t], `data-cls="${t}"`)}</td>
+    <td>${select(["", ...ACTIONS], policy.type_actions[t] || "", `data-act="${t}"`)}</td>
+    <td><input type="checkbox" data-esc="${t}" ${policy.escalate_in_confidential.includes(t) ? "checked" : ""}></td></tr>`).join("");
+  $("#policy-actions").innerHTML = CLASSES.map(c => `<tr><td><span class="badge ${c}">${c}</span></td><td>${select(ACTIONS, policy.actions[c], `data-class-action="${c}"`)}</td></tr>`).join("");
+  $("#money-threshold").value = policy.money_threshold;
+  $("#use-llm").checked = policy.use_llm;
+  renderAllow();
+}
+function renderAllow() {
+  $("#allow-terms").innerHTML = policy.allow_terms.map((t, i) => `<span class="chip">${esc(t)}<button data-rm="${i}">×</button></span>`).join("") || `<span class="muted">none</span>`;
+}
+$("#allow-terms").onclick = e => { if (e.target.dataset.rm) { policy.allow_terms.splice(+e.target.dataset.rm, 1); renderAllow(); } };
+$("#allow-add").onclick = () => { const v = $("#allow-input").value.trim(); if (v) { policy.allow_terms.push(v); $("#allow-input").value = ""; renderAllow(); } };
+$("#policy-save").onclick = async () => {
+  document.querySelectorAll("[data-cls]").forEach(s => policy.classification[s.dataset.cls] = s.value);
+  policy.type_actions = {};
+  document.querySelectorAll("[data-act]").forEach(s => { if (s.value) policy.type_actions[s.dataset.act] = s.value; });
+  policy.escalate_in_confidential = [...document.querySelectorAll("[data-esc]:checked")].map(c => c.dataset.esc);
+  document.querySelectorAll("[data-class-action]").forEach(s => policy.actions[s.dataset.classAction] = s.value);
+  policy.money_threshold = +$("#money-threshold").value;
+  policy.use_llm = $("#use-llm").checked;
+  try { await api("/api/policy", { method: "PUT", body: policy }); $("#policy-status").textContent = "Saved."; refreshStatus(); }
+  catch (e) { $("#policy-status").textContent = e.message; }
+};
+tabs.policy = loadPolicy;
+
+// vault
+async function loadVault() {
+  const rows = await api("/api/vault");
+  $("#vault-rows").innerHTML = rows.map(r => `<tr><td><span class="tok">${r.token}</span></td><td class="mono muted">${r.kind}</td>
+    <td class="muted">${new Date(r.created_at * 1000).toLocaleTimeString()}</td>
+    <td><button class="btn ghost" data-reveal="${r.token}" style="padding:3px 10px">reveal</button></td></tr>`).join("") || `<tr><td colspan="4" class="muted">Empty. Send a message to populate it.</td></tr>`;
+}
+$("#vault-rows").onclick = async e => {
+  const t = e.target.dataset.reveal;
+  if (!t) return;
+  const r = await api("/api/vault/reveal", { method: "POST", body: { token: t } });
+  e.target.replaceWith(Object.assign(document.createElement("span"), { textContent: r.value }));
+};
+$("#vault-wipe").onclick = async () => { if (confirm("Wipe all tokens? Older conversations can no longer be restored.")) { await api("/api/vault", { method: "DELETE" }); setConv(null); loadVault(); refreshStatus(); } };
+tabs.vault = loadVault;
+
+refreshStatus();
+setInterval(refreshStatus, 5000);
+try { const t = localStorage.getItem("pe-tab"); if (t && document.querySelector(`section[data-tab="${t}"]`)) showTab(t); } catch {}
+</script>
+</body>
+</html>

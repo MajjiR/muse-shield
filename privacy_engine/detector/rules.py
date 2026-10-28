@@ -91,7 +91,8 @@ _PATTERNS: list[tuple[EntityType, re.Pattern[str]]] = [
 ]
 
 _CARD = re.compile(r"\b(?:\d[ -]?){12,18}\d\b")
-_CAP_PAIR = re.compile(rf"\b({CAP}) ({CAP})\b")
+# Lookahead so pairs overlap: "Email John Smith" must still yield "John Smith".
+_CAP_PAIR = re.compile(rf"(?=\b({CAP}) ({CAP})\b)")
 _CAP_WORD = re.compile(r"\b[A-Z][a-zA-Z]+\b")
 
 
@@ -131,7 +132,8 @@ def detect_rules(text: str) -> list[Entity]:
 
     for m in _CAP_PAIR.finditer(text):
         if m.group(1).lower() in FIRST_NAMES:
-            found.append(Entity(m.group(0), EntityType.PERSON, m.start(), m.end(), 0.8, "rules"))
+            start, end = m.start(1), m.end(2)
+            found.append(Entity(text[start:end], EntityType.PERSON, start, end, 0.8, "rules"))
 
     for m in _CAP_WORD.finditer(text):
         if m.group(0).lower() in PUBLIC_ORGS:
