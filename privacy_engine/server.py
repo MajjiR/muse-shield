@@ -8,8 +8,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from .entities import EntityType
+from .personalization import DeployBlocked
 from .pipeline import PrivacyEngine
-from .policy import Policy, save_policy
+from .policy import Policy
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 
@@ -23,13 +25,27 @@ class TokenIn(BaseModel):
     token: str
 
 
+class TermIn(BaseModel):
+    term: str
+    type: EntityType = EntityType.CONFIDENTIAL_TERM
+
+
+class ExampleIn(BaseModel):
+    text: str
+    must_mask: list[str] = []
+    must_keep: list[str] = []
+    type: EntityType | None = None
+
+
+class DeployIn(BaseModel):
+    force: bool = False
+
+
 def create_app(engine: PrivacyEngine | None = None) -> FastAPI:
     engine = engine or PrivacyEngine()
     app = FastAPI(title="Privacy Engine", docs_url="/api/docs")
     app.state.engine = engine
-
-    def persist_policy() -> None:
-        save_policy(engine.policy, engine.settings.ensure_home() / "policy.json")
+    store = engine.store
 
     @app.get("/")
     def index():
@@ -67,9 +83,7 @@ def create_app(engine: PrivacyEngine | None = None) -> FastAPI:
             policy = Policy.from_dict(body)
         except (ValueError, KeyError) as exc:
             raise HTTPException(422, f"invalid policy: {exc}") from exc
-        engine.policy = policy
-        persist_policy()
-        return engine.policy.to_dict()
+        return store.set_active(policy).to_dict()
 
     @app.get("/api/vault")
     def vault():
@@ -96,5 +110,68 @@ def create_app(engine: PrivacyEngine | None = None) -> FastAPI:
     def clear_inspector():
         engine.inspector.clear()
         return {"ok": True}
+
+    # -- Teach -> Test -> Deploy ----------------------------------------------
+    def teach_state() -> dict:
+        return {
+            "active": store.active.to_dict(),
+            "draft": store.draft.to_dict() if store.draft else None,
+            "diff": store.diff(),
+            "examples": [e.__dict__ for e in store.examples],
+            "history": [p.version for p in store.history],
+        }
+
+    def after_teach() -> dict:
+        store.save()
+        return teach_state()
+
+    @app.get("/api/teach")
+    def get_teach():
+        return teach_state()
+
+    @app.post("/api/teach/term")
+    def teach_term(body: TermIn):
+        store.teach_term(body.term, body.type)
+        return after_teach()
+
+    @app.post("/api/teach/public")
+    def teach_public(body: TermIn):
+        store.teach_public(body.term)
+        return after_teach()
+
+    @app.post("/api/teach/cue")
+    def teach_cue(body: TermIn):
+        store.teach_cue(body.term)
+        return after_teach()
+
+    @app.post("/api/teach/example")
+    def teach_example(body: ExampleIn):
+        store.teach_example(body.text, body.must_mask, body.must_keep, body.type)
+        return after_teach()
+
+    @app.post("/api/teach/discard")
+    def discard():
+        store.discard_draft()
+        return after_teach()
+
+    @app.post("/api/teach/test")
+    def run_tests():
+        return store.test(engine.dry_run).to_dict()
+
+    @app.post("/api/teach/deploy")
+    def deploy(body: DeployIn):
+        try:
+            store.deploy(store.test(engine.dry_run), force=body.force)
+        except DeployBlocked as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return teach_state()
+
+    @app.post("/api/teach/rollback")
+    def rollback():
+        try:
+            store.rollback()
+        except DeployBlocked as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return teach_state()
 
     return app

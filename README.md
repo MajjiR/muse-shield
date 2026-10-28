@@ -48,4 +48,5 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | `privacy_engine/reconstruct.py` | on-device token -> value restore, tolerant of model drift |
 | `privacy_engine/pipeline.py` | `PrivacyEngine.ask()`: the full detect -> mask -> cloud -> restore loop, multi-turn |
 | `privacy_engine/server.py`, `web/index.html` | local dashboard (127.0.0.1 only): chat panes, policy editor, vault |
+| `privacy_engine/personalization.py` | Teach -> Test -> Deploy: draft policy, regression suite, versioned deploy + rollback |
 | `privacy_engine/cli.py` | `privacy-engine serve \| protect \| ask` |

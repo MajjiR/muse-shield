@@ -23,6 +23,7 @@ from typing import Iterable
 import httpx
 
 from .llm_client import chat
+from .reconstruct import TOKEN_SHAPE
 
 CLOUD_SYSTEM_PROMPT = """Some values in the user's messages were replaced on their device with placeholder tokens \
 such as PERSON_1, ORG_2, PROJECT_1, EMAIL_1 or MAJOR_TRANSACTION_VALUE.
@@ -106,7 +107,7 @@ class NetworkInspector:
             request_bytes=len(request.content),
             request_body=body,
             conversation_id=conv,
-            tokens_sent=sorted(set(re.findall(r"\b[A-Z][A-Z_]*[A-Z](?:_\d+)?\b", _user_text(body))) & set(secrets)),
+            tokens_sent=sorted(set(TOKEN_SHAPE.findall(_user_text(body))) & set(secrets)),
             leaked_tokens=find_leaks(body, secrets),
             mock=mock,
         )
@@ -158,14 +159,10 @@ def _user_text(body: str) -> str:
 
 # -- offline mock cloud -------------------------------------------------------
 
-_TOKEN_RE = re.compile(r"\b(?:[A-Z]+_)*(?:PERSON|ORG|PROJECT|EMAIL|PHONE|ADDRESS|LOCATION|SECRET|SSN|CARD_NUMBER"
-                       r"|BANK_ACCOUNT|IP_ADDRESS|CONFIDENTIAL_TERM|TRANSACTION_VALUE)(?:_\d+)?\b")
-
-
 def mock_cloud_reply(messages: list[dict]) -> str:
     """A deterministic stand-in for the cloud model, so demos run offline."""
     last = next((m["content"] for m in reversed(messages) if m["role"] == "user"), "")
-    tokens = list(dict.fromkeys(_TOKEN_RE.findall(last)))
+    tokens = list(dict.fromkeys(TOKEN_SHAPE.findall(last)))
     people = [t for t in tokens if t.startswith("PERSON")]
     others = [t for t in tokens if not t.startswith("PERSON")]
     lower = last.lower()

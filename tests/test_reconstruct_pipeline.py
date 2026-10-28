@@ -50,3 +50,9 @@ def test_cloud_error_is_reported(engine):
     engine.cloud = CloudLLM("https://x", "m", api_key="k", transport=httpx.MockTransport(lambda r: httpx.Response(500)))
     res = engine.ask("hello")
     assert res.error.startswith("cloud error")
+
+
+def test_plain_words_are_not_tokens():
+    r = reconstruct("Never share your SSN or EMAIL password with PERSON_1.", {"PERSON_1": "Ana"})
+    assert r.text == "Never share your SSN or EMAIL password with Ana."
+    assert r.unresolved == []

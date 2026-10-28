@@ -11,8 +11,9 @@ from .config import Settings
 from .detector import Detector, LlamaDetector
 from .entities import Detection
 from .llm_client import LLMError
-from .masking import MaskResult, mask
-from .policy import Policy, PolicyResult, evaluate, load_policy
+from .masking import MaskResult, SessionAllocator, TokenAllocator, mask
+from .personalization import PolicyStore
+from .policy import Policy, PolicyResult, evaluate
 from .reconstruct import Reconstruction, reconstruct
 from .tokenizer import VaultAllocator
 from .vault import Vault
@@ -90,20 +91,34 @@ class PrivacyEngine:
         self.cloud = cloud or CloudLLM(
             self.settings.cloud_base_url, self.settings.cloud_model, self.settings.cloud_api_key, inspector=self.inspector
         )
-        self.policy = policy or load_policy(home / "policy.json")
+        self.store = PolicyStore(home / "policies.json")
+        if policy is not None:
+            self.store.active = policy
         self.namespace = namespace
         self.allocator = VaultAllocator(self.vault, namespace)
         self.conversations: dict[str, Conversation] = {}
 
-    def protect(self, text: str, policy: Policy | None = None) -> Protected:
+    @property
+    def policy(self) -> Policy:
+        return self.store.active
+
+    @policy.setter
+    def policy(self, policy: Policy) -> None:
+        self.store.active = policy
+
+    def protect(self, text: str, policy: Policy | None = None, allocator: TokenAllocator | None = None) -> Protected:
         policy = policy or self.policy
         t0 = time.perf_counter()
         detection = self.detector.detect(text, terms=policy.terms, cues=policy.cues, use_llm=policy.use_llm)
         t1 = time.perf_counter()
         result = evaluate(detection, policy)
-        masked = mask(text, result, self.allocator)
+        masked = mask(text, result, allocator or self.allocator)
         t2 = time.perf_counter()
         return Protected(detection, result, masked, {"detect": (t1 - t0) * 1000, "mask": (t2 - t1) * 1000})
+
+    def dry_run(self, text: str, policy: Policy) -> MaskResult:
+        """Mask with a throwaway allocator: for tests and benchmarks, never touches the vault."""
+        return self.protect(text, policy, SessionAllocator()).masked
 
     def conversation(self, conversation_id: str | None) -> Conversation:
         cid = conversation_id or uuid.uuid4().hex[:10]

@@ -11,9 +11,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable
 
+# Identity tokens always carry a number (PERSON_1), so the bare word "SSN" or
+# "EMAIL" in prose is never mistaken for one. Money tokens may be bare.
 TOKEN_SHAPE = re.compile(
-    r"\b(?:[A-Z]+_)*(?:PERSON|ORG|PROJECT|EMAIL|PHONE|ADDRESS|LOCATION|SECRET|SSN|CARD_NUMBER|BANK_ACCOUNT"
-    r"|IP_ADDRESS|CONFIDENTIAL_TERM|TRANSACTION_VALUE)(?:_\d+)?\b"
+    r"\b(?:(?:PERSON|ORG|PROJECT|EMAIL|PHONE|ADDRESS|LOCATION|SECRET|SSN|CARD_NUMBER|BANK_ACCOUNT"
+    r"|IP_ADDRESS|CONFIDENTIAL_TERM)_\d+|(?:[A-Z]+_)?TRANSACTION_VALUE(?:_\d+)?)\b"
 )
 
 

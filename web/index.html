@@ -38,6 +38,7 @@ button.btn { background: var(--accent); color: #fff; border: 0; border-radius: 9
 button.btn.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
 button.btn:disabled { opacity: .5; cursor: wait; }
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row input[type=text] { min-width: 0; }
 .composer { margin-bottom: 16px; }
 .composer .row { margin-top: 10px; }
 .examples button { font-size: 12px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
@@ -89,6 +90,7 @@ h2 { font-size: 15px; margin: 0 0 12px; }
 <nav id="tabs">
   <button data-tab="chat" class="active">Chat</button>
   <button data-tab="policy">Policy</button>
+  <button data-tab="teach">Personalize</button>
   <button data-tab="vault">Vault</button>
 </nav>
 <main>
@@ -150,6 +152,39 @@ h2 { font-size: 15px; margin: 0 0 12px; }
   </div>
 </section>
 
+<section data-tab="teach">
+  <div class="grid3">
+    <div class="card stack" style="align-content:start">
+      <h2>1 · Teach <span class="muted" id="draft-label" style="font-weight:400"></span></h2>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Sensitive term (your codenames, clients, people)</div>
+        <div class="row"><input type="text" id="t-term" placeholder="Bluebird" style="flex:1;min-width:120px"><select id="t-type"></select><button class="btn ghost" id="t-add">Mask it</button></div></div>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Always public</div>
+        <div class="row"><input type="text" id="t-public" placeholder="PyTorch" style="flex:1"><button class="btn ghost" id="t-public-add">Allow</button></div></div>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Confidential-context cue</div>
+        <div class="row"><input type="text" id="t-cue" placeholder="board deck" style="flex:1"><button class="btn ghost" id="t-cue-add">Add cue</button></div></div>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Example (becomes a test case)</div>
+        <textarea id="t-ex" style="min-height:64px" placeholder="Bluebird beta ships to Kestrel next week."></textarea>
+        <div class="row" style="margin-top:6px"><input type="text" id="t-ex-mask" placeholder="must mask: Bluebird, Kestrel" style="flex:1"></div>
+        <div class="row" style="margin-top:6px"><input type="text" id="t-ex-keep" placeholder="must keep (optional)" style="flex:1"><button class="btn ghost" id="t-ex-add">Add example</button></div></div>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Draft changes</div><div id="t-diff" class="mono" style="white-space:pre-wrap;font-size:12px"></div></div>
+      <button class="btn ghost" id="t-discard">Discard draft</button>
+    </div>
+    <div class="card" style="align-content:start">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">2 · Test</h2><button class="btn" id="t-test">Run tests</button></div>
+      <div class="row" id="t-summary" style="margin:12px 0"></div>
+      <table><thead><tr><th>Case</th><th>Result</th></tr></thead><tbody id="t-cases"><tr><td colspan="2" class="muted">Run the suite to compare draft vs active.</td></tr></tbody></table>
+    </div>
+    <div class="card stack" style="align-content:start">
+      <h2>3 · Deploy</h2>
+      <div id="t-versions" class="muted"></div>
+      <label class="switch"><input type="checkbox" id="t-force"> Deploy even with regressions</label>
+      <div class="row"><button class="btn" id="t-deploy">Deploy draft</button><button class="btn ghost" id="t-rollback">Roll back</button></div>
+      <div class="banner" id="t-banner"></div>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Active taught terms</div><div class="chips" id="t-active-terms"></div></div>
+    </div>
+  </div>
+</section>
+
 <section data-tab="vault">
   <div class="card">
     <div class="row" style="justify-content:space-between;margin-bottom:10px">
@@ -170,7 +205,7 @@ const api = async (path, opts = {}) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
   return r.json();
 };
-const TOKEN_RE = /\b(?:[A-Z]+_)*(?:PERSON|ORG|PROJECT|EMAIL|PHONE|ADDRESS|LOCATION|SECRET|SSN|CARD_NUMBER|BANK_ACCOUNT|IP_ADDRESS|CONFIDENTIAL_TERM|TRANSACTION_VALUE)(?:_\d+)?\b/g;
+const TOKEN_RE = /\b(?:(?:PERSON|ORG|PROJECT|EMAIL|PHONE|ADDRESS|LOCATION|SECRET|SSN|CARD_NUMBER|BANK_ACCOUNT|IP_ADDRESS|CONFIDENTIAL_TERM)_\d+|(?:[A-Z]+_)?TRANSACTION_VALUE(?:_\d+)?)\b/g;
 const tokenize = s => esc(s).replace(TOKEN_RE, t => `<span class="tok">${t}</span>`);
 
 // tabs
@@ -341,6 +376,57 @@ $("#vault-rows").onclick = async e => {
 };
 $("#vault-wipe").onclick = async () => { if (confirm("Wipe all tokens? Older conversations can no longer be restored.")) { await api("/api/vault", { method: "DELETE" }); setConv(null); loadVault(); refreshStatus(); } };
 tabs.vault = loadVault;
+
+// teach -> test -> deploy
+$("#t-type").innerHTML = ["PROJECT", "ORG", "PERSON", "CONFIDENTIAL_TERM", "LOCATION"].map(t => `<option>${t}</option>`).join("");
+const splitList = v => v.split(",").map(x => x.trim()).filter(Boolean);
+function renderTeach(st) {
+  $("#draft-label").textContent = st.draft ? `· draft v${st.draft.version}` : "· no draft";
+  $("#t-diff").textContent = Object.keys(st.diff).length
+    ? Object.entries(st.diff).map(([k, v]) => `${k}: ${JSON.stringify(v.active)} → ${JSON.stringify(v.draft)}`).join("\n")
+    : "none";
+  $("#t-versions").innerHTML = `Active <b style="color:var(--text)">v${st.active.version}</b>${st.draft ? ` · draft <b style="color:var(--text)">v${st.draft.version}</b>` : ""} · history: ${st.history.map(v => "v" + v).join(", ") || "none"}`;
+  const terms = Object.entries(st.active.terms);
+  $("#t-active-terms").innerHTML = terms.map(([t, ty]) => `<span class="chip" style="padding-right:10px">${esc(t)} <span class="muted">${ty}</span></span>`).join("") || `<span class="muted">none yet</span>`;
+  $("#t-deploy").disabled = !st.draft;
+}
+async function teach(path, body) {
+  try { renderTeach(await api(path, { method: "POST", body })); } catch (e) { banner($("#t-banner"), e.message, "bad"); }
+}
+$("#t-add").onclick = () => { const v = $("#t-term").value.trim(); if (v) { teach("/api/teach/term", { term: v, type: $("#t-type").value }); $("#t-term").value = ""; } };
+$("#t-public-add").onclick = () => { const v = $("#t-public").value.trim(); if (v) { teach("/api/teach/public", { term: v }); $("#t-public").value = ""; } };
+$("#t-cue-add").onclick = () => { const v = $("#t-cue").value.trim(); if (v) { teach("/api/teach/cue", { term: v }); $("#t-cue").value = ""; } };
+$("#t-ex-add").onclick = () => {
+  const text = $("#t-ex").value.trim();
+  if (!text) return;
+  teach("/api/teach/example", { text, must_mask: splitList($("#t-ex-mask").value), must_keep: splitList($("#t-ex-keep").value), type: $("#t-type").value });
+  ["#t-ex", "#t-ex-mask", "#t-ex-keep"].forEach(s => $(s).value = "");
+};
+$("#t-discard").onclick = () => teach("/api/teach/discard");
+$("#t-test").onclick = async () => {
+  $("#t-test").disabled = true;
+  try {
+    const r = await api("/api/teach/test", { method: "POST" });
+    const colors = { pass: "PUBLIC", fixed: "mask", regressed: "block", fail: "PII" };
+    $("#t-summary").innerHTML = Object.entries(r.summary).map(([k, v]) => `<span class="badge ${colors[k]}">${v} ${k}</span>`).join(" ")
+      + `<span class="muted" style="font-size:12px">draft ${(r.draft_pass_rate * 100).toFixed(0)}% vs active ${(r.active_pass_rate * 100).toFixed(0)}%</span>`;
+    $("#t-cases").innerHTML = r.cases.map(c => `<tr><td><div>${tokenize(c.draft_masked)}</div>
+      ${c.problems.length ? `<div style="color:var(--pii);font-size:12px">${esc(c.problems.join("; "))}</div>` : ""}
+      <div class="muted" style="font-size:11px">${c.source}</div></td>
+      <td><span class="badge ${colors[c.status]}">${c.status}</span></td></tr>`).join("");
+  } finally { $("#t-test").disabled = false; }
+};
+$("#t-deploy").onclick = async () => {
+  try {
+    renderTeach(await api("/api/teach/deploy", { method: "POST", body: { force: $("#t-force").checked } }));
+    banner($("#t-banner"), "Deployed. New messages use this policy.", "ok"); refreshStatus();
+  } catch (e) { banner($("#t-banner"), e.message, "bad"); }
+};
+$("#t-rollback").onclick = async () => {
+  try { renderTeach(await api("/api/teach/rollback", { method: "POST" })); banner($("#t-banner"), "Rolled back.", "ok"); refreshStatus(); }
+  catch (e) { banner($("#t-banner"), e.message, "bad"); }
+};
+tabs.teach = async () => renderTeach(await api("/api/teach"));
 
 refreshStatus();
 setInterval(refreshStatus, 5000);

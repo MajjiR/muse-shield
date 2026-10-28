@@ -7,10 +7,8 @@ same: "$20 for lunch" is public, "$1.2B offer" is confidential.
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from pathlib import Path
 
 from .detector.rules import PUBLIC_ORGS
 from .entities import Detection, Entity, EntityType, Sensitivity
@@ -171,10 +169,3 @@ def evaluate(detection: Detection, policy: Policy) -> PolicyResult:
         decisions.append(Decision(e, sensitivity, action, reason))
     return PolicyResult(decisions, detection.context.confidential)
 
-
-def load_policy(path: Path) -> Policy:
-    return Policy.from_dict(json.loads(path.read_text())) if path.exists() else Policy()
-
-
-def save_policy(policy: Policy, path: Path) -> None:
-    path.write_text(json.dumps(policy.to_dict(), indent=2))
