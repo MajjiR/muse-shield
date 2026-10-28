@@ -40,3 +40,5 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | `privacy_engine/vault.py` | AES-256-GCM SQLite vault, HMAC lookups, scrypt or 0600 key file |
 | `privacy_engine/tokenizer.py` | consistent tokens across spellings and conversations (aliases, normalization) |
 | `privacy_engine/cloud.py` | cloud gateway: egress guard, wire-level network inspector, offline mock cloud |
+| `privacy_engine/reconstruct.py` | on-device token -> value restore, tolerant of model drift |
+| `privacy_engine/pipeline.py` | `PrivacyEngine.ask()`: the full detect -> mask -> cloud -> restore loop, multi-turn |
