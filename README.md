@@ -39,3 +39,4 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | `privacy_engine/masking.py` | semantic tokens (`PERSON_1`, `MAJOR_TRANSACTION_VALUE`) with magnitude buckets |
 | `privacy_engine/vault.py` | AES-256-GCM SQLite vault, HMAC lookups, scrypt or 0600 key file |
 | `privacy_engine/tokenizer.py` | consistent tokens across spellings and conversations (aliases, normalization) |
+| `privacy_engine/cloud.py` | cloud gateway: egress guard, wire-level network inspector, offline mock cloud |
