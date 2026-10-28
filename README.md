@@ -49,4 +49,5 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | `privacy_engine/pipeline.py` | `PrivacyEngine.ask()`: the full detect -> mask -> cloud -> restore loop, multi-turn |
 | `privacy_engine/server.py`, `web/index.html` | local dashboard (127.0.0.1 only): chat panes, policy editor, vault |
 | `privacy_engine/personalization.py` | Teach -> Test -> Deploy: draft policy, regression suite, versioned deploy + rollback |
+| Network inspector tab, `privacy-engine demo` | wire-level egress log, full-vault leak audit, guarded raw-send attempt |
 | `privacy_engine/cli.py` | `privacy-engine serve \| protect \| ask` |

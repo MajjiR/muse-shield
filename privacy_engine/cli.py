@@ -20,6 +20,8 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("text", nargs="?", help="prompt (default: stdin)")
         p.add_argument("--json", action="store_true")
 
+    sub.add_parser("demo", help="scripted run ending in a leak audit (uses a throwaway vault)")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "serve":
@@ -32,6 +34,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     from .pipeline import PrivacyEngine
+
+    if args.cmd == "demo":
+        return demo()
 
     text = args.text if args.text is not None else sys.stdin.read()
     engine = PrivacyEngine()
@@ -50,6 +55,37 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"── answer (restored locally) ──\n{result.answer}")
     return 0
+
+
+DEMO_PROMPTS = [
+    "Draft an email to Sarah Chen (sarah.chen@northwind.io) confirming Northwind Capital's $1.2B offer for Project Falcon.",
+    "Confidential: we're acquiring Meta's AR unit. List three risks to raise with Dr. Patel.",
+    "My card 4111 1111 1111 1111 was double-charged by Globex Corp. Call me at (415) 555-0134. Write a dispute letter.",
+    "What did Meta announce at Connect this year?",
+]
+
+
+def demo() -> int:
+    import tempfile
+    from pathlib import Path
+
+    from .config import Settings
+    from .pipeline import PrivacyEngine
+
+    settings = Settings(home=Path(tempfile.mkdtemp(prefix="privacy-demo-")))
+    engine = PrivacyEngine(settings)
+    print(f"local detector: {', '.join(engine.protect('x').detection.backends)} · cloud: {engine.cloud.name}\n")
+    for prompt in DEMO_PROMPTS:
+        r = engine.ask(prompt)
+        print(f"YOU   {prompt}\nCLOUD {r.protected.masked.masked}")
+        print(f"BACK  {(r.answer or r.error).splitlines()[0]}\n")
+
+    a = engine.audit()
+    print(f"AUDIT scanned {a['requests_scanned']} requests / {a['bytes_scanned']} bytes for {a['secrets_checked']} "
+          f"vault values: {'0 matches ✓' if a['clean'] else a['leaks']}")
+    attack = engine.attempt_raw_send(DEMO_PROMPTS[0])
+    print(f"ATTACK raw send {'refused ✓' if not attack['sent'] else 'SENT ✗'}: {attack['refused']}")
+    return 0 if a["clean"] and not attack["sent"] else 1
 
 
 if __name__ == "__main__":

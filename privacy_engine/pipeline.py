@@ -6,14 +6,14 @@ import time
 import uuid
 from dataclasses import dataclass, field
 
-from .cloud import CloudLLM, NetworkInspector, PrivacyViolation
+from .cloud import CloudLLM, NetworkInspector, PrivacyViolation, find_leaks
 from .config import Settings
 from .detector import Detector, LlamaDetector
-from .entities import Detection
+from .entities import Detection, Entity, EntityType, Sensitivity
 from .llm_client import LLMError
 from .masking import MaskResult, SessionAllocator, TokenAllocator, mask
 from .personalization import PolicyStore
-from .policy import Policy, PolicyResult, evaluate
+from .policy import Policy, PolicyResult, classify, evaluate
 from .reconstruct import Reconstruction, reconstruct
 from .tokenizer import VaultAllocator
 from .vault import Vault
@@ -157,3 +157,48 @@ class PrivacyEngine:
             {"role": "assistant", "content": result.masked_reply},
         ]
         return result
+
+    # -- proof that raw values never left -----------------------------------
+    def audit(self) -> dict:
+        """Decrypt every vault value locally and scan every recorded egress body for it.
+
+        A value that is public on its own (e.g. "Meta", masked once inside an
+        acquisition memo) may legitimately appear in a later, ordinary question.
+        Those are reported separately as public_in_context, not as leaks.
+        """
+        secrets, context_public = {}, set()
+        for e in self.vault.entries(self.namespace):
+            value = self.allocator.reveal(e.token) or ""
+            secrets[e.token] = value
+            entity = Entity(value, EntityType(e.kind), 0, len(value))
+            if classify(entity, self.policy, confidential_context=False)[0] is Sensitivity.PUBLIC:
+                context_public.add(e.token)
+
+        records = list(self.inspector.records)
+        leaks, public_hits = [], []
+        for rec in records:
+            found = find_leaks(rec.request_body, secrets)
+            hard = [t for t in found if t not in context_public]
+            if hard:
+                leaks.append({"record": rec.id, "tokens": hard})
+            if len(hard) < len(found):
+                public_hits.append({"record": rec.id, "tokens": [t for t in found if t in context_public]})
+        return {
+            "requests_scanned": len(records),
+            "bytes_scanned": sum(r.request_bytes for r in records),
+            "secrets_checked": len(secrets),
+            "comparisons": len(records) * len(secrets),
+            "leaks": leaks,
+            "public_in_context": public_hits,
+            "clean": not leaks,
+        }
+
+    def attempt_raw_send(self, text: str) -> dict:
+        """Demo: bypass masking and try to send raw text. The egress guard must refuse."""
+        mapping = self.protect(text, allocator=SessionAllocator()).masked.mapping
+        before = len(self.inspector.records)
+        try:
+            self.cloud.complete([{"role": "user", "content": text}], mapping)
+        except PrivacyViolation as exc:
+            return {"sent": False, "refused": str(exc), "requests_added": len(self.inspector.records) - before}
+        return {"sent": True, "refused": "", "requests_added": len(self.inspector.records) - before}

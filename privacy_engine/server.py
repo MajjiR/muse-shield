@@ -106,6 +106,14 @@ def create_app(engine: PrivacyEngine | None = None) -> FastAPI:
     def inspector():
         return {"summary": engine.inspector.summary(), "records": [r.to_dict() for r in reversed(engine.inspector.records)]}
 
+    @app.get("/api/inspector/audit")
+    def audit():
+        return engine.audit()
+
+    @app.post("/api/inspector/attack")
+    def attack(body: TextIn):
+        return engine.attempt_raw_send(body.text)
+
     @app.delete("/api/inspector")
     def clear_inspector():
         engine.inspector.clear()

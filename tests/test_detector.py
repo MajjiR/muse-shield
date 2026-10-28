@@ -29,6 +29,12 @@ def test_name_after_capitalized_word():
     assert ("John Smith", T.PERSON) in types(Detector().detect("Email John Smith today"))
 
 
+def test_org_keeps_sentence_period_outside_span():
+    det = Detector().detect("Charged by Globex Corp. Call me. Acme Inc. reported.")
+    spans = [e.text for e in det.entities]
+    assert "Globex Corp" in spans and "Acme Inc." in spans
+
+
 def test_luhn_rejects_random_digits():
     assert luhn_ok("4111111111111111")
     assert not luhn_ok("4111111111111112")

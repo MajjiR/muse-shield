@@ -110,18 +110,26 @@ def luhn_ok(number: str) -> bool:
     return total % 10 == 0
 
 
-def _strip_trailing_dot(text: str, start: int, end: int) -> tuple[str, int, int]:
-    # "Acme Inc." at sentence end: keep the dot only if it belongs to an abbreviation.
-    if text.endswith(".") and not re.search(r"(?:Inc|Corp|Ltd|Co|Dr|St|Ave|Rd|Blvd|Ln)\.$", text):
-        return text[:-1], start, end - 1
-    return text, start, end
+def _strip_trailing_dot(text: str, value: str, start: int, end: int) -> tuple[str, int, int]:
+    """Give a sentence-ending period back to the sentence.
+
+    "Acme Inc. reported" keeps the dot; "... by Globex Corp. Call me" and a
+    dot at end of text do not, so masking doesn't swallow the full stop.
+    """
+    if not value.endswith("."):
+        return value, start, end
+    rest = text[end:]
+    abbreviation = re.search(r"(?:Inc|Corp|Ltd|Co|Dr|St|Ave|Rd|Blvd|Ln)\.$", value)
+    if abbreviation and rest and not re.match(r"\s+[A-Z]", rest):
+        return value, start, end
+    return value[:-1], start, end - 1
 
 
 def detect_rules(text: str) -> list[Entity]:
     found: list[Entity] = []
     for etype, pattern in _PATTERNS:
         for m in pattern.finditer(text):
-            value, start, end = _strip_trailing_dot(m.group(0), m.start(), m.end())
+            value, start, end = _strip_trailing_dot(text, m.group(0), m.start(), m.end())
             if etype is EntityType.ORG and value.startswith("The "):
                 value, start = value[4:], start + 4
             found.append(Entity(value, etype, start, end, 0.95, "rules"))
