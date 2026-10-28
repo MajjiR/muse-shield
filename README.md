@@ -35,3 +35,4 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | --- | --- |
 | `privacy_engine/config.py` | settings from env / `.env` |
 | `privacy_engine/detector/` | rules (regex, Luhn, lexicons) + local Llama 1B detector, merged |
+| `privacy_engine/policy.py` | PII / CONFIDENTIAL / PUBLIC classification, context escalation, mask/block/allow |
