@@ -51,4 +51,5 @@ cloud call goes to an offline mock, so the whole demo runs on a laptop with no n
 | `privacy_engine/personalization.py` | Teach -> Test -> Deploy: draft policy, regression suite, versioned deploy + rollback |
 | Network inspector tab, `privacy-engine demo` | wire-level egress log, full-vault leak audit, guarded raw-send attempt |
 | `privacy_engine/bench.py`, `privacy-engine bench` | privacy vs utility: raw / redact / pii-only / semantic / +taught / strict |
+| `privacy_engine/lora.py`, `scripts/lora_*.py`, `docs/LORA.md` | LoRA data from Teach, train/eval on MPS, deploy via Ollama ADAPTER |
 | `privacy_engine/cli.py` | `privacy-engine serve \| protect \| ask` |

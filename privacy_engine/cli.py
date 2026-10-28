@@ -29,6 +29,11 @@ def main(argv: list[str] | None = None) -> int:
     bench.add_argument("--online", type=int, default=0, metavar="K",
                        help="also score K samples per strategy against the cloud model (sends synthetic raw prompts)")
 
+    lora = sub.add_parser("lora-data", help="export LoRA training data for the local detector, personalized from Teach")
+    lora.add_argument("--n", type=int, default=600)
+    lora.add_argument("--seed", type=int, default=11)
+    lora.add_argument("--out", default="runs/lora")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "serve":
@@ -46,6 +51,13 @@ def main(argv: list[str] | None = None) -> int:
         return demo()
     if args.cmd == "bench":
         return run_bench(args)
+    if args.cmd == "lora-data":
+        from pathlib import Path
+
+        from .lora import export
+
+        print(json.dumps(export(Path(args.out), args.n, args.seed, PrivacyEngine().store), indent=2))
+        return 0
 
     text = args.text if args.text is not None else sys.stdin.read()
     engine = PrivacyEngine()
