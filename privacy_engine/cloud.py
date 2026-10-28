@@ -228,11 +228,16 @@ class CloudLLM:
         masked_messages: list[dict[str, str]],
         secrets: dict[str, str],
         conversation_id: str = "",
+        temperature: float = 0.3,
+        max_tokens: int = 1024,
     ) -> str:
         messages = [{"role": "system", "content": CLOUD_SYSTEM_PROMPT}, *masked_messages]
         guard(messages, secrets)
         self.inspector.set_context(conversation_id, secrets, self.mock)
-        return chat(self._client, self.base_url, self.model, messages, api_key=self.api_key, temperature=0.3)
+        return chat(
+            self._client, self.base_url, self.model, messages,
+            api_key=self.api_key, temperature=temperature, max_tokens=max_tokens,
+        )
 
 
 def guard(messages: Iterable[dict], secrets: dict[str, str]) -> None:

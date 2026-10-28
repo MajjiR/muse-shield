@@ -71,6 +71,40 @@ class AskResult:
         }
 
 
+class UnsupportedContent(ValueError):
+    """Message content the engine cannot inspect yet (e.g. images), so it must not be sent."""
+
+
+def message_text(content) -> str:
+    if isinstance(content, str):
+        return content
+    if content is None:
+        return ""
+    if isinstance(content, list):
+        if any(not isinstance(p, dict) or p.get("type") != "text" for p in content):
+            raise UnsupportedContent("only text content parts are supported; images are not sent until on-device masking covers them")
+        return "\n".join(p.get("text", "") for p in content)
+    raise UnsupportedContent(f"unsupported content type: {type(content).__name__}")
+
+
+@dataclass
+class ChatResult:
+    masked_messages: list[dict[str, str]]
+    protected: list[Protected]
+    masked_reply: str = ""
+    reconstruction: Reconstruction | None = None
+    blocked: bool = False
+    error: str = ""
+
+    @property
+    def answer(self) -> str:
+        return self.reconstruction.text if self.reconstruction else ""
+
+    @property
+    def tokens(self) -> list[str]:
+        return sorted({t for p in self.protected for t in p.masked.mapping})
+
+
 class PrivacyEngine:
     def __init__(
         self,
@@ -156,6 +190,36 @@ class PrivacyEngine:
             {"role": "user", "content": protected.masked.masked},
             {"role": "assistant", "content": result.masked_reply},
         ]
+        return result
+
+    def chat(self, messages: list[dict], temperature: float = 0.3, max_tokens: int = 1024) -> ChatResult:
+        """Stateless OpenAI-style chat: mask every message, ask the cloud, restore the reply.
+
+        Clients resend the full history on every call. Vault tokens are
+        consistent, so PERSON_1 stays the same person across turns without
+        any server-side conversation state.
+        """
+        masked_messages, protected, secrets = [], [], {}
+        for m in messages:
+            p = self.protect(message_text(m.get("content")))
+            protected.append(p)
+            secrets.update(p.masked.mapping)
+            masked_messages.append({"role": m.get("role", "user"), "content": p.masked.masked})
+        result = ChatResult(masked_messages, protected)
+
+        blocked = sorted({d.entity.type.value for p in protected for d in p.masked.blocked})
+        if blocked:
+            result.blocked, result.error = True, f"blocked by policy: message contains {', '.join(blocked)}"
+            return result
+        try:
+            result.masked_reply = self.cloud.complete(masked_messages, secrets, "proxy", temperature, max_tokens)
+        except PrivacyViolation as exc:
+            result.blocked, result.error = True, str(exc)
+            return result
+        except LLMError as exc:
+            result.error = f"cloud error: {exc}"
+            return result
+        result.reconstruction = reconstruct(result.masked_reply, secrets, self.allocator.reveal)
         return result
 
     # -- proof that raw values never left -----------------------------------

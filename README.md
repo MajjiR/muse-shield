@@ -58,6 +58,26 @@ Real cloud model: set `MODEL_API_KEY` in `.env` to use **Muse Spark** (`muse-spa
 Meta Model API. Any OpenAI-compatible endpoint works via `CLOUD_BASE_URL` / `CLOUD_MODEL`. Without Ollama the
 detector uses rules only. Without a key, an offline mock cloud answers in tokens.
 
+## Drop-in proxy: privacy for any app in one line
+
+The server speaks the OpenAI Chat Completions protocol at `/v1`. Point any existing
+OpenAI-SDK app or agent at it, and every request gets on-device masking, then Muse Spark,
+then local reconstruction:
+
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://127.0.0.1:8787/v1", api_key="unused")  # the only change
+client.chat.completions.create(model="muse-spark-1.3", messages=[...])
+```
+
+- **Stateless.** Clients resend history, and consistent vault tokens keep `PERSON_1` the same
+  person across turns.
+- **Streaming works.** The answer is restored first, then sent as one chunk.
+- **Keys and model.** The client's API key is ignored and never forwarded. The configured
+  cloud model is always used.
+- **What gets refused.** Policy-blocked messages and image parts get an HTTP 400 and nothing
+  is sent.
+
 ## 3-minute demo script
 
 1. **Chat**: send the first example. Pane 1 shows on-device detections, pane 2 shows the

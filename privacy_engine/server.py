@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+import json
+import time
+import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .entities import EntityType
 from .personalization import DeployBlocked
-from .pipeline import PrivacyEngine
+from .pipeline import PrivacyEngine, UnsupportedContent
 from .policy import Policy
 
 WEB = Path(__file__).resolve().parent.parent / "web"
@@ -118,6 +121,56 @@ def create_app(engine: PrivacyEngine | None = None) -> FastAPI:
     def clear_inspector():
         engine.inspector.clear()
         return {"ok": True}
+
+    # -- OpenAI-compatible privacy proxy ---------------------------------------
+    # Point any OpenAI-SDK app at http://127.0.0.1:<port>/v1 and it gets
+    # on-device masking, Muse Spark, and local reconstruction for free.
+    # The client's own API key is ignored and never forwarded.
+
+    def openai_error(status: int, message: str, kind: str) -> JSONResponse:
+        return JSONResponse({"error": {"message": message, "type": kind, "code": kind}}, status_code=status)
+
+    @app.get("/v1/models")
+    def list_models():
+        return {"object": "list", "data": [{"id": engine.cloud.model, "object": "model", "owned_by": "privacy-engine"}]}
+
+    @app.post("/v1/chat/completions")
+    def chat_completions(body: dict):
+        messages = body.get("messages")
+        if not isinstance(messages, list) or not messages:
+            return openai_error(400, "messages must be a non-empty list", "invalid_request_error")
+        try:
+            result = engine.chat(
+                messages,
+                temperature=float(body.get("temperature", 0.3)),
+                max_tokens=int(body.get("max_tokens") or body.get("max_completion_tokens") or 1024),
+            )
+        except UnsupportedContent as exc:
+            return openai_error(400, str(exc), "unsupported_content")
+        if result.blocked:
+            return openai_error(400, f"{result.error}. Nothing was sent.", "privacy_blocked")
+        if result.error:
+            return openai_error(502, result.error, "upstream_error")
+
+        cid, created, model = f"chatcmpl-{uuid.uuid4().hex[:24]}", int(time.time()), engine.cloud.model
+        privacy = {"tokens": result.tokens, "unresolved": result.reconstruction.unresolved}
+        if not body.get("stream"):
+            return {
+                "id": cid, "object": "chat.completion", "created": created, "model": model,
+                "choices": [{"index": 0, "message": {"role": "assistant", "content": result.answer}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                "privacy": privacy,
+            }
+
+        # The answer must be fully restored before anything is shown, so it is
+        # streamed as a single chunk: compatible with streaming clients, no partial tokens.
+        def events():
+            base = {"id": cid, "object": "chat.completion.chunk", "created": created, "model": model}
+            yield f"data: {json.dumps({**base, 'choices': [{'index': 0, 'delta': {'role': 'assistant', 'content': result.answer}, 'finish_reason': None}]})}\n\n"
+            yield f"data: {json.dumps({**base, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}], 'privacy': privacy})}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(events(), media_type="text/event-stream")
 
     # -- Teach -> Test -> Deploy ----------------------------------------------
     def teach_state() -> dict:
