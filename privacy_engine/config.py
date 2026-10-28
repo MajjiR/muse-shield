@@ -29,9 +29,11 @@ def _env(name: str, default: str = "") -> str:
 class Settings:
     local_llm_base_url: str = field(default_factory=lambda: _env("LOCAL_LLM_BASE_URL", "http://localhost:11434/v1"))
     local_llm_model: str = field(default_factory=lambda: _env("LOCAL_LLM_MODEL", "llama3.2:1b"))
-    cloud_base_url: str = field(default_factory=lambda: _env("CLOUD_BASE_URL", "https://api.llama.com/compat/v1"))
-    cloud_model: str = field(default_factory=lambda: _env("CLOUD_MODEL", "Llama-4-Maverick-17B-128E-Instruct-FP8"))
-    cloud_api_key: str = field(default_factory=lambda: _env("CLOUD_API_KEY"))
+    # Meta Model API (OpenAI-compatible). Muse Spark reasons over masked text only.
+    cloud_base_url: str = field(default_factory=lambda: _env("CLOUD_BASE_URL", "https://api.meta.ai/v1"))
+    cloud_model: str = field(default_factory=lambda: _env("CLOUD_MODEL", "muse-spark-1.3"))
+    # MODEL_API_KEY is the name Meta's docs use; CLOUD_API_KEY overrides it.
+    cloud_api_key: str = field(default_factory=lambda: _env("CLOUD_API_KEY") or _env("MODEL_API_KEY"))
     passphrase: str = field(default_factory=lambda: _env("PRIVACY_ENGINE_PASSPHRASE"))
     home: Path = field(default_factory=lambda: Path(_env("PRIVACY_ENGINE_HOME", ".privacy")))
 

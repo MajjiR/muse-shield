@@ -43,11 +43,11 @@ def test_real_endpoint_receives_masked_payload_and_auth():
         seen["body"] = json.loads(request.content)
         return httpx.Response(200, json={"choices": [{"message": {"content": "ok PERSON_1"}}]})
 
-    cloud = CloudLLM("https://api.llama.com/compat/v1", "Llama-4", api_key="k", transport=httpx.MockTransport(handler))
+    cloud = CloudLLM("https://api.meta.ai/v1", "muse-spark-1.3", api_key="k", transport=httpx.MockTransport(handler))
     assert not cloud.mock
     assert cloud.complete([{"role": "user", "content": "hi PERSON_1"}], SECRETS) == "ok PERSON_1"
     assert seen["auth"] == "Bearer k"
-    assert seen["body"]["model"] == "Llama-4"
+    assert seen["body"]["model"] == "muse-spark-1.3"
     assert seen["body"]["messages"][0]["role"] == "system"
 
 

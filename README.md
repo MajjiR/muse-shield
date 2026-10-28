@@ -54,8 +54,8 @@ ollama serve
 ollama pull llama3.2:1b
 ```
 
-Optional real cloud model: set `CLOUD_API_KEY` in `.env` (Llama API by default; any
-OpenAI-compatible endpoint works via `CLOUD_BASE_URL` / `CLOUD_MODEL`). Without Ollama the
+Real cloud model: set `MODEL_API_KEY` in `.env` to use **Muse Spark** (`muse-spark-1.3`) on the
+Meta Model API. Any OpenAI-compatible endpoint works via `CLOUD_BASE_URL` / `CLOUD_MODEL`. Without Ollama the
 detector uses rules only. Without a key, an offline mock cloud answers in tokens.
 
 ## 3-minute demo script
