@@ -9,3 +9,5 @@ __pycache__/
 *.db
 runs/
 adapters/
+.DS_Store
+*.egg-info/

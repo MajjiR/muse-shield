@@ -1,2 +1,0 @@
-[console_scripts]
-privacy-engine = privacy_engine.cli:main

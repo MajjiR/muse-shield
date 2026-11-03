@@ -1,7 +1,7 @@
 [project]
-name = "privacy-engine"
-version = "0.1.0"
-description = "Local-first privacy layer: a small on-device Llama masks PII and confidential context before anything reaches a cloud LLM."
+name = "muse-shield"
+version = "0.0.1"
+description = "Privacy gateway for Meta's Muse models: mask sensitive data before it reaches the model, restore it locally."
 requires-python = ">=3.10"
 dependencies = [
   "cryptography>=42",
@@ -13,17 +13,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
-lora = ["torch", "transformers>=4.45", "peft>=0.12", "datasets", "accelerate"]
-
-[project.scripts]
-privacy-engine = "privacy_engine.cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["privacy_engine*"]
+include = ["muse_shield*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
