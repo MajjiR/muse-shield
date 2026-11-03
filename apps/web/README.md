@@ -17,4 +17,4 @@ Spark, so use fake data only):
 MUSE_SHIELD_DEV_RAW_ANALYSIS=1 .venv/bin/python -m muse_shield.app
 ```
 
-Colours: green = masked value, blue = context block, yellow = kept.
+Colours: each data type has its own pastel (people lavender, amounts mint, IDs and secrets rose, contacts sky, places sand, dates lilac); hidden passages are blue.
