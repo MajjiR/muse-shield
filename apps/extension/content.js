@@ -59,12 +59,19 @@ offPill.type = "button";
 offPill.textContent = "🛡️ Muse Shield is off · turn on";
 offPill.addEventListener("click", () => chrome.storage.local.set({ shieldOn: true }));
 
+// meta.ai's whole message box: the smallest ancestor of the editor that also holds its controls.
+// Send turns into Stop while Meta AI is generating, so anchor on controls that stay put too.
+const CONTROLS = [SEL.send, '[data-testid="composer-add-attachment-button"]', '[data-testid="composer-mode-dropdown-button"]',
+  '[data-testid="composer-dictation-button"]'].join(",");
+let lastBox = null;
 function composerBox() {
   const ed = document.querySelector(SEL.composer);
-  const send = document.querySelector(SEL.send);
   if (!ed) return null;
   let box = ed;
-  while (box.parentElement && send && !box.contains(send)) box = box.parentElement;
+  while (box.parentElement && !box.querySelector(CONTROLS)) box = box.parentElement;
+  if (!box.querySelector(CONTROLS)) box = ed;
+  if (lastBox && lastBox !== box) lastBox.style.opacity = ""; // meta.ai swapped its box: show the old one again
+  lastBox = box;
   return box;
 }
 
