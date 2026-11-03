@@ -68,14 +68,38 @@ def test_document_attached_once_then_a_question(tmp_path):
     assert sum(1 for x in sent if x.startswith("[Document 1")) == 1 and sent[-1] == "When does he start?"
 
 
-def test_need_context_on_a_document_passage(tmp_path):
-    c, m = make(tmp_path, ["NEED_CONTEXT: <DECISION_1> shape to check the deadline", "Reply by the date given."],
-                contexts={"Please confirm": "DECISION"})
+def test_documents_mask_values_not_passages(tmp_path):
+    # Spark would mark "Please confirm by Friday." as a passage; in a document that hides too much, so only values go.
+    c, _ = make(tmp_path, contexts={"Please confirm": "DECISION"})
+    doc = upload(c, tricky_docx()).json()
+    detail = c.get(f"/documents/{doc['doc_id']}", params={"detail": True}).json()
+    assert "Please confirm by Friday." in detail["masked_text"] and "<DECISION_" not in detail["masked_text"]
+
+
+def test_need_context_still_works_for_a_value(tmp_path):
+    c, m = make(tmp_path, ["NEED_CONTEXT: <PERSON_1> full to address the letter", "Dear Arjun Malhotra,"])
     doc = upload(c, tricky_docx()).json()
     r = c.post("/chat", json={"message": "", "chat_id": doc["chat_id"], "document_ids": [doc["doc_id"]]}).json()
-    assert r["ask"] and r["ask"]["label"] == "<DECISION_1>"
-    r2 = c.post("/reveal", json={"ask_id": r["ask"]["ask_id"], "decision": "allow", "level": "shape"}).json()
-    assert r2["error"] == "" and r2["reply"] == "Reply by the date given."
+    assert r["ask"] and r["ask"]["label"] == "<PERSON_1>"
+    r2 = c.post("/reveal", json={"ask_id": r["ask"]["ask_id"], "decision": "deny"}).json()
+    assert r2["error"] == ""
+
+
+def test_passages_when_asked_for(tmp_path):
+    from doc_fakes import fake_values as fv
+
+    from muse_shield.app.engine import Masker
+    from muse_shield.documents.pipeline import mask_document
+
+    vault = Vault(tmp_path / "p.db", b"\x99" * 32)
+    r = mask_document(tricky_docx(), Masker(vault, fv(TRICKY_DOCX_VALUES, contexts={"Please confirm": "DECISION"})),
+                      vault.create_chat(), contexts=True)
+    from muse_shield.documents import docx as D
+    from muse_shield.documents.ooxml import Package
+    from muse_shield.documents.text import build
+
+    again = build(D.blocks(Package(r.data))).text
+    assert "<DECISION_1>" in again and "Please confirm" not in again
 
 
 def test_pdf_with_scanned_page(tmp_path):

@@ -132,9 +132,11 @@ class Masker:
                 self.vault.add_edge(chat_id, c["placeholder"], best["placeholder"], "identifies")
                 self.vault.link_entities(c["entity_id"], best["entity_id"], "identifies")
 
-    def mask(self, text: str, chat_id: str, *, propagate: bool = False, on_progress=None, title: bool = True) -> Masked:
+    def mask(self, text: str, chat_id: str, *, propagate: bool = False, contexts: bool = True, on_progress=None,
+             title: bool = True) -> Masked:
         """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
-        on_progress(done, total) per analysed unit, and title=False (a document shouldn't name the chat)."""
+        contexts=False (a passage block would swallow most of a page), on_progress(done, total) per analysed
+        unit, and title=False (a document shouldn't name the chat)."""
         t0 = time.perf_counter()
         paras = paragraphs(text)
         try:
@@ -159,7 +161,7 @@ class Masker:
         for (off, para), a in zip(paras, analyses):
             sentences = a.sentences or split_sentences(para) or [para]
             offs = sentence_offsets(para, sentences)
-            for c in a.contexts:
+            for c in (a.contexts if contexts else []):
                 lo, hi = min(c.sentences), max(c.sentences)
                 start, end = off + offs[lo - 1][0], off + offs[hi - 1][1]
                 if any(start < b["end"] and b["start"] < end for b in blocks):

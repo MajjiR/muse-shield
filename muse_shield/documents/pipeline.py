@@ -51,7 +51,9 @@ class MaskedDocument:
 
 
 def mask_document(data: bytes, masker: Masker, chat_id: str, *, max_unit_chars: int = MAX_UNIT_CHARS,
-                  on_progress=None) -> MaskedDocument:
+                  contexts: bool = False, on_progress=None) -> MaskedDocument:
+    """Values only by default: Muse Spark tends to mark a whole letter or slide as one passage, which would
+    leave nothing of the document to work with. contexts=True hides passages as blocks, as in chat."""
     t0 = time.perf_counter()
     fmt = sniff(data)
     h = handler(fmt)
@@ -64,7 +66,7 @@ def mask_document(data: bytes, masker: Masker, chat_id: str, *, max_unit_chars: 
     dt = build(h.blocks(doc), max_unit_chars)
     if len(dt.text) > MAX_CHARS:
         raise DocumentError("too_large", f"up to {MAX_CHARS:,} characters of text", 413)
-    masked = masker.mask(dt.text, chat_id, propagate=True, on_progress=on_progress, title=False)
+    masked = masker.mask(dt.text, chat_id, propagate=True, contexts=contexts, on_progress=on_progress, title=False)
     if not masked.analysis_ok:
         raise DocumentError("analysis_failed", masked.error, 502)
     # Values the model already saw in this chat stay readable in the chat, but not in a file someone may share.

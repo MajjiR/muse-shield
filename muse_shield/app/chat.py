@@ -305,7 +305,8 @@ class ChatEngine:
                 raise ChatError("unknown document for this chat")
             if d["status"] not in ("ready", "blocked") or not d.get("masked_text"):
                 raise ChatError("that document isn't ready yet")
-            pages = f"{d['pages']} {'slides' if d['format'] == 'pptx' else 'pages'}" if d["format"] != "docx" else "Word"
+            unit = "slide" if d["format"] == "pptx" else "page"
+            pages = f"{d['pages']} {unit}{'' if d['pages'] == 1 else 's'}" if d["format"] != "docx" else "Word"
             text = f"[Document {d['n']} · {d['format']} · {pages}, masked like the rest of this chat]\n{d['masked_text']}"
             if used + len(text) > budget:
                 raise ChatError(f"documents in one chat are limited to {budget:,} characters")
