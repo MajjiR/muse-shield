@@ -1,0 +1,18 @@
+{
+  "run_id": "20261103-220341_v0.0.1+imported_smoke5-reasoning-low",
+  "eval": "nemotron-pii",
+  "tag": "smoke5-reasoning-low",
+  "created": "2026-11-03T22:03:41+0530",
+  "version": "0.0.1",
+  "git": "unknown (imported)",
+  "command": "imported from runs/benchmarks/20261103-220341",
+  "dataset": {
+    "name": "nvidia/Nemotron-PII"
+  },
+  "settings": {},
+  "backends": [
+    "glimmer",
+    "muse_spark",
+    "muse_wonder"
+  ]
+}

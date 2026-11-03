@@ -1,0 +1,130 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/fireworks/models/muse-glimmer-30b",
+  "docs": 5,
+  "seconds": 2.1,
+  "leak_rate": 1.0,
+  "core_leak_rate": 1.0,
+  "quasi_leak_rate": 1.0,
+  "span_recall": 0.0,
+  "span_precision": null,
+  "type_accuracy": null,
+  "recall_by_type": {
+    "ADDRESS": 0.0,
+    "CONTACT": 0.0,
+    "DATE": 0.0,
+    "ID": 0.0,
+    "LOCATION": 0.0,
+    "ORG": 0.0,
+    "PERSON": 0.0,
+    "SENSITIVE_ATTRIBUTE": 0.0
+  },
+  "recall_by_label": {
+    "bank_routing_number": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "company_name": {
+      "recall": 0.0,
+      "n": 15
+    },
+    "county": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "credit_debit_card": {
+      "recall": 0.0,
+      "n": 5
+    },
+    "date": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "education_level": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "email": {
+      "recall": 0.0,
+      "n": 8
+    },
+    "first_name": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "gender": {
+      "recall": 0.0,
+      "n": 6
+    },
+    "health_plan_beneficiary_number": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "language": {
+      "recall": 0.0,
+      "n": 2
+    },
+    "last_name": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "license_plate": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "mac_address": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "occupation": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "phone_number": {
+      "recall": 0.0,
+      "n": 3
+    },
+    "ssn": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "street_address": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "swift_bic": {
+      "recall": 0.0,
+      "n": 6
+    },
+    "time": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "url": {
+      "recall": 0.0,
+      "n": 2
+    },
+    "user_name": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "vehicle_identifier": {
+      "recall": 0.0,
+      "n": 1
+    }
+  },
+  "calls": 0,
+  "valid_rate": null,
+  "first_try_rate": null,
+  "hallucinated_spans": 0,
+  "errors": 50,
+  "latency_ms_per_doc": {
+    "p50": 1766.2936249980703,
+    "p95": 2109.7119580372237
+  },
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "cost_usd": 0.0
+}

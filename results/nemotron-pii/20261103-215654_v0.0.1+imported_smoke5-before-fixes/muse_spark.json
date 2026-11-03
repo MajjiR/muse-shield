@@ -1,0 +1,130 @@
+{
+  "backend": "muse_spark",
+  "model": "muse-spark-1.3",
+  "docs": 5,
+  "seconds": 140.0,
+  "leak_rate": 0.9578736208625878,
+  "core_leak_rate": 0.9551282051282052,
+  "quasi_leak_rate": 1.0,
+  "span_recall": 0.04838709677419355,
+  "span_precision": 1.0,
+  "type_accuracy": 1.0,
+  "recall_by_type": {
+    "ADDRESS": 0.0,
+    "CONTACT": 0.07142857142857142,
+    "DATE": 0.0,
+    "ID": 0.058823529411764705,
+    "LOCATION": 0.0,
+    "ORG": 0.0,
+    "PERSON": 0.5,
+    "SENSITIVE_ATTRIBUTE": 0.0
+  },
+  "recall_by_label": {
+    "bank_routing_number": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "company_name": {
+      "recall": 0.0,
+      "n": 15
+    },
+    "county": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "credit_debit_card": {
+      "recall": 0.0,
+      "n": 5
+    },
+    "date": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "education_level": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "email": {
+      "recall": 0.125,
+      "n": 8
+    },
+    "first_name": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "gender": {
+      "recall": 0.0,
+      "n": 6
+    },
+    "health_plan_beneficiary_number": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "language": {
+      "recall": 0.0,
+      "n": 2
+    },
+    "last_name": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "license_plate": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "mac_address": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "occupation": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "phone_number": {
+      "recall": 0.0,
+      "n": 3
+    },
+    "ssn": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "street_address": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "swift_bic": {
+      "recall": 0.0,
+      "n": 6
+    },
+    "time": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "url": {
+      "recall": 0.0,
+      "n": 2
+    },
+    "user_name": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "vehicle_identifier": {
+      "recall": 0.0,
+      "n": 1
+    }
+  },
+  "calls": 50,
+  "valid_rate": 0.42,
+  "first_try_rate": 0.42,
+  "hallucinated_spans": 0,
+  "errors": 0,
+  "latency_ms_per_doc": {
+    "p50": 108505.1057919627,
+    "p95": 139963.26320798835
+  },
+  "tokens": {
+    "in": 52542,
+    "out": 76587
+  },
+  "cost_usd": null
+}

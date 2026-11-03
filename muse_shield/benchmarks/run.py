@@ -20,7 +20,8 @@ from pathlib import Path
 
 from ..analysis import Analysis
 from ..backends import Backend, BackendError, backend_from_env
-from .nemotron import LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
+from ..results import save_run, sha256
+from .nemotron import DATASET, LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
 
 # USD per 1M tokens (input, output). Glimmer: Fireworks serverless list price. Meta prices aren't
 # published in the docs we found; set PRICE_<BACKEND>_IN / PRICE_<BACKEND>_OUT to fill them in.
@@ -154,15 +155,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--out", type=Path, default=Path("runs/benchmarks"))
     ap.add_argument("--cache", type=Path, default=Path("runs/benchmarks"), help="where the sampled docs are cached")
+    ap.add_argument("--tag", default="", help="label for the results registry (default: smoke or full)")
+    ap.add_argument("--no-record", action="store_true", help="don't write to results/")
     args = ap.parse_args(argv)
 
-    docs = load_or_sample(args.cache / f"nemotron-test-{args.n}-s{args.seed}.jsonl", args.n, args.seed)
+    cache = args.cache / f"nemotron-test-{args.n}-s{args.seed}.jsonl"
+    docs = load_or_sample(cache, args.n, args.seed)
     if args.limit:
         docs = docs[: args.limit]
     stamp = time.strftime("%Y%m%d-%H%M%S")
     run_dir = args.out / stamp
     run_dir.mkdir(parents=True, exist_ok=True)
-    reports = []
+    reports, all_preds, settings = [], {}, {}
     for name in [b.strip() for b in args.backends.split(",") if b.strip()]:
         try:
             backend = backend_from_env(name)
@@ -172,6 +176,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"running {name} ({backend.model}) on {len(docs)} docs …", flush=True)
         report, preds = run_backend(backend, docs, args.workers)
         reports.append(report)
+        all_preds[name] = preds
+        settings[name] = {"model": backend.model, "workers": args.workers, "max_tokens": getattr(backend, "max_tokens", None),
+                          "json_mode": getattr(backend, "json_mode", None), **getattr(backend, "extra", {})}
         (run_dir / f"{name}.json").write_text(json.dumps(report, indent=2))
         (run_dir / f"{name}.preds.jsonl").write_text("".join(json.dumps(p, ensure_ascii=False) + "\n" for p in preds))
         print(f"  leak {_pct(report['leak_rate'])} · recall {_pct(report['span_recall'])} · valid {_pct(report['valid_rate'])} "
@@ -181,6 +188,12 @@ def main(argv: list[str] | None = None) -> int:
     md = render(reports, len(docs))
     (run_dir / "compare.md").write_text(md + "\n")
     print("\n" + md + f"\n\nsaved {run_dir}/")
+    if not args.no_record:
+        dataset = {"name": DATASET, "split": "test", "docs": len(docs), "sample_n": args.n, "seed": args.seed,
+                   "limit": args.limit, "sample_file": cache.name, "sample_sha256": sha256(cache)}
+        out = save_run("nemotron-pii", args.tag or ("smoke" if args.limit else "full"), reports, all_preds,
+                       settings=settings, dataset=dataset, compare_md=md)
+        print(f"recorded {out}")
     return 0
 
 

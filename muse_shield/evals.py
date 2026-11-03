@@ -184,6 +184,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=3)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--out", type=Path, default=Path("runs/evals"))
+    ap.add_argument("--tag", default="synthetic", help="label for the results registry")
+    ap.add_argument("--no-record", action="store_true", help="don't write to results/")
     args = ap.parse_args(argv)
 
     try:
@@ -198,6 +200,17 @@ def main(argv: list[str] | None = None) -> int:
     (args.out / f"{report['backend']}-{stamp}.json").write_text(json.dumps(report, indent=2, ensure_ascii=False))
     (args.out / f"{report['backend']}-{stamp}.md").write_text(render(report) + "\n")
     print(f"\nsaved {args.out}/{report['backend']}-{stamp}.md")
+    if not args.no_record:
+        from .results import save_run
+
+        # Same headline keys as the public benchmark, so all runs share one index.
+        summary = {**report, "span_recall": report["entities"]["recall"], "span_precision": report["entities"]["precision"],
+                   "valid_rate": report["contract"]["valid_rate"], "docs": report["n"],
+                   "recall_by_type": {t: m["recall"] for t, m in report["entities_by_type"].items()}}
+        out = save_run("synthetic-contract", args.tag, [summary], {}, compare_md=render(report),
+                       settings={report["backend"]: {"model": report["model"], "workers": args.workers}},
+                       dataset={"name": "muse_shield.evalset", "docs": report["n"], "seed": args.seed})
+        print(f"recorded {out}")
     return 0
 
 

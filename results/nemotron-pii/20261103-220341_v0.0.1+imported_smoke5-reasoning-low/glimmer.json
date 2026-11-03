@@ -1,0 +1,130 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj",
+  "docs": 5,
+  "seconds": 31.5,
+  "leak_rate": 0.2246740220661986,
+  "core_leak_rate": 0.17414529914529914,
+  "quasi_leak_rate": 1.0,
+  "span_recall": 0.7096774193548387,
+  "span_precision": 0.7586206896551724,
+  "type_accuracy": 0.9772727272727273,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "CONTACT": 0.9285714285714286,
+    "DATE": 1.0,
+    "ID": 0.8235294117647058,
+    "LOCATION": 1.0,
+    "ORG": 0.8,
+    "PERSON": 0.5,
+    "SENSITIVE_ATTRIBUTE": 0.0
+  },
+  "recall_by_label": {
+    "bank_routing_number": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "company_name": {
+      "recall": 0.8,
+      "n": 15
+    },
+    "county": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "credit_debit_card": {
+      "recall": 0.8,
+      "n": 5
+    },
+    "date": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "education_level": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "email": {
+      "recall": 0.875,
+      "n": 8
+    },
+    "first_name": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "gender": {
+      "recall": 0.0,
+      "n": 6
+    },
+    "health_plan_beneficiary_number": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "language": {
+      "recall": 0.0,
+      "n": 2
+    },
+    "last_name": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "license_plate": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "mac_address": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "occupation": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "phone_number": {
+      "recall": 1.0,
+      "n": 3
+    },
+    "ssn": {
+      "recall": 0.0,
+      "n": 1
+    },
+    "street_address": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "swift_bic": {
+      "recall": 0.8333333333333334,
+      "n": 6
+    },
+    "time": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "url": {
+      "recall": 1.0,
+      "n": 2
+    },
+    "user_name": {
+      "recall": 1.0,
+      "n": 1
+    },
+    "vehicle_identifier": {
+      "recall": 1.0,
+      "n": 1
+    }
+  },
+  "calls": 50,
+  "valid_rate": 0.92,
+  "first_try_rate": 0.92,
+  "hallucinated_spans": 0,
+  "errors": 0,
+  "latency_ms_per_doc": {
+    "p50": 19956.502167042345,
+    "p95": 31460.75041696895
+  },
+  "tokens": {
+    "in": 35966,
+    "out": 11048
+  },
+  "cost_usd": null
+}
