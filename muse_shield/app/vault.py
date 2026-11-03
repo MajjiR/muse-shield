@@ -104,6 +104,48 @@ def default_home() -> Path:
     return Path(os.environ.get("MUSE_SHIELD_HOME", Path.home() / ".muse-shield"))
 
 
+class _Rows(list):
+    """Fully fetched rows, so no cursor is shared between threads."""
+
+    def fetchone(self):
+        return self[0] if self else None
+
+    def fetchall(self):
+        return list(self)
+
+
+class _LockedDB:
+    """One SQLite connection shared by the server's worker threads: every statement runs under the
+    vault lock and is fetched before the lock is released. Without this, a read that lands in the
+    middle of another thread's write can come back empty."""
+
+    def __init__(self, conn: sqlite3.Connection, lock: threading.RLock):
+        self._conn, self._lock = conn, lock
+
+    def execute(self, sql: str, params: tuple = ()) -> _Rows:
+        with self._lock:
+            return _Rows(self._conn.execute(sql, params).fetchall())
+
+    def executescript(self, script: str) -> None:
+        with self._lock:
+            self._conn.executescript(script)
+
+    def __enter__(self):
+        self._lock.acquire()
+        self._conn.__enter__()
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            return self._conn.__exit__(*exc)
+        finally:
+            self._lock.release()
+
+    def close(self) -> None:
+        with self._lock:
+            self._conn.close()
+
+
 class Vault:
     def __init__(self, path: Path | str, master_key: bytes):
         if len(master_key) != 32:
@@ -114,7 +156,7 @@ class Vault:
         self._chain_key = sub(b"muse-shield/vault/audit-chain")
         self.path = str(path)
         self._lock = threading.RLock()
-        self._db = sqlite3.connect(self.path, check_same_thread=False)
+        self._db = _LockedDB(sqlite3.connect(self.path, check_same_thread=False), self._lock)
         self._db.execute("PRAGMA secure_delete = ON")  # overwritten rows don't linger in free pages
         self._db.executescript(SCHEMA)
         if self.path != ":memory:":
@@ -234,10 +276,13 @@ class Vault:
         kind, tid = target
         return self.entity_value(tid) if kind == "entity" else self.context_payload(tid)[level]
 
-    def mapping(self, chat_id: str) -> dict[str, str]:
-        """label -> real value for every placeholder in the chat (for local rehydration)."""
+    def mapping(self, chat_id: str, contexts: str = "full") -> dict[str, str]:
+        """label -> real value for every placeholder in the chat (for local rehydration).
+
+        `contexts` picks what a context block resolves to: "full" for the user's own text, "summary" for
+        assistant replies, so a whole hidden passage is never pasted into a drafted document."""
         rows = self._db.execute("SELECT label, target_kind, target_id FROM placeholders WHERE chat_id=?", (chat_id,)).fetchall()
-        return {label: (self.entity_value(t) if k == "entity" else self.context_payload(t)["full"]) for label, k, t in rows}
+        return {label: (self.entity_value(t) if k == "entity" else self.context_payload(t)[contexts]) for label, k, t in rows}
 
     def items(self, chat_id: str) -> dict:
         """Labels and types for the vault panel; no values."""

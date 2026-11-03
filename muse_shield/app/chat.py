@@ -26,9 +26,10 @@ Sensitive details in the conversation were replaced on the user's device with pl
 - <SALARY_1>, <PRICE_1>, <DEAL_VALUE_1>, <LOAN_1>, <AMOUNT_1>: a money amount with that role.
 - <DEAL_1>, <DECISION_1>, <PLAN_1>, <NEGOTIATION_1>, <PROJECT_1>, <HR_1>: a whole passage about a deal, decision, plan, negotiation, project or HR matter, hidden as one block.
 Rules:
-1. Treat placeholders as real values. Write them exactly as given, with the angle brackets, wherever you refer to them. Never guess or invent the real value behind one, and never invent new placeholders.
-2. Answer directly whenever you can. Most requests (drafting, summarizing, explaining, planning) work fine with placeholders.
-3. Only if you truly cannot answer without seeing hidden content, reply with exactly one line and nothing else:
+1. Value placeholders (<PERSON_1>, <ORG_2>, <SALARY_1>, ...) stand for one real value. Write them exactly as given, with the angle brackets, wherever you refer to them. Never guess or invent the real value behind one, and never invent new placeholders.
+2. Passage placeholders (<DEAL_1>, <PLAN_1>, <HR_1>, ...) stand for whole hidden sentences, not a word. Never write one inside a sentence or a document: refer to the passage in plain words ("the incident", "the offer", "the plan") instead, or ask to see it with rule 4.
+3. Answer directly whenever you can. Most requests (drafting, summarizing, explaining, planning) work fine with placeholders. If the user asks you not to name or reveal someone or something, leave that placeholder out of your answer entirely.
+4. When the answer must be built from a hidden passage (an RCA about an incident, a summary of a deal, advice on an offer), ask for its shape rather than writing a generic template with blanks. To ask, reply with exactly one line and nothing else:
 NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
 Ask for the least you need: shape before summary before full. Ask for at most one label per reply."""
@@ -222,7 +223,7 @@ class ChatEngine:
             return
         # A normal answer (or an unusable NEED_CONTEXT line): store and rehydrate.
         turn.masked_reply = content
-        turn.reply, turn.unknown_labels = rehydrate(content, mapping)
+        turn.reply, turn.unknown_labels = rehydrate(content, self.vault.mapping(chat_id, contexts="summary"))
         turn.message_id = self.vault.add_message(chat_id, "assistant", content, meta={"cost_usd": turn.cost_usd})
 
     # -- tools ----------------------------------------------------------------

@@ -211,3 +211,23 @@ def test_sentence_split_keeps_abbreviations_attached():
     assert split_sentences("Halcyon Pvt. Ltd. said yes. Dr. Rao agreed.") == ["Halcyon Pvt. Ltd. said yes.", "Dr. Rao agreed."]
     assert split_sentences("It costs Rs. 500 approx. Then we left. A. B. Kumar came.") == [
         "It costs Rs. 500 approx. Then we left.", "A. B. Kumar came."]
+
+
+def test_meta_effort_and_budget_from_env(monkeypatch):
+    monkeypatch.setenv("MODEL_API_KEY", "k")
+    monkeypatch.setenv("META_SYNTHETIC_ONLY", "1")
+    monkeypatch.setenv("META_REASONING_EFFORT", "high")
+    monkeypatch.setenv("META_MAX_TOKENS", "8192")
+    b = backend_from_env("muse_spark")
+    assert b.extra == {"reasoning_effort": "high"} and b.max_tokens == 8192
+
+
+def test_rate_limits_get_patient_backoff(monkeypatch):
+    monkeypatch.setattr("muse_shield.backends.time.sleep", lambda s: None)
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        return httpx.Response(429) if len(calls) <= 8 else reply('{"entities": [], "contexts": []}')
+
+    assert backend(handler).analyze(["Hi."])[0].valid and len(calls) == 9

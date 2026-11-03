@@ -18,6 +18,7 @@ from ..agent.executor import Executor
 from ..agent.tools import catalog
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .engine import Masker, rehydrate, segments
+from .extension import add_extension_routes
 from .inspector import Inspector, user_text
 from .schemas import ChatRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
@@ -130,7 +131,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     @app.get("/chats/{chat_id}")
     def chat_detail(chat_id: str):
         need_chat(chat_id)
-        mapping = vault.mapping(chat_id)
+        mapping = vault.mapping(chat_id, contexts="summary")  # assistant text: a hidden passage shows as its summary
         msgs = []
         for m in vault.messages(chat_id):
             shown = m["original"] if m["role"] == "user" else rehydrate(m["masked_text"], mapping)[0]
@@ -232,6 +233,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         return {"masked_by_type": counts, "already_sent": already_sent, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
                 "consents": {"allow": sum(c["decision"] == "allow" for c in consents), "deny": sum(c["decision"] == "deny" for c in consents)},
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
+
+    add_extension_routes(app, vault, masker, off_reason)
 
     if (WEB / "assets").exists():
         app.mount("/assets", StaticFiles(directory=WEB / "assets"), name="assets")

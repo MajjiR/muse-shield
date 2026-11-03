@@ -227,6 +227,12 @@ def segments(text: str, chat_id: str, vault: Vault) -> list[dict]:
             out.append({"text": text[cursor:m.start()]})
         label = m.group(0)
         target = vault._target(chat_id, label)
+        if target and target[0] == "context":
+            # Replies show a hidden passage as its summary; the full text is there for the user to expand.
+            out.append({"label": label, "kind": "context", "text": vault.resolve(chat_id, label, "summary") or label,
+                        "full": vault.resolve(chat_id, label)})
+            cursor = m.end()
+            continue
         value = vault.resolve(chat_id, label) if target else None
         out.append({"label": label, "kind": target[0] if target else "unknown", "text": value if value is not None else label})
         cursor = m.end()

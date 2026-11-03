@@ -31,8 +31,10 @@ entities: every span that identifies or describes a person or business.
   PERSON names · ORG companies and institutions · ADDRESS street addresses · LOCATION cities, regions, countries
   AMOUNT money · PROJECT internal codenames · ID account, customer, employee, medical, tax or government numbers
   CONTACT phone numbers, emails, URLs, usernames · DATE dates and times tied to a person (birth dates, appointments)
-  SECRET passwords, PINs, CVVs, API keys · SENSITIVE_ATTRIBUTE health, religion, ethnicity, sexuality,
-  political views, gender, age, occupation and other personal attributes
+  SECRET passwords, PINs, CVVs, API keys · SENSITIVE_ATTRIBUTE health conditions, religion, ethnicity, sexuality,
+  political views, criminal record, pregnancy and other special-category facts about a person
+- Not entities: job titles and roles (CTO, engineer, nurse, Advocate), weekdays and relative dates (Friday, tomorrow,
+  next quarter), generic nouns, and well-known public bodies (CERT-In, RBI). Leave them readable.
 - AMOUNT needs a role, one of {sorted(AMOUNT_ROLES)}.
 - Copy `text` EXACTLY as it appears, character for character. Never invent text. Never output offsets.
 contexts: sentences that state facts about a deal, decision, plan, negotiation, project or HR matter.
@@ -100,7 +102,12 @@ class ChatBackend(Backend):
                     time.sleep(15)
                     waited += 15
                     continue
-                if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                if r.status_code == 429 and attempt < 10:
+                    # Rate limits are per team (Contributor: 150 RPM), so back off patiently instead of failing.
+                    time.sleep(float(r.headers.get("retry-after") or min(2 ** attempt, 30)))
+                    attempt += 1
+                    continue
+                if r.status_code in (500, 502, 503, 504) and attempt < 3:
                     time.sleep(float(r.headers.get("retry-after") or 2 ** attempt))
                     attempt += 1
                     continue
@@ -202,5 +209,6 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
             os.environ.get("MODEL_API_KEY", ""),
             name=name, synthetic_only=synthetic, client=client,
             reasoning_effort=os.environ.get("META_REASONING_EFFORT", "low"),
+            max_tokens=int(os.environ.get("META_MAX_TOKENS", "4096")),
         )
     raise BackendError(f"unknown ENGINE_BACKEND {name!r} (expected glimmer, muse_spark or muse_wonder)")
