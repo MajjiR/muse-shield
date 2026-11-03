@@ -70,6 +70,7 @@ chat first, then workspace.
 |---|---|---|---|
 | POST | `/mask` | `{text, chat_id?}` | `{chat_id, masked_text, spans[], contexts[], analysis_ok, error?, latency_ms, cost_usd}` |
 | POST | `/unmask` | `{text, chat_id}` | `{text}` |
+| POST | `/images/mask` | `{image (data: URL or base64), chat_id?, verify?}` | `{chat_id, image (PNG data URL), regions[] {kind, type, label, box, source}, masked_text, verify {ok, leaked[], faces_left, new_finds[]}, timings_ms, cost}` |
 | POST | `/chat` | `{chat_id?, message}` | `{chat_id, message_id, reply, masked_reply, sent[], ask?, masked}` |
 | POST | `/reveal` | `{ask_id, decision, level?}` | `{chat_id, reply?, ask?, revealed?}` |
 | GET | `/chats` | | `[{chat_id, title, created_at, messages}]` |
@@ -83,3 +84,21 @@ chat first, then workspace.
 A **span** is `{start, end, text, type, role?, placeholder, kind: entity|context, source: model|policy|user}`.
 An **ask** is `{ask_id, chat_id, label, kind, level, reason, preview}`; `preview` is exactly the
 text that would be sent.
+
+## Images
+
+`POST /images/mask` masks a picture before it goes anywhere:
+
+1. **Muse Spark** (vision) reads the image: its text, each sensitive value with a box on its 0-1000
+   grid, and faces, signatures, QR codes, barcodes, licence plates and ID photos.
+2. **SAM 3.1** finds every `face` and `license plate` as pixel boxes (one request per concept).
+3. **Refine:** for each value, Spark is asked again on a crop around its first box; if the two boxes
+   disagree, both are covered.
+4. Faces and ID photos get an oval blur; codes and plates are pixelated; values get a bar labelled
+   with their **vault placeholder**, the same `<PERSON_1>` the value has in text chats.
+5. **Re-scan:** the masked image goes back to Spark. Any masked value it can still read, or a face
+   outside a blurred region, sets `verify.ok = false`.
+
+Values are never in the response: regions carry labels, and the vault keeps the values. The
+original image isn't stored. Like call 1 for text, this sends the raw image to Meta, so it's off
+unless `MUSE_SHIELD_DEV_RAW_ANALYSIS=1`, and only for made-up images.

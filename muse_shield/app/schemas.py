@@ -32,6 +32,12 @@ class MaskRequest(BaseModel):
     chat_id: str | None = None
 
 
+class ImageMaskRequest(BaseModel):
+    image: str  # a data: URL or bare base64 (PNG, JPEG, WebP, GIF)
+    chat_id: str | None = None
+    verify: bool = True  # re-scan the masked image with Muse Spark
+
+
 class MaskResponse(BaseModel):
     chat_id: str
     masked_text: str
