@@ -12,7 +12,10 @@ import json
 import re
 from dataclasses import asdict, dataclass, field
 
-ENTITY_TYPES = {"PERSON", "ORG", "ADDRESS", "LOCATION", "AMOUNT", "PROJECT", "ID", "CONTACT"}
+ENTITY_TYPES = {
+    "PERSON", "ORG", "ADDRESS", "LOCATION", "AMOUNT", "PROJECT", "ID", "CONTACT",
+    "DATE", "SECRET", "SENSITIVE_ATTRIBUTE",
+}
 AMOUNT_ROLES = {"SALARY", "PRICE", "DEAL_VALUE", "LOAN", "REVENUE", "BUDGET", "FEE", "OTHER"}
 CONTEXT_KINDS = {"DEAL", "DECISION", "PLAN", "NEGOTIATION", "PROJECT", "HR", "NONE"}
 
