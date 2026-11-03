@@ -1,0 +1,32 @@
+{
+  "run_id": "20261103-221827_v0.0.1+5287585_full500-spark-contributor-low",
+  "eval": "nemotron-pii",
+  "tag": "full500-spark-contributor-low",
+  "created": "2026-11-03T22:18:27",
+  "version": "0.0.1",
+  "git": "5287585",
+  "command": "/Users/majjir/muse-shield/muse_shield/benchmarks/run.py --backends muse_spark --n 500 --workers 10 --out runs/benchmarks/full-spark --tag full500-spark-contributor-low",
+  "dataset": {
+    "name": "nvidia/Nemotron-PII",
+    "split": "test",
+    "docs": 500,
+    "sample_n": 500,
+    "seed": 7,
+    "limit": 0,
+    "sample_file": "nemotron-test-500-s7.jsonl",
+    "sample_sha256": "ccc566fad823cbfb"
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3-contributor",
+      "workers": 10,
+      "max_tokens": 4096,
+      "json_mode": true,
+      "reasoning_effort": "low"
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ],
+  "note": "Relabelled: originally saved as +f532fd7 because the git version was read at save time, after another session switched this checkout to feature/web-ui-vault mid-run. The run started on main at 5287585; benchmark, backend and scoring code are identical in both commits."
+}
