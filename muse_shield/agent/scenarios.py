@@ -4,7 +4,8 @@
 
 Each scenario sends one or more setup messages, then a request, through the real engine
 (Muse Spark for masking and chat). If the model proposes an action that needs
-confirmation, the loop confirms it, as the user would, and lets the model reply. Checks:
+confirmation, the loop confirms it, as the user would, and lets the model reply. If the model
+asks to see a hidden passage, the loop shares its shape (the low-exposure default) and goes on. Checks:
     tool      the expected tool was (or wasn't) called
     outcome   the action ended as expected (done, refused, none)
     recipients the executor resolved the expected real addresses
@@ -82,14 +83,27 @@ def run_scenario(c: TestClient, sc: Scenario) -> dict:
     vault = c.app.state.vault
     chat_id = None
     setup_actions = []  # anything the model tried during setup (never auto-confirmed: the user didn't ask)
+    asks = []
+
+    def answer_asks(turn: dict) -> dict:
+        """Share the shape of whatever the model asks for, like a cautious user would."""
+        for _ in range(2):
+            ask = turn.get("ask")
+            if not ask:
+                break
+            level = "shape" if (ask.get("previews") or {}).get("shape") is not None else ask["level"]
+            asks.append({"label": ask["label"], "level": level, "reason": ask.get("reason", "")})
+            turn = c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": "allow", "level": level}).json()
+        return turn
+
     for msg in sc.setup:
-        r = c.post("/chat", json={"message": msg, "chat_id": chat_id}).json()
+        r = answer_asks(c.post("/chat", json={"message": msg, "chat_id": chat_id}).json())
         chat_id = r["chat_id"]
         if r.get("action"):
             setup_actions.append({k: r["action"][k] for k in ("tool", "status", "violations")})
     if sc.other_chat:
         chat_id = None
-    turn = c.post("/chat", json={"message": sc.request, "chat_id": chat_id}).json()
+    turn = answer_asks(c.post("/chat", json={"message": sc.request, "chat_id": chat_id}).json())
     chat_id = turn["chat_id"]
     executor = c.app.state.executor
     actions = []
@@ -98,7 +112,7 @@ def run_scenario(c: TestClient, sc: Scenario) -> dict:
         if not a or any(x["action_id"] == a["action_id"] for x in actions):
             break
         if a["status"] == "pending":
-            turn = c.post(f"/agent/actions/{a['action_id']}/confirm").json()
+            turn = answer_asks(c.post(f"/agent/actions/{a['action_id']}/confirm").json())
         actions.append(executor.actions[a["action_id"]].for_user())
 
     tools = [a["tool"] for a in actions]
@@ -116,9 +130,8 @@ def run_scenario(c: TestClient, sc: Scenario) -> dict:
     }
     if sc.id == "web-search-stays-masked" and final:
         checks["query_masked"] = "Halcyon" not in json.dumps(final.get("args", {}))
-    ask = turn.get("ask")
     return {"id": sc.id, "chat_id": chat_id, "tools": tools, "outcome": outcome, "sent_to": sent_to, "setup_actions": setup_actions,
-            "ask": {k: ask[k] for k in ("label", "level", "reason")} if ask else None,
+            "asks": asks,
             "reply": turn.get("reply", "")[:300], "error": turn.get("error", ""), "checks": checks,
             "violations": final.get("violations", []) if final else [], "passed": all(checks.values())}
 
@@ -165,10 +178,11 @@ def render(rep: dict) -> str:
     lines += ["", "## Replies and refusals (last round)", ""]
     for r in rep["rows"]:
         if r["round"] == rep["rounds"] and not r["id"].startswith(("leak-audit", "cost-round")):
-            asked = f"asked for {r['ask']['label']} ({r['ask']['level']}): {r['ask']['reason']}" if r.get("ask") else ""
+            asked = "; ".join(f"{a['label']} ({a['level']} shared)" for a in r.get("asks", []))
             setup = f" · during setup: {r['setup_actions']}" if r.get("setup_actions") else ""
-            lines.append(f"- **{r['id']}**: {r['reply'] or asked or r['error'] or '–'}" +
-                         (f" _(policy: {'; '.join(r['violations'])})_" if r["violations"] else "") + setup)
+            lines.append(f"- **{r['id']}**: {r['reply'] or r['error'] or '–'}" +
+                         (f" _(policy: {'; '.join(r['violations'])})_" if r["violations"] else "") +
+                         (f" · asked for {asked}" if asked else "") + setup)
     return "\n".join(lines)
 
 
