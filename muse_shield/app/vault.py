@@ -52,6 +52,16 @@ CREATE TABLE IF NOT EXISTS edges (
     chat_id TEXT NOT NULL, src TEXT NOT NULL, dst TEXT NOT NULL, rel TEXT NOT NULL, weight INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (chat_id, src, dst, rel)
 );
+CREATE TABLE IF NOT EXISTS entity_links (
+    src TEXT NOT NULL, dst TEXT NOT NULL, rel TEXT NOT NULL, weight INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (src, dst, rel)
+);
+CREATE TABLE IF NOT EXISTS outbox (
+    id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, tool TEXT NOT NULL, nonce BLOB NOT NULL, payload_ct BLOB NOT NULL, created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS audit_chain (
+    seq INTEGER PRIMARY KEY, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT, prev BLOB NOT NULL, mac BLOB NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT
 );
@@ -143,6 +153,7 @@ class Vault:
         sub = lambda info: HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=info).derive(master_key)  # noqa: E731
         self._aead = AESGCM(sub(b"muse-shield/vault/enc"))
         self._mac = sub(b"muse-shield/vault/value-hash")
+        self._chain_key = sub(b"muse-shield/vault/audit-chain")
         self.path = str(path)
         self._lock = threading.RLock()
         self._db = _LockedDB(sqlite3.connect(self.path, check_same_thread=False), self._lock)
@@ -239,6 +250,16 @@ class Vault:
         row = self._db.execute("SELECT target_kind, target_id FROM placeholders WHERE chat_id=? AND label=?", (chat_id, label)).fetchone()
         return (row[0], row[1]) if row else None
 
+    def label_type(self, chat_id: str, label: str) -> tuple[str, str] | None:
+        """('entity', TYPE) or ('context', KIND) for a placeholder in this chat."""
+        target = self._target(chat_id, label)
+        if not target:
+            return None
+        kind, tid = target
+        table, col = ("entities", "type") if kind == "entity" else ("contexts", "kind")
+        row = self._db.execute(f"SELECT {col} FROM {table} WHERE id=?", (tid,)).fetchone()
+        return (kind, row[0]) if row else None
+
     def entity_value(self, entity_id: str) -> str:
         nonce, ct = self._db.execute("SELECT nonce, value_ct FROM entities WHERE id=?", (entity_id,)).fetchone()
         return self._open(f"entity:{entity_id}", nonce, ct).decode()
@@ -309,6 +330,41 @@ class Vault:
         with self._lock, self._db:
             self._db.execute("INSERT INTO edges VALUES (?,?,?,?,1) ON CONFLICT DO UPDATE SET weight = weight + 1", (chat_id, src, dst, rel))
 
+    def link_entities(self, src_entity: str, dst_entity: str, rel: str) -> None:
+        """Workspace-wide link between entities (e.g. a contact identifies a person), across chats."""
+        with self._lock, self._db:
+            self._db.execute("INSERT INTO entity_links VALUES (?,?,?,1) ON CONFLICT DO UPDATE SET weight = weight + 1",
+                             (src_entity, dst_entity, rel))
+
+    def contacts_for(self, chat_id: str, person_label: str) -> list[dict]:
+        """Contacts known to identify this person, from any chat, with a placeholder in this chat (local only)."""
+        target = self._target(chat_id, person_label)
+        if not target or target[0] != "entity":
+            return []
+        rows = self._db.execute(
+            "SELECT l.src FROM entity_links l JOIN entities e ON e.id = l.src WHERE l.dst=? AND l.rel='identifies' "
+            "ORDER BY l.weight DESC, e.created_at", (target[1],)).fetchall()
+        out = []
+        for (eid,) in rows:
+            value = self.entity_value(eid)
+            digits = sum(ch.isdigit() for ch in value)
+            kind = "email" if "@" in value and "." in value.split("@")[-1] else "phone" if digits >= 7 else "other"
+            out.append({"label": self._mint(chat_id, "CONTACT", "entity", eid), "kind": kind, "value": value})
+        return out
+
+    def add_outbox(self, chat_id: str, tool: str, payload: dict) -> str:
+        """What a tool actually did, with real values, encrypted (the local record of sent mail, events, notes)."""
+        item_id = "o_" + uuid.uuid4().hex[:12]
+        nonce, ct = self._seal(f"outbox:{item_id}", json.dumps(payload, ensure_ascii=False).encode())
+        with self._lock, self._db:
+            self._db.execute("INSERT INTO outbox VALUES (?,?,?,?,?,?)", (item_id, chat_id, tool, nonce, ct, time.time()))
+        return item_id
+
+    def outbox(self, chat_id: str | None = None) -> list[dict]:
+        q = "SELECT id, chat_id, tool, nonce, payload_ct, created_at FROM outbox" + (" WHERE chat_id=?" if chat_id else "") + " ORDER BY created_at"
+        return [{"id": i, "chat_id": c, "tool": t, "payload": json.loads(self._open(f"outbox:{i}", n, ct)), "created_at": ts}
+                for i, c, t, n, ct, ts in self._db.execute(q, (chat_id,) if chat_id else ())]
+
     def members(self, chat_id: str, context_label: str) -> list[str]:
         """Entity placeholders inside a context block (mentioned_in edges)."""
         return [r[0] for r in self._db.execute(
@@ -322,9 +378,30 @@ class Vault:
                  for s, d, r, w in self._db.execute("SELECT src, dst, rel, weight FROM edges WHERE chat_id=?", (chat_id,))]
         return {"nodes": nodes, "edges": edges}
 
+    def _link_mac(self, seq: int, ts: float, chat_id: str | None, event: str, counts: str, prev: bytes) -> bytes:
+        msg = json.dumps([seq, ts, chat_id, event, counts]).encode() + prev
+        return hmac.new(self._chain_key, msg, hashlib.sha256).digest()
+
     def audit(self, event: str, chat_id: str | None = None, counts: dict | None = None) -> None:
+        """Counts-only audit row, also appended to an HMAC chain so edits or deletions are detectable."""
+        ts, payload = time.time(), json.dumps(counts or {}, sort_keys=True)
         with self._lock, self._db:
-            self._db.execute("INSERT INTO audit (ts, chat_id, event, counts) VALUES (?,?,?,?)", (time.time(), chat_id, event, json.dumps(counts or {})))
+            self._db.execute("INSERT INTO audit (ts, chat_id, event, counts) VALUES (?,?,?,?)", (ts, chat_id, event, payload))
+            last = self._db.execute("SELECT seq, mac FROM audit_chain ORDER BY seq DESC LIMIT 1").fetchone()
+            seq, prev = (last[0] + 1, last[1]) if last else (1, b"\x00" * 32)
+            self._db.execute("INSERT INTO audit_chain VALUES (?,?,?,?,?,?,?)",
+                             (seq, ts, chat_id, event, payload, prev, self._link_mac(seq, ts, chat_id, event, payload, prev)))
+
+    def verify_audit(self) -> dict:
+        """Recompute the chain. Any edited, reordered or deleted entry breaks it from that point."""
+        prev, n = b"\x00" * 32, 0
+        for seq, ts, chat_id, event, counts, stored_prev, mac in self._db.execute(
+                "SELECT seq, ts, chat_id, event, counts, prev, mac FROM audit_chain ORDER BY seq"):
+            n += 1
+            if seq != n or stored_prev != prev or not hmac.compare_digest(mac, self._link_mac(seq, ts, chat_id, event, counts, prev)):
+                return {"ok": False, "entries": n - 1, "broken_at": seq}
+            prev = mac
+        return {"ok": True, "entries": n, "head": prev.hex()[:16]}
 
     def audit_rows(self, chat_id: str | None = None) -> list[dict]:
         q = "SELECT ts, chat_id, event, counts FROM audit" + (" WHERE chat_id=?" if chat_id else "") + " ORDER BY id"

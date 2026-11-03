@@ -97,3 +97,23 @@ def test_vault_graph_and_reveal_endpoints(client):
 
 def test_rehydrate_reports_unknown_labels():
     assert rehydrate("Hi <PERSON_1> and <PERSON_9>", {"<PERSON_1>": "Rohan"}) == ("Hi Rohan and <PERSON_9>", ["<PERSON_9>"])
+
+
+def test_value_already_sent_unmasked_is_not_masked_later(tmp_path):
+    """Turn 2 can't hide a phrase the model already saw on turn 1, so it stays plain instead of blocking the chat."""
+    first = "The staging database password is Pr0d!Acme#2026."
+    second = "Email the staging database password."
+    answers = {first: {"entities": [{"text": "Pr0d!Acme#2026", "type": "SECRET"}], "contexts": []},
+               second: {"entities": [{"text": "staging database password", "type": "SECRET"}], "contexts": []}}
+    vault = Vault(tmp_path / "v.db", b"\x33" * 32)
+    masker = Masker(vault, fake_spark(answers))
+    chat = vault.create_chat()
+    one = masker.mask(first, chat)
+    vault.add_message(chat, "user", one.masked_text, original=first)
+    assert one.masked_text == "The staging database password is <SECRET_1>."
+    two = masker.mask(second, chat)
+    assert two.masked_text == second and two.spans == []
+    assert vault.audit_rows()[-1]["counts"] == {"ALREADY_SENT": 1}
+    # a value that is already a placeholder is still masked the same way
+    three = masker.mask(first, chat)
+    assert three.masked_text == one.masked_text

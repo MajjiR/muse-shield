@@ -14,6 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
+from ..agent.executor import Executor
+from ..agent.tools import catalog
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .engine import Masker, rehydrate, segments
 from .extension import add_extension_routes
@@ -64,7 +66,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         chat_model, chat_off = chat_model_from_env(inspector.client("chat"))
     vault = vault or Vault.open()
     masker = Masker(vault, analyzer) if analyzer else None
-    engine = ChatEngine(vault, masker, chat_model, inspector=inspector) if masker and chat_model else None
+    executor = Executor(vault)
+    engine = ChatEngine(vault, masker, chat_model, inspector=inspector, executor=executor) if masker and chat_model else None
 
     app = FastAPI(title="Muse Shield", version=__version__, docs_url="/docs")
     # The React dev server (and later the Electron renderer) call the engine from another local origin.
@@ -72,6 +75,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in origins if o.strip()],
                        allow_methods=["GET", "POST"], allow_headers=["content-type"])
     app.state.vault, app.state.masker, app.state.engine, app.state.inspector = vault, masker, engine, inspector
+    app.state.executor = executor
 
     def need_chat(chat_id: str) -> None:
         if not any(c["chat_id"] == chat_id for c in vault.chats()):
@@ -156,6 +160,42 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         need_chat(chat_id)
         return vault.graph(chat_id)
 
+    # -- agent actions ------------------------------------------------------------
+    @app.get("/agent/tools")
+    def agent_tools():
+        return catalog()
+
+    @app.post("/agent/execute")
+    def agent_execute(body: dict):
+        """Run a placeholder tool call directly (agents, tests). Side-effect tools come back pending."""
+        chat_id = body.get("chat_id") or ""
+        need_chat(chat_id)
+        return executor.propose(chat_id, str(body.get("tool", "")), body.get("args") or {}).for_user()
+
+    @app.post("/agent/actions/{action_id}/{decision}")
+    def agent_decide(action_id: str, decision: str):
+        if decision not in ("confirm", "deny"):
+            raise HTTPException(404, "use confirm or deny")
+        if engine and engine.owns(action_id):  # proposed by the chat model: continue that conversation
+            try:
+                return (engine.confirm_action if decision == "confirm" else engine.deny_action)(action_id).to_dict()
+            except ChatError as exc:
+                raise HTTPException(404, str(exc)) from exc
+        try:
+            a = executor.confirm(action_id) if decision == "confirm" else executor.deny(action_id)
+        except KeyError as exc:
+            raise HTTPException(404, "unknown or already handled action") from exc
+        return {"chat_id": a.chat_id, "action": a.for_user()}
+
+    @app.get("/chats/{chat_id}/outbox")
+    def chat_outbox(chat_id: str):
+        need_chat(chat_id)
+        return vault.outbox(chat_id)
+
+    @app.get("/vault/audit/verify")
+    def audit_verify():
+        return vault.verify_audit()
+
     @app.get("/inspector")
     def inspect():
         return {"summary": inspector.summary(), "requests": inspector.list()}
@@ -189,7 +229,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             total = sum((m["meta"] or {}).get("cost_usd") or 0 for m in vault.messages(chat["chat_id"]))
             cost_by_chat[chat["chat_id"]] = round(total, 6)
         consents = vault.consents()
-        return {"masked_by_type": counts, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
+        already_sent = counts.pop("ALREADY_SENT", 0)  # seen unmasked on an earlier turn, so not masked
+        return {"masked_by_type": counts, "already_sent": already_sent, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
                 "consents": {"allow": sum(c["decision"] == "allow" for c in consents), "deny": sum(c["decision"] == "deny" for c in consents)},
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
 
