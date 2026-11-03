@@ -24,6 +24,26 @@ DEALS = ["₹120 crore", "$1.2B", "₹45 crore"]
 BUDGETS = ["₹2 crore", "15 lakh rupees", "₹60 lakh"]
 
 
+@dataclass(frozen=True)
+class Pools:
+    """Fillers for the templates. Training uses a disjoint set so evals measure generalization."""
+
+    people: list[str]
+    orgs: list[str]
+    banks: list[str]
+    cities: list[str]
+    addresses: list[str]
+    codenames: list[str]
+    salaries: list[str]
+    prices: list[str]
+    loans: list[str]
+    deals: list[str]
+    budgets: list[str]
+
+
+EVAL_POOLS = Pools(PEOPLE, ORGS, BANKS, CITIES, ADDRESSES, CODENAMES, SALARIES, PRICES, LOANS, DEALS, BUDGETS)
+
+
 @dataclass
 class GoldEntity:
     text: str
@@ -50,8 +70,8 @@ class Case:
         return " ".join(self.sentences)
 
 
-def _templates(rng: random.Random):
-    p = lambda: rng.choice(PEOPLE)  # noqa: E731
+def _templates(rng: random.Random, pools: Pools):
+    p = lambda: rng.choice(pools.people)  # noqa: E731
     pick = rng.choice
 
     def acceptance():
@@ -61,50 +81,50 @@ def _templates(rng: random.Random):
                 [GoldContext([2], "DECISION")])
 
     def salary_decision():
-        name, sal, addr = p(), pick(SALARIES), pick(ADDRESSES)
+        name, sal, addr = p(), pick(pools.salaries), pick(pools.addresses)
         return ("salary_decision", [f"My name is {name} and I earn {sal}.", f"Next month I'm planning to buy a flat at {addr}."],
                 [GoldEntity(name, "PERSON"), GoldEntity(sal, "AMOUNT", "SALARY"), GoldEntity(addr, "ADDRESS")],
                 [GoldContext([2], "DECISION")])
 
     def deal():
-        a, b = rng.sample(ORGS, 2)
-        val, lead = pick(DEALS), p()
+        a, b = rng.sample(pools.orgs, 2)
+        val, lead = pick(pools.deals), p()
         return ("deal", [f"{a} has agreed to acquire {b} for {val}.", f"{lead} is leading the due diligence."],
                 [GoldEntity(a, "ORG"), GoldEntity(b, "ORG"), GoldEntity(val, "AMOUNT", "DEAL_VALUE"), GoldEntity(lead, "PERSON")],
                 [GoldContext([1, 2], "DEAL")])
 
     def negotiation():
         name = p()
-        s1, s2 = rng.sample(SALARIES, 2)
+        s1, s2 = rng.sample(pools.salaries, 2)
         return ("negotiation", [f"We offered {name} a salary of {s1}.", f"They are asking for {s2} before they sign."],
                 [GoldEntity(name, "PERSON"), GoldEntity(s1, "AMOUNT", "SALARY"), GoldEntity(s2, "AMOUNT", "SALARY")],
                 [GoldContext([1, 2], "NEGOTIATION")])
 
     def hr():
-        name, org = p(), pick(ORGS)
+        name, org = p(), pick(pools.orgs)
         return ("hr", [f"{name} from the {org} sales team is being let go at the end of the month.",
                        "Please keep this quiet until the announcement."],
                 [GoldEntity(name, "PERSON"), GoldEntity(org, "ORG")],
                 [GoldContext([1], "HR")])
 
     def project():
-        code, city, budget = pick(CODENAMES), pick(CITIES), pick(BUDGETS)
+        code, city, budget = pick(pools.codenames), pick(pools.cities), pick(pools.budgets)
         return ("project", [f"{code} will launch in {city} in March.", f"The approved budget is {budget}."],
                 [GoldEntity(code, "PROJECT"), GoldEntity(city, "LOCATION"), GoldEntity(budget, "AMOUNT", "BUDGET")],
                 [GoldContext([1, 2], "PROJECT")])
 
     def loan():
-        name, amt, bank = p(), pick(LOANS), pick(BANKS)
+        name, amt, bank = p(), pick(pools.loans), pick(pools.banks)
         return ("loan", [f"{name} took a home loan of {amt} from {bank} last year."],
                 [GoldEntity(name, "PERSON"), GoldEntity(amt, "AMOUNT", "LOAN"), GoldEntity(bank, "ORG")], [])
 
     def price():
-        name, amt = p(), pick(PRICES)
+        name, amt = p(), pick(pools.prices)
         return ("price", [f"I bought a used scooter from {name} for {amt}."],
                 [GoldEntity(name, "PERSON"), GoldEntity(amt, "AMOUNT", "PRICE")], [])
 
     def plan():
-        city, org = pick(CITIES), pick(ORGS)
+        city, org = pick(pools.cities), pick(pools.orgs)
         return ("plan", [f"Next quarter {org} plans to open a second office in {city}.", "Hiring starts in January."],
                 [GoldEntity(org, "ORG"), GoldEntity(city, "LOCATION")],
                 [GoldContext([1, 2], "PLAN")])
@@ -117,9 +137,9 @@ def _templates(rng: random.Random):
     return [acceptance, salary_decision, deal, negotiation, hr, project, loan, price, plan, negative]
 
 
-def generate(n: int = 60, seed: int = 3) -> list[Case]:
+def generate(n: int = 60, seed: int = 3, pools: Pools = EVAL_POOLS) -> list[Case]:
     rng = random.Random(seed)
-    makers = _templates(rng)
+    makers = _templates(rng, pools)
     cases = []
     for i in range(n):
         make = makers[0] if i == 0 else makers[1 + (i - 1) % (len(makers) - 1)]

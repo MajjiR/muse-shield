@@ -11,3 +11,6 @@ runs/
 adapters/
 .DS_Store
 *.egg-info/
+
+# Private project journal: plans, step log, full conversation transcripts. Never pushed.
+journal/
