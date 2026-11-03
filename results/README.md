@@ -2,12 +2,13 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$3.54** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$3.70** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261103-234508_v0.0.1+85cae9e_agent-scenarios-spark](agent-scenarios/20261103-234508_v0.0.1+85cae9e_agent-scenarios-spark/report.html) | agent-scenarios | agent-scenarios-spark | muse_spark `muse-spark-1.3` | 16 | – | – | – | – | 93.8% | $0.16 |
 | [20261103-231444_v0.0.1+1e42677_realistic10-spark-minimal-v2](realistic-pii/20261103-231444_v0.0.1+1e42677_realistic10-spark-minimal-v2/report.html) | realistic-pii | realistic10-spark-minimal-v2 | muse_spark `muse-spark-1.3` | 30 | 0.0% | – | 100.0% | – | 100.0% | $0.13 |
 | [20261103-231130_v0.0.1+dee7bd2_realistic10-spark-minimal](realistic-pii/20261103-231130_v0.0.1+dee7bd2_realistic10-spark-minimal/report.html) | realistic-pii | realistic10-spark-minimal | muse_spark `muse-spark-1.3` | 30 | 1.3% | – | 98.7% | – | 100.0% | $0.14 |
 | [20261103-220750_v0.0.1+imported_full500-glimmer-base](nemotron-pii/20261103-220750_v0.0.1+imported_full500-glimmer-base/report.html) | nemotron-pii | full500-glimmer-base | glimmer `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj` | 500 | 21.1% | 17.5% | 77.6% | 89.1% | 97.3% | $0.79 GPU |
