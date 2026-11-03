@@ -88,3 +88,25 @@ def test_mix_keeps_contexts_and_excludes_test_paragraphs(tmp_path):
     assert 30 <= len(rows) <= 40 and len(prompts) == len(set(prompts))  # deduplicated
     assert not any(LEAKED in r["messages"][3]["content"] for r in rows)
     assert any(_answer(r)["contexts"] for r in rows)  # synthetic rows still teach context blocks
+
+
+def test_quasi_relabel_replaces_only_relabelled_paragraphs():
+    from muse_shield.trainset import para_key
+
+    rows = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1)
+    nurse_para = next(r for r in rows if "nurse" in r["messages"][3]["content"])
+    para = nurse_para["_meta"]["paragraph"]
+    assert {"text": "nurse", "type": "SENSITIVE_ATTRIBUTE"} in _answer(nurse_para)["entities"]
+    # relabel says "nurse" is not a quasi span here -> Nemotron's quasi label is dropped for this paragraph only
+    rows2 = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1, quasi_map={para_key(para): []})
+    same = next(r for r in rows2 if r["_meta"]["paragraph"] == para)
+    assert not any(e["text"] == "nurse" for e in _answer(same)["entities"])
+    other = [r for r in rows2 if "nurse" in r["messages"][3]["content"] and r["_meta"]["paragraph"] != para]
+    assert all(any(e["text"] == "nurse" for e in _answer(r)["entities"]) for r in other)  # untouched without a relabel
+
+
+def test_specific_date_policy():
+    from muse_shield.trainset import specific_date
+
+    assert specific_date("2024-03-15") and specific_date("7:23 am") and specific_date("a quarter to four")
+    assert not any(map(specific_date, ["Departure Date", "120ms", "yet to be determined", "PST", "next quarter"]))

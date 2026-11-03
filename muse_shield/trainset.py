@@ -164,18 +164,19 @@ def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages
             seen_paras.add(para)
             end = off + len(para)
             seen, entities = set(), []
+            relabelled = quasi_map is not None and para_key(para) in quasi_map
             for g in sorted(d.spans, key=lambda g: g.start):
                 text = d.text[g.start:g.end]
                 etype = LABEL_MAP[g.label]
                 if etype == "DATE" and date_policy == "specific" and not specific_date(text):
                     continue
-                if quasi_map is not None and g.label in QUASI:
+                if relabelled and g.label in QUASI:
                     continue  # replaced by the consistent relabel below
                 if off <= g.start and g.end <= end and text.strip() and (text, etype) not in seen:
                     seen.add((text, etype))
                     entities.append({"text": text, "type": etype})
-            if quasi_map is not None:
-                for span in quasi_map.get(para_key(para), []):
+            if relabelled:
+                for span in quasi_map[para_key(para)]:
                     if span in para and (span, "SENSITIVE_ATTRIBUTE") not in seen and not any(span in e["text"] for e in entities):
                         seen.add((span, "SENSITIVE_ATTRIBUTE"))
                         entities.append({"text": span, "type": "SENSITIVE_ATTRIBUTE"})
@@ -208,6 +209,45 @@ def build_mix(test_sample: Path, n_nemotron: int = 4000, n_synthetic: int = 1000
             rows.append(r)
     random.Random(seed).shuffle(rows)
     return rows
+
+
+def build_mix_v2(test_sample: Path, quasi_map_file: Path, spark_train_dir: Path, n_nemotron: int = 4400,
+                 n_template: int = 300, seed: int = 202, fetch=_fetch_page) -> list[dict]:
+    """mix-v2: Nemotron (specific-dates policy, consistent quasi relabel) + Spark-written sector rows
+    (train split only; test docs never enter) + a small share of the template rows.
+
+    Spark rows come from synth.build_scale: only documents recorded as done, deduplicated by prompt.
+    """
+    from .relabel import load_map
+
+    quasi = load_map(quasi_map_file)
+    rows = nemotron_rows(n_nemotron, 101, benchmark_paragraphs(test_sample), fetch=fetch, date_policy="specific", quasi_map=quasi)
+    for r in rows:
+        r["_meta"].pop("paragraph", None)
+    msgs = [json.loads(l) for l in (spark_train_dir / "rows.jsonl").read_text().splitlines() if l.strip()]
+    metas = [json.loads(l) for l in (spark_train_dir / "rows.manifest.jsonl").read_text().splitlines() if l.strip()]
+    for m, meta in zip(msgs, metas):
+        if meta.get("split") == "train":
+            rows.append({"messages": m["messages"], "_meta": {**meta, "approx_tokens": _approx_tokens(m)}})
+    rows += build(n_template, seed)[:n_template]
+    out, seen = [], set()
+    for r in rows:
+        key = r["messages"][3]["content"]
+        if key not in seen:
+            seen.add(key)
+            out.append(r)
+    random.Random(seed).shuffle(out)
+    return out
+
+
+def export_mix_v2(out: Path, test_sample: Path, quasi_map_file: Path, spark_train_dir: Path, val_fraction: float = 0.03) -> dict:
+    rows = build_mix_v2(test_sample, quasi_map_file, spark_train_dir)
+    info = _write(out, rows, val_fraction)
+    info["by_source"] = {}
+    for r in rows:
+        src = r.get("_meta", {}).get("source", "?")
+        info["by_source"][src] = info["by_source"].get(src, 0) + 1
+    return info
 
 
 def _write(out: Path, rows: list[dict], val_fraction: float) -> dict:
@@ -258,8 +298,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--synthetic", type=int, default=1000)
     ap.add_argument("--test-sample", type=Path, default=Path("runs/benchmarks/nemotron-test-500-s7.jsonl"),
                     help="benchmark docs whose paragraphs must never appear in training (required with --mix)")
+    ap.add_argument("--v2", action="store_true", help="mix-v2: fixed Nemotron + Spark sector rows + a few template rows")
+    ap.add_argument("--quasi-map", type=Path, default=Path("runs/train/quasi-relabel-v2.jsonl"))
+    ap.add_argument("--spark-train", type=Path, default=Path("runs/synth/v2/train"))
     args = ap.parse_args(argv)
-    if args.mix:
+    if args.v2:
+        print(json.dumps(export_mix_v2(args.out, args.test_sample, args.quasi_map, args.spark_train), indent=2))
+    elif args.mix:
         if not args.test_sample.exists():
             ap.error(f"--test-sample {args.test_sample} not found: the leakage guard needs it")
         print(json.dumps(export_mix(args.out, args.test_sample, args.nemotron, args.synthetic, args.seed), indent=2))
