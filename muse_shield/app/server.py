@@ -16,6 +16,7 @@ from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .engine import Masker, rehydrate, segments
+from .extension import add_extension_routes
 from .inspector import Inspector, user_text
 from .schemas import ChatRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
@@ -191,6 +192,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         return {"masked_by_type": counts, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
                 "consents": {"allow": sum(c["decision"] == "allow" for c in consents), "deny": sum(c["decision"] == "deny" for c in consents)},
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
+
+    add_extension_routes(app, vault, masker, off_reason)
 
     if (WEB / "assets").exists():
         app.mount("/assets", StaticFiles(directory=WEB / "assets"), name="assets")

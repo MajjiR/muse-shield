@@ -1,0 +1,31 @@
+{
+  "run_id": "20261103-231145_v0.0.1+c0cba9b_full500-spark-contributor-medium",
+  "eval": "nemotron-pii",
+  "tag": "full500-spark-contributor-medium",
+  "created": "2026-11-03T23:11:45+0530",
+  "version": "0.0.1",
+  "git": "c0cba9b",
+  "command": "/private/tmp/claude-501/-Users-majjir-muse-shield/5941d6d4-03bc-42d8-9f53-52655b1f5ddc/scratchpad/main-wt/muse_shield/benchmarks/run.py --backends muse_spark --n 500 --workers 15 --cache /Users/majjir/muse-shield/runs/benchmarks --out /private/tmp/claude-501/-Users-majjir-muse-shield/5941d6d4-03bc-42d8-9f53-52655b1f5ddc/scratchpad/main-wt/runs/benchmarks/full-spark-medium --tag full500-spark-contributor-medium",
+  "dataset": {
+    "name": "nvidia/Nemotron-PII",
+    "split": "test",
+    "docs": 500,
+    "sample_n": 500,
+    "seed": 7,
+    "limit": 0,
+    "sample_file": "nemotron-test-500-s7.jsonl",
+    "sample_sha256": "ccc566fad823cbfb"
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3-contributor",
+      "workers": 15,
+      "max_tokens": 8192,
+      "json_mode": true,
+      "reasoning_effort": "medium"
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}
