@@ -10,7 +10,7 @@ from muse_shield.app.vault import Vault
 from muse_shield.documents import docx as D
 from muse_shield.documents.ooxml import Package
 from muse_shield.documents.pipeline import mask_document
-from muse_shield.documents.text import build
+from muse_shield.documents.text import build, flat
 
 
 def _run(tmp_path, data, values, **kw):
@@ -38,7 +38,7 @@ def test_tricky_docx_has_no_value_left_anywhere(tmp_path):
 def test_masked_copy_reads_back_as_the_masked_text(tmp_path):
     r = _run(tmp_path, tricky_docx(), TRICKY_DOCX_VALUES)
     again = build(D.blocks(Package(r.data))).text
-    assert again == r.masked.masked_text
+    assert flat(again) == flat(r.masked.masked_text)  # unit breaks move when labels change lengths
     assert "Dear <PERSON_1>, welcome to <ORG_1>." in again
     assert "Confidential: prepared for <PERSON_1>" in again  # header, same placeholder as the body
 

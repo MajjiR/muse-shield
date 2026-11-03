@@ -20,7 +20,7 @@ DOC_REL = "/officeDocument"
 # Parts that carry content we remove rather than mask (by content type fragment).
 DROP_TYPES = ("image/", "video/", "audio/", "drawingml.chart", "drawingml.diagram", "oleObject", "spreadsheetml",
               "chartstyle", "chartcolorstyle", "obfuscatedFont", "x-font", "customXmlProperties", "glossary",
-              "comments", "people", "custom-properties", "core-properties", "extended-properties")
+              "comments", "people", "custom-properties", "core-properties", "extended-properties", "printerSettings")
 DROP_REL_TYPES = ("/image", "/chart", "/diagramData", "/diagramLayout", "/diagramQuickStyle", "/diagramColors",
                   "/diagramDrawing", "/oleObject", "/package", "/video", "/audio", "/media", "/hdphoto", "/customXml",
                   "/glossaryDocument", "/comments", "/commentsExtended", "/commentsIds", "/commentsExtensible",

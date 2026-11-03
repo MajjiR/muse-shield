@@ -161,3 +161,8 @@ def remove_xml(atom: Atom) -> None:
     el = atom.ref
     if el.getparent() is not None:
         el.getparent().remove(el)
+
+
+def flat(text: str) -> str:
+    """Text with unit and block breaks collapsed, for comparing a re-extracted copy with the masked text."""
+    return re.sub(r"\n+", "\n", text).strip()

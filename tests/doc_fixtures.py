@@ -62,3 +62,43 @@ def tricky_docx() -> bytes:
 
 TRICKY_DOCX_VALUES = {"Arjun Malhotra": "PERSON", "Kestrel Labs": "ORG", "₹28 lakh": "AMOUNT", "BNZPV4567L": "ID",
                       "98450 12345": "CONTACT", "arjun.m@example.com": "CONTACT", "Meera Pillai": "PERSON"}
+
+
+def tricky_pptx() -> bytes:
+    from pptx import Presentation
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.util import Inches
+
+    prs = Presentation()
+    prs.core_properties.author = "Meera Pillai"
+    s1 = prs.slides.add_slide(prs.slide_layouts[5])
+    s1.shapes.title.text = "Acquisition of Kestrel Labs"
+    box = s1.shapes.add_textbox(Inches(1), Inches(2), Inches(6), Inches(1)).text_frame
+    para = box.paragraphs[0]
+    for t in ("Lead: Pri", "ya ", "Shah (priya@kestrel.example)"):
+        para.add_run().text = t
+    group = s1.shapes.add_group_shape()
+    group.shapes.add_textbox(Inches(1), Inches(3), Inches(3), Inches(1)).text_frame.text = "Price ₹120 crore"
+    rows = s1.shapes.add_table(2, 2, Inches(1), Inches(4), Inches(4), Inches(1)).table
+    rows.cell(0, 0).text, rows.cell(0, 1).text = "Counsel", "Vivek Menon"
+    rows.cell(1, 0).text, rows.cell(1, 1).text = "PAN", "BNZPV4567L"
+    s1.notes_slide.notes_text_frame.text = "Don't tell Vivek Menon about the earn-out."
+    pic = s1.shapes.add_picture(png(), Inches(7), Inches(1))
+    pic._element.nvPicPr.cNvPr.set("descr", "Headshot of Priya Shah")
+
+    s2 = prs.slides.add_slide(prs.slide_layouts[5])
+    s2.shapes.title.text = "Backup: Priya Shah's compensation"
+    s2._element.set("show", "0")
+    data = CategoryChartData()
+    data.categories = ["Priya Shah", "Vivek Menon"]
+    data.add_series("Bonus", (10, 20))
+    s2.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(1), Inches(2), Inches(5), Inches(3), data)
+
+    buf = io.BytesIO()
+    prs.save(buf)
+    return buf.getvalue()
+
+
+TRICKY_PPTX_VALUES = {"Kestrel Labs": "ORG", "Priya Shah": "PERSON", "priya@kestrel.example": "CONTACT",
+                      "₹120 crore": "AMOUNT", "Vivek Menon": "PERSON", "BNZPV4567L": "ID", "Meera Pillai": "PERSON"}
