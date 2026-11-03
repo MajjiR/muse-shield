@@ -17,6 +17,27 @@ covers detection, policy, semantic masking, an encrypted vault, consistent token
 masked-only cloud gateway, local reconstruction, a dashboard, a network inspector, and an
 OpenAI-compatible proxy.
 
+## Muse Glimmer analysis and evals
+
+`muse_shield.backends` sends one paragraph per call to Muse Glimmer 30B and expects one JSON
+object back, with `entities` (text, type, role for amounts) and `contexts` (sentence numbers,
+kind). The model never returns character offsets. Code finds each entity by exact search and
+drops any it can't find. Invalid JSON gets one retry.
+
+```bash
+cp .env.example .env          # add FIREWORKS_API_KEY
+.venv/bin/python -m muse_shield.evals --backend glimmer --n 60
+```
+
+The eval set is synthetic: fake names and Indian addresses and amounts, with 10 templates
+including the acceptance case. It reports:
+- JSON validity, first try and after the retry
+- entity precision, recall and F1, overall and by type
+- amount-role accuracy
+- context detection and kind accuracy
+- hallucinated spans
+- latency and cost
+
 ## Develop
 
 ```bash
