@@ -1,8 +1,8 @@
 # Muse Shield for Meta AI (Chrome extension)
 
-Muse Shield replaces meta.ai's message box with its own (an extension frame the page can't read).
-on your device, only placeholders go into meta.ai, and Meta AI's reply is restored in the
-side panel. meta.ai's page never holds a real value.
+Muse Shield replaces meta.ai's message box with its own, an extension frame the page can't
+read. Your message is masked on your device, only placeholders go into meta.ai, and Meta AI's
+reply is restored in frames inside the chat. meta.ai's page never holds a real value.
 
 ```
 composer frame (your text) --127.0.0.1--> engine: Muse Spark analysis + vault --> masked text
@@ -31,7 +31,7 @@ restored reply --chrome.storage.session--> reply frame inside the chat
    ```bash
    MUSE_SHIELD_DEV_RAW_ANALYSIS=1 .venv/bin/python -m muse_shield.app   # PORT=8767 if 8765 is taken
    ```
-   The panel finds the engine on 127.0.0.1 ports 8765–8769.
+   The extension finds the engine on 127.0.0.1 ports 8765–8769.
 2. In `chrome://extensions`, turn on Developer mode, click **Load unpacked** and pick this
    folder.
 3. Open https://www.meta.ai/ (signed in). The Muse Shield box replaces meta.ai's input.
