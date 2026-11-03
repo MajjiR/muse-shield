@@ -34,12 +34,35 @@ where level is shape (the passage's structure with inner details still masked), 
 Ask for the least you need: shape before summary before full. Ask for at most one label per reply."""
 
 # Models sometimes drop the angle brackets ("NEED_CONTEXT: DEAL_1 summary ..."): accept both.
+AGENT_PROMPT = """
+You can also act for the user with these tools:
+{catalog}
+To use one, reply with exactly one line and nothing else:
+TOOL_CALL: {{"tool": "<name>", "args": {{...}}}}
+Write people, contacts and values as their placeholders, for example "to": ["<PERSON_1>"]. Never write a real or guessed
+email address, phone number or value: the user's device fills those in, and only after the user confirms. Use one tool per
+reply. You'll then get the tool's result (also masked); after that, answer the user."""
+
 NEED = re.compile(r"^\s*NEED_CONTEXT:\s*<?([A-Z][A-Z_]*_\d+)>?\s+(shape|summary|full)\b\s*(.*)$", re.I | re.M)
 LEVELS = ("shape", "summary", "full")
 
 
 class ChatError(RuntimeError):
     pass
+
+
+def parse_tool_call(content: str) -> dict | None:
+    """The {"tool", "args"} object after a TOOL_CALL: marker, or None."""
+    if "TOOL_CALL:" not in content:
+        return None
+    rest = content.split("TOOL_CALL:", 1)[1].strip()
+    try:
+        obj, _ = json.JSONDecoder().raw_decode(rest[rest.index("{"):])
+    except (ValueError, json.JSONDecodeError):
+        return None
+    if not isinstance(obj, dict) or not isinstance(obj.get("tool"), str) or not isinstance(obj.get("args", {}), dict):
+        return None
+    return {"tool": obj["tool"], "args": obj.get("args") or {}}
 
 
 @dataclass
@@ -70,12 +93,14 @@ class Turn:
     error: str = ""
     cost_usd: float = 0.0
     unknown_labels: list[str] = field(default_factory=list)
+    action: dict | None = None  # a tool call: pending (preview with real values, local only) or its outcome
+    tool_rounds: int = 0
 
     def to_dict(self) -> dict:
         return {"chat_id": self.chat_id, "message_id": self.message_id, "reply": self.reply, "masked_reply": self.masked_reply,
                 "sent": self.sent, "ask": self.ask.to_dict() if self.ask else None,
                 "masked": self.masked.to_dict() if self.masked else None, "error": self.error,
-                "cost_usd": self.cost_usd, "unknown_labels": self.unknown_labels}
+                "cost_usd": self.cost_usd, "unknown_labels": self.unknown_labels, "action": self.action}
 
 
 def find_leaks(payload: str, secrets: dict[str, str]) -> list[str]:
@@ -117,20 +142,34 @@ class ChatModel:
 
 
 class ChatEngine:
-    def __init__(self, vault: Vault, masker: Masker, model: ChatModel, max_ask_rounds: int = 2, inspector=None):
+    MAX_TOOL_ROUNDS = 3
+
+    def __init__(self, vault: Vault, masker: Masker, model: ChatModel, max_ask_rounds: int = 2, inspector=None, executor=None):
         self.vault, self.masker, self.model, self.max_rounds = vault, masker, model, max_ask_rounds
-        self.inspector = inspector
+        self.inspector, self.executor = inspector, executor
+        self.own_actions: set[str] = set()  # actions the chat model proposed; only these continue the chat
         self.pending: dict[str, Ask] = {}
         self.masks: dict[str, Masked] = {}  # mask previews, so Mask & send doesn't analyze twice
 
     # -- conversation building -------------------------------------------------
+    def _system(self) -> str:
+        if not self.executor:
+            return SYSTEM_PROMPT
+        from ..agent.tools import catalog
+
+        return SYSTEM_PROMPT + AGENT_PROMPT.format(catalog=json.dumps(catalog(), indent=1))
+
     def _history(self, chat_id: str) -> list[dict]:
-        msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
+        msgs = [{"role": "system", "content": self._system()}]
         for m in self.vault.messages(chat_id):
             if m["role"] in ("user", "assistant"):
                 msgs.append({"role": m["role"], "content": m["masked_text"]})
             elif m["role"] == "reveal":
                 msgs.append({"role": "user", "content": m["original"] or m["masked_text"]})
+            elif m["role"] == "tool_call":
+                msgs.append({"role": "assistant", "content": m["masked_text"]})
+            elif m["role"] == "tool_result":
+                msgs.append({"role": "user", "content": m["masked_text"]})
         return msgs
 
     def _allowed(self, chat_id: str) -> set[str]:
@@ -158,6 +197,11 @@ class ChatEngine:
         turn.cost_usd += run_cost(self.model.model, tokens, time.perf_counter() - t0)["usd"] or 0.0
         turn.sent = messages
 
+        call = parse_tool_call(content) if self.executor else None
+        if call:
+            self._handle_tool_call(chat_id, turn, call, mapping)
+            return
+
         need = NEED.search(content)
         if need and turn.ask is None:
             label, level, reason = f"<{need.group(1).upper()}>", need.group(2).lower(), need.group(3).strip()
@@ -180,6 +224,59 @@ class ChatEngine:
         turn.masked_reply = content
         turn.reply, turn.unknown_labels = rehydrate(content, mapping)
         turn.message_id = self.vault.add_message(chat_id, "assistant", content, meta={"cost_usd": turn.cost_usd})
+
+    # -- tools ----------------------------------------------------------------
+    def _handle_tool_call(self, chat_id: str, turn: Turn, call: dict, mapping: dict) -> None:
+        from ..agent.executor import remask
+
+        turn.tool_rounds += 1
+        line = "TOOL_CALL: " + json.dumps(remask(call, mapping), ensure_ascii=False)  # never store a raw value in the clear column
+        self.vault.add_message(chat_id, "tool_call", line, meta={"tool": call["tool"]})
+        action = self.executor.propose(chat_id, call["tool"], call["args"])
+        self.own_actions.add(action.action_id)
+        turn.action = action.for_user()
+        if action.status == "pending":
+            return  # the user confirms or cancels in the UI; confirm_action() continues
+        self._after_action(chat_id, turn, action)
+
+    def _after_action(self, chat_id: str, turn: Turn, action) -> None:
+        """Tell the model how the tool call went (masked), then get its reply."""
+        if action.status == "done":
+            note = f"[Result of {action.tool}: {json.dumps(action.result, ensure_ascii=False)}]"
+        elif action.status == "denied":
+            note = f"[The user cancelled {action.tool}. Don't retry it unless they ask.]"
+        elif action.status == "refused":
+            note = f"[{action.tool} was refused by the privacy policy: {'; '.join(action.violations)}. Explain or ask the user.]"
+        else:
+            note = f"[{action.tool} failed: {action.error}]"
+        self.vault.add_message(chat_id, "tool_result", note, meta={"tool": action.tool, "status": action.status})
+        if turn.tool_rounds >= self.MAX_TOOL_ROUNDS:
+            turn.error = "stopped after several tool calls in a row"
+            return
+        self._send(chat_id, turn)
+
+    def owns(self, action_id: str) -> bool:
+        return action_id in self.own_actions
+
+    def confirm_action(self, action_id: str) -> Turn:
+        return self._decide(action_id, True)
+
+    def deny_action(self, action_id: str) -> Turn:
+        return self._decide(action_id, False)
+
+    def _decide(self, action_id: str, allow: bool) -> Turn:
+        if not self.executor:
+            raise ChatError("tools are not enabled")
+        try:
+            action = self.executor.confirm(action_id) if allow else self.executor.deny(action_id)
+        except KeyError as exc:
+            raise ChatError("unknown or already handled action") from exc
+        turn = Turn(action.chat_id, action=action.for_user(), tool_rounds=1)
+        try:
+            self._after_action(action.chat_id, turn, action)
+        except ChatError as exc:
+            turn.error = str(exc)
+        return turn  # if the model chained another tool call, turn.action now holds that one
 
     # -- public ---------------------------------------------------------------
     def preview(self, text: str, chat_id: str | None) -> tuple[str, Masked]:
