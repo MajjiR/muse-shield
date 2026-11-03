@@ -96,3 +96,4 @@ textarea::placeholder { color: var(--muted); }
 .level { cursor: pointer; font-size: 14px; }
 .ask__preview { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 10px; background: var(--soft); font: 13px/1.45 ui-monospace, Menlo, monospace; max-height: 180px; overflow: auto; }
 .ask__actions { display: flex; gap: 8px; margin-top: 2px; }
+.masksel[hidden] { display: none; }
