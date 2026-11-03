@@ -90,19 +90,19 @@ def test_mix_keeps_contexts_and_excludes_test_paragraphs(tmp_path):
     assert any(_answer(r)["contexts"] for r in rows)  # synthetic rows still teach context blocks
 
 
-def test_quasi_relabel_replaces_only_relabelled_paragraphs():
+def test_quasi_relabel_adds_to_nemotron_labels():
     from muse_shield.trainset import para_key
 
     rows = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1)
-    nurse_para = next(r for r in rows if "nurse" in r["messages"][3]["content"])
-    para = nurse_para["_meta"]["paragraph"]
-    assert {"text": "nurse", "type": "SENSITIVE_ATTRIBUTE"} in _answer(nurse_para)["entities"]
-    # relabel says "nurse" is not a quasi span here -> Nemotron's quasi label is dropped for this paragraph only
-    rows2 = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1, quasi_map={para_key(para): []})
+    para_row = next(r for r in rows if "nurse" in r["messages"][3]["content"])
+    para = para_row["_meta"]["paragraph"]
+    # relabel finds "PIN" context-free nothing new but adds a job title phrase present in the text
+    extra = "her PIN"
+    rows2 = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1, quasi_map={para_key(para): [extra]})
     same = next(r for r in rows2 if r["_meta"]["paragraph"] == para)
-    assert not any(e["text"] == "nurse" for e in _answer(same)["entities"])
-    other = [r for r in rows2 if "nurse" in r["messages"][3]["content"] and r["_meta"]["paragraph"] != para]
-    assert all(any(e["text"] == "nurse" for e in _answer(r)["entities"]) for r in other)  # untouched without a relabel
+    texts = {e["text"] for e in _answer(same)["entities"]}
+    assert "nurse" in texts  # Nemotron's quasi label is kept
+    assert extra in texts  # and the relabel's span is added
 
 
 def test_specific_date_policy():

@@ -164,14 +164,15 @@ def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages
             seen_paras.add(para)
             end = off + len(para)
             seen, entities = set(), []
+            # Union, not replacement: a coverage check (2026-11-04) showed replacing Nemotron's quasi labels
+            # with the relabel would drop 309 correct spans ("English", "high school", "full-time") while
+            # adding 179. The inconsistency was missing labels, so the relabel only adds.
             relabelled = quasi_map is not None and para_key(para) in quasi_map
             for g in sorted(d.spans, key=lambda g: g.start):
                 text = d.text[g.start:g.end]
                 etype = LABEL_MAP[g.label]
                 if etype == "DATE" and date_policy == "specific" and not specific_date(text):
                     continue
-                if relabelled and g.label in QUASI:
-                    continue  # replaced by the consistent relabel below
                 if off <= g.start and g.end <= end and text.strip() and (text, etype) not in seen:
                     seen.add((text, etype))
                     entities.append({"text": text, "type": etype})
