@@ -309,7 +309,8 @@ def main(argv: list[str] | None = None) -> int:
              "params": state["params"], "train": state["train"], "eval": state["eval"],
              "attempts": [{k: v for k, v in x.items() if k != "resume_ref"} | {"resumed_from": x.get("resume_ref")} for x in state["attempts"]],
              "timing": {"wall_seconds": round(state["finished"] - state["started"], 1),
-                        "training_seconds": round(sum((x.get("end", 0) - x["start"]) for x in state["attempts"]), 1)},
+                        # an attempt without a recorded end (its supervisor was stopped) counts as zero
+                        "training_seconds": round(sum(max(0.0, x.get("end", x["start"]) - x["start"]) for x in state["attempts"]), 1)},
              "steps": len(losses), "loss": {"first5": sum(losses[:5]) / max(1, len(losses[:5])) if losses else None,
                                             "last5": sum(losses[-5:]) / max(1, len(losses[-5:])) if losses else None,
                                             "min": min(losses) if losses else None},
