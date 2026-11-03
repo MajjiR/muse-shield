@@ -201,6 +201,16 @@ class Vault:
         row = self._db.execute("SELECT target_kind, target_id FROM placeholders WHERE chat_id=? AND label=?", (chat_id, label)).fetchone()
         return (row[0], row[1]) if row else None
 
+    def label_type(self, chat_id: str, label: str) -> tuple[str, str] | None:
+        """('entity', TYPE) or ('context', KIND) for a placeholder in this chat."""
+        target = self._target(chat_id, label)
+        if not target:
+            return None
+        kind, tid = target
+        table, col = ("entities", "type") if kind == "entity" else ("contexts", "kind")
+        row = self._db.execute(f"SELECT {col} FROM {table} WHERE id=?", (tid,)).fetchone()
+        return (kind, row[0]) if row else None
+
     def entity_value(self, entity_id: str) -> str:
         nonce, ct = self._db.execute("SELECT nonce, value_ct FROM entities WHERE id=?", (entity_id,)).fetchone()
         return self._open(f"entity:{entity_id}", nonce, ct).decode()
