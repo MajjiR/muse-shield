@@ -94,6 +94,48 @@ def default_home() -> Path:
     return Path(os.environ.get("MUSE_SHIELD_HOME", Path.home() / ".muse-shield"))
 
 
+class _Rows(list):
+    """Fully fetched rows, so no cursor is shared between threads."""
+
+    def fetchone(self):
+        return self[0] if self else None
+
+    def fetchall(self):
+        return list(self)
+
+
+class _LockedDB:
+    """One SQLite connection shared by the server's worker threads: every statement runs under the
+    vault lock and is fetched before the lock is released. Without this, a read that lands in the
+    middle of another thread's write can come back empty."""
+
+    def __init__(self, conn: sqlite3.Connection, lock: threading.RLock):
+        self._conn, self._lock = conn, lock
+
+    def execute(self, sql: str, params: tuple = ()) -> _Rows:
+        with self._lock:
+            return _Rows(self._conn.execute(sql, params).fetchall())
+
+    def executescript(self, script: str) -> None:
+        with self._lock:
+            self._conn.executescript(script)
+
+    def __enter__(self):
+        self._lock.acquire()
+        self._conn.__enter__()
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            return self._conn.__exit__(*exc)
+        finally:
+            self._lock.release()
+
+    def close(self) -> None:
+        with self._lock:
+            self._conn.close()
+
+
 class Vault:
     def __init__(self, path: Path | str, master_key: bytes):
         if len(master_key) != 32:
@@ -103,7 +145,7 @@ class Vault:
         self._mac = sub(b"muse-shield/vault/value-hash")
         self.path = str(path)
         self._lock = threading.RLock()
-        self._db = sqlite3.connect(self.path, check_same_thread=False)
+        self._db = _LockedDB(sqlite3.connect(self.path, check_same_thread=False), self._lock)
         self._db.execute("PRAGMA secure_delete = ON")  # overwritten rows don't linger in free pages
         self._db.executescript(SCHEMA)
         if self.path != ":memory:":
