@@ -468,11 +468,20 @@
   },
   "timing": {
     "launch_started_epoch": 1793738950,
-    "status": "training in progress"
+    "launch_finished_epoch": 1793740758,
+    "wall_seconds": 1808,
+    "base_holdout_eval_seconds_approx": 150,
+    "training_seconds_approx": 1658,
+    "status": "stopped"
   },
   "cost_usd": {
     "training": 0.0,
     "basis": "Muse Glimmer LoRA SFT promotion (jobs started before 2026-12-01T00:00:00-08:00)",
     "holdout_sampling": "per-token, billed separately (small)"
-  }
+  },
+  "final_state": "FAILED: Fireworks account suspended mid-run (HTTP 412 PRECONDITION_FAILED, 'possibly due to reaching the monthly spending limit or failure to pay past invoices')",
+  "steps_completed": 38,
+  "steps_planned_approx": 295,
+  "output_model": null,
+  "note_on_cause": "Training is promotional $0; the suspension most likely came from on-demand deployment hours (H200 at $8/GPU-hour, min replicas 1 from ~16:15 UTC until changed to 0). Not verified against the billing page."
 }
