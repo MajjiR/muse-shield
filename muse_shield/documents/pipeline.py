@@ -58,6 +58,9 @@ def mask_document(data: bytes, masker: Masker, chat_id: str, *, max_unit_chars: 
     # Values the model already saw in this chat stay readable in the chat, but not in a file someone may share.
     extra = [(a["start"], a["end"], f"[{a['type']}]") for a in masked.already_sent]
     reps = sorted(masked.replacements() + extra)
+    if hasattr(doc, "label_types"):
+        doc.label_types = {s["placeholder"]: ("CONTEXT" if s["kind"] == "context" else s["type"]) for s in masked.spans}
+        doc.label_types.update({f"[{a['type']}]": a["type"] for a in masked.already_sent})
     missed = h.apply(doc, dt, reps)
     out = h.save(doc)
     return MaskedDocument(fmt, out, dt, masked, pages, warnings, getattr(doc, "page_status", []), metadata, missed,

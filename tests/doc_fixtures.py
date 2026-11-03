@@ -102,3 +102,34 @@ def tricky_pptx() -> bytes:
 
 TRICKY_PPTX_VALUES = {"Kestrel Labs": "ORG", "Priya Shah": "PERSON", "priya@kestrel.example": "CONTACT",
                       "₹120 crore": "AMOUNT", "Vivek Menon": "PERSON", "BNZPV4567L": "ID", "Meera Pillai": "PERSON"}
+
+
+def tricky_pdf() -> bytes:
+    import pymupdf
+
+    doc = pymupdf.open()
+    doc.set_metadata({"author": "Meera Pillai", "title": "Offer for Arjun Malhotra"})
+    p1 = doc.new_page()
+    p1.insert_text((72, 72), "Offer letter", fontsize=16)
+    # A name wrapped across two lines, and one hyphenated across lines.
+    p1.insert_text((72, 110), "We are pleased to offer Arjun", fontsize=11)
+    p1.insert_text((72, 124), "Malhotra the role of analyst.", fontsize=11)
+    p1.insert_text((72, 150), "Reference: Ms. Shreya Kul-", fontsize=11)
+    p1.insert_text((72, 164), "karni will be your manager.", fontsize=11)
+    p1.insert_text((72, 190), "Salary: Rs 28 lakh. PAN BNZPV4567L. Call 98450 12345.", fontsize=11)
+    p1.insert_text((72, 216), "Short: Sana joins too.", fontsize=11)
+    p1.add_text_annot((300, 300), "Ask Arjun about notice period")
+    p1.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(72, 230, 200, 245), "uri": "mailto:arjun.m@example.com"})
+    p1.insert_image(pymupdf.Rect(400, 400, 500, 450), stream=png().getvalue())
+    doc.embfile_add("notes.txt", b"Arjun Malhotra personal notes")
+    doc.set_toc([[1, "Arjun Malhotra offer", 1]])
+    p2 = doc.new_page()
+    p2.insert_text((72, 100), "Page two mentions Arjun Malhotra again.", fontsize=11)
+    p2.set_rotation(90)
+    p3 = doc.new_page()  # a scanned page: an image only
+    p3.insert_image(p3.rect, stream=png().getvalue())
+    return doc.tobytes()
+
+
+TRICKY_PDF_VALUES = {"Arjun Malhotra": "PERSON", "Shreya Kulkarni": "PERSON", "Rs 28 lakh": "AMOUNT", "BNZPV4567L": "ID",
+                     "98450 12345": "CONTACT", "Sana": "PERSON", "Meera Pillai": "PERSON"}
