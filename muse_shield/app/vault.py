@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS entity_links (
 CREATE TABLE IF NOT EXISTS outbox (
     id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, tool TEXT NOT NULL, nonce BLOB NOT NULL, payload_ct BLOB NOT NULL, created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS audit_chain (
+    seq INTEGER PRIMARY KEY, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT, prev BLOB NOT NULL, mac BLOB NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT
 );
@@ -108,6 +111,7 @@ class Vault:
         sub = lambda info: HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=info).derive(master_key)  # noqa: E731
         self._aead = AESGCM(sub(b"muse-shield/vault/enc"))
         self._mac = sub(b"muse-shield/vault/value-hash")
+        self._chain_key = sub(b"muse-shield/vault/audit-chain")
         self.path = str(path)
         self._lock = threading.RLock()
         self._db = sqlite3.connect(self.path, check_same_thread=False)
@@ -329,9 +333,30 @@ class Vault:
                  for s, d, r, w in self._db.execute("SELECT src, dst, rel, weight FROM edges WHERE chat_id=?", (chat_id,))]
         return {"nodes": nodes, "edges": edges}
 
+    def _link_mac(self, seq: int, ts: float, chat_id: str | None, event: str, counts: str, prev: bytes) -> bytes:
+        msg = json.dumps([seq, ts, chat_id, event, counts]).encode() + prev
+        return hmac.new(self._chain_key, msg, hashlib.sha256).digest()
+
     def audit(self, event: str, chat_id: str | None = None, counts: dict | None = None) -> None:
+        """Counts-only audit row, also appended to an HMAC chain so edits or deletions are detectable."""
+        ts, payload = time.time(), json.dumps(counts or {}, sort_keys=True)
         with self._lock, self._db:
-            self._db.execute("INSERT INTO audit (ts, chat_id, event, counts) VALUES (?,?,?,?)", (time.time(), chat_id, event, json.dumps(counts or {})))
+            self._db.execute("INSERT INTO audit (ts, chat_id, event, counts) VALUES (?,?,?,?)", (ts, chat_id, event, payload))
+            last = self._db.execute("SELECT seq, mac FROM audit_chain ORDER BY seq DESC LIMIT 1").fetchone()
+            seq, prev = (last[0] + 1, last[1]) if last else (1, b"\x00" * 32)
+            self._db.execute("INSERT INTO audit_chain VALUES (?,?,?,?,?,?,?)",
+                             (seq, ts, chat_id, event, payload, prev, self._link_mac(seq, ts, chat_id, event, payload, prev)))
+
+    def verify_audit(self) -> dict:
+        """Recompute the chain. Any edited, reordered or deleted entry breaks it from that point."""
+        prev, n = b"\x00" * 32, 0
+        for seq, ts, chat_id, event, counts, stored_prev, mac in self._db.execute(
+                "SELECT seq, ts, chat_id, event, counts, prev, mac FROM audit_chain ORDER BY seq"):
+            n += 1
+            if seq != n or stored_prev != prev or not hmac.compare_digest(mac, self._link_mac(seq, ts, chat_id, event, counts, prev)):
+                return {"ok": False, "entries": n - 1, "broken_at": seq}
+            prev = mac
+        return {"ok": True, "entries": n, "head": prev.hex()[:16]}
 
     def audit_rows(self, chat_id: str | None = None) -> list[dict]:
         q = "SELECT ts, chat_id, event, counts FROM audit" + (" WHERE chat_id=?" if chat_id else "") + " ORDER BY id"
