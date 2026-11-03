@@ -2,12 +2,13 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$6.05** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$6.80** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261104-021944_v0.0.1+ef83a45-dirty_synthetic-glimmer-base](synthetic-contract/20261104-021944_v0.0.1+ef83a45-dirty_synthetic-glimmer-base/report.html) | synthetic-contract | synthetic-glimmer-base | glimmer `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj` | 60 | – | – | 97.3% | 90.1% | 100.0% | $0.76 GPU |
 | [20261103-235957_v0.0.1+0ef8370_agent-scenarios-spark](agent-scenarios/20261103-235957_v0.0.1+0ef8370_agent-scenarios-spark/report.html) | agent-scenarios | agent-scenarios-spark | muse_spark `muse-spark-1.3` | 16 | 0.0% | – | – | – | 100.0% | $0.19 |
 | [20261103-235936_v0.0.1+c0cba9b_full500-spark-contributor-high](nemotron-pii/20261103-235936_v0.0.1+c0cba9b_full500-spark-contributor-high/report.html) | nemotron-pii | full500-spark-contributor-high | muse_spark `muse-spark-1.3-contributor` | 500 | 16.7% | 14.6% | 82.1% | 85.9% | 100.0% | $1.06 |
 | [20261103-234713_v0.0.1+25a6375-dirty_conversations6-spark-minimal-v2](realistic-conversations/20261103-234713_v0.0.1+25a6375-dirty_conversations6-spark-minimal-v2/report.html) | realistic-conversations | conversations6-spark-minimal-v2 | muse_spark `muse-spark-1.3` | 18 | 0.0% | – | 100.0% | – | 100.0% | $0.06 |
