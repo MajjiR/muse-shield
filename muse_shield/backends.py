@@ -75,6 +75,7 @@ class ChatBackend(Backend):
         self.timeout, self.max_tokens, self.retries = timeout, max_tokens, retries
         self.json_mode = True  # turned off once if the server rejects response_format
         self.extra = extra or {}  # provider-specific request fields, e.g. reasoning_effort
+        self.scale_up_wait = 900  # seconds to wait for a scaled-to-zero deployment to come back
         self._client = client or httpx.Client()
 
     def _post(self, messages: list[dict]) -> httpx.Response:
@@ -86,13 +87,20 @@ class ChatBackend(Backend):
 
     def _call(self, messages: list[dict]) -> tuple[str, dict]:
         try:
-            for attempt in range(4):
+            attempt = waited = 0
+            while True:
                 r = self._post(messages)
                 if r.status_code in (400, 422) and self.json_mode and "response_format" in r.text:
                     self.json_mode = False  # this server doesn't take JSON mode; the prompt still asks for JSON
                     continue
+                if r.status_code == 503 and "SCALING_UP" in r.text and waited < self.scale_up_wait:
+                    # A scale-to-zero deployment is booting a GPU: requests aren't queued, so wait it out.
+                    time.sleep(15)
+                    waited += 15
+                    continue
                 if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
                     time.sleep(float(r.headers.get("retry-after") or 2 ** attempt))
+                    attempt += 1
                     continue
                 break
             r.raise_for_status()

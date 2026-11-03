@@ -126,5 +126,13 @@
     "in": 0,
     "out": 0
   },
-  "cost_usd": 0.0
+  "cost_usd": null,
+  "cost": {
+    "usd": null,
+    "basis": "tokens",
+    "detail": {
+      "note": "no price known for accounts/fireworks/models/muse-glimmer-30b",
+      "recosted_on_import": true
+    }
+  }
 }

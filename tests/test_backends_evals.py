@@ -110,7 +110,7 @@ def test_harness_scores_a_perfect_oracle_at_100():
     assert r["contract"]["valid_rate"] == 1.0
     assert r["entities"]["f1"] == 1.0 and r["role_accuracy"] == 1.0
     assert r["contexts"]["f1"] == 1.0 and r["hallucinated_spans"] == 0
-    assert r["cost_usd"] > 0
+    assert r["cost"]["basis"] == "tokens"  # no per-token price for this model id: cost_usd stays None
     assert "| entity precision / recall / F1 | 100% / 100% / 100% |" in render(r)
 
 
@@ -188,3 +188,18 @@ def test_meta_requests_carry_reasoning_budget(monkeypatch):
                          client=httpx.Client(transport=httpx.MockTransport(handler)))
     assert b.analyze(["Hi."])[0].valid
     assert seen["reasoning_effort"] == "low" and seen["max_tokens"] == 4096
+
+
+def test_waits_for_scaled_to_zero_deployment(monkeypatch):
+    slept = []
+    monkeypatch.setattr("muse_shield.backends.time.sleep", lambda s: slept.append(s))
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        if len(calls) <= 5:
+            return httpx.Response(503, json={"error": {"code": "DEPLOYMENT_SCALING_UP"}})
+        return reply('{"entities": [], "contexts": []}')
+
+    assert backend(handler).analyze(["Hi."])[0].valid
+    assert slept == [15] * 5

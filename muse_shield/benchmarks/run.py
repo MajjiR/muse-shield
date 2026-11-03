@@ -20,26 +20,9 @@ from pathlib import Path
 
 from ..analysis import Analysis
 from ..backends import Backend, BackendError, backend_from_env
+from ..costs import deployment_info, run_cost
 from ..results import save_run, sha256
 from .nemotron import DATASET, LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
-
-# USD per 1M tokens (input, cached input, output), from the providers' pricing pages (2026-11-03).
-# Meta bills reasoning tokens inside completion_tokens, so they are priced as output.
-PRICES = {
-    "muse-spark-1.3": (1.25, 0.15, 4.25),
-    "muse-spark-1.3-contributor": (0.10, 0.002, 0.20),
-    "muse-wonder-1.0": (4.00, 0.20, 20.00),
-}
-
-
-def price(name: str, model: str = "") -> tuple[float, float, float] | None:
-    if "#" in model:
-        return None  # a dedicated deployment bills per GPU-hour, not per token
-    env = [os.environ.get(f"PRICE_{name.upper()}_{k}") for k in ("IN", "CACHED", "OUT")]
-    if env[0] and env[2]:
-        return float(env[0]), float(env[1] or env[0]), float(env[2])
-    return PRICES.get(model)
-
 
 def analyze_doc(backend: Backend, doc: Doc) -> dict:
     t0 = time.perf_counter()
@@ -53,7 +36,7 @@ def analyze_doc(backend: Backend, doc: Doc) -> dict:
     return {"doc": doc, "analyses": analyses, "errors": errors, "latency_ms": (time.perf_counter() - t0) * 1000}
 
 
-def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dict:
+def aggregate(name: str, model: str, results: list[dict], seconds: float, gpu: dict | None = None) -> dict:
     total = DocScore()
     found_by_label: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     calls = valid = first_try = dropped = errors = 0
@@ -90,7 +73,8 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dic
     gold_total = sum(v[1] for v in found_by_label.values())
     quasi_gold = total.gold_chars - total.core_gold_chars
     lat = sorted(latencies)
-    p = price(name, model)
+    tokens = {"in": tokens_in, "out": tokens_out, "cached_in": tokens_cached, "reasoning_out": tokens_reasoning}
+    cost = run_cost(model, tokens, seconds, gpu)
     return {
         "backend": name, "model": model, "docs": len(results), "seconds": round(seconds, 1),
         "leak_rate": rate(total.leaked_chars, total.gold_chars),
@@ -105,8 +89,8 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dic
         "hallucinated_spans": dropped, "errors": errors,
         "latency_ms_per_doc": {"p50": lat[len(lat) // 2] if lat else None,
                                "p95": lat[min(len(lat) - 1, int(len(lat) * 0.95))] if lat else None},
-        "tokens": {"in": tokens_in, "out": tokens_out, "cached_in": tokens_cached, "reasoning_out": tokens_reasoning},
-        "cost_usd": ((tokens_in - tokens_cached) / 1e6 * p[0] + tokens_cached / 1e6 * p[1] + tokens_out / 1e6 * p[2]) if p else None,
+        "tokens": tokens,
+        "cost_usd": cost["usd"], "cost": cost,
     }
 
 
@@ -114,7 +98,9 @@ def run_backend(backend: Backend, docs: list[Doc], workers: int = 8) -> tuple[di
     t0 = time.perf_counter()
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = list(pool.map(lambda d: analyze_doc(backend, d), docs))
-    report = aggregate(backend.name, getattr(backend, "model", "?"), results, time.perf_counter() - t0)
+    model = getattr(backend, "model", "?")
+    gpu = deployment_info(model, getattr(backend, "api_key", "")) if "#" in model else None
+    report = aggregate(backend.name, model, results, time.perf_counter() - t0, gpu)
     preds = [{"uid": r["doc"].uid, "errors": r["errors"],
               "predictions": [p.__dict__ for p in predictions(r["doc"], r["analyses"])],
               "invalid_calls": [a.error for _, a in r["analyses"] if not a.valid]} for r in results]
@@ -133,7 +119,8 @@ def render(reports: list[dict], n_docs: int) -> str:
              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in reports:
         lat = r["latency_ms_per_doc"]
-        cost = "–" if r["cost_usd"] is None else f"${r['cost_usd']:.2f}"
+        basis = (r.get("cost") or {}).get("basis")
+        cost = "–" if r["cost_usd"] is None else f"${r['cost_usd']:.2f}" + (" (GPU time)" if basis == "gpu_time" else "")
         lines.append(
             f"| {r['backend']} `{r['model']}` | {_pct(r['leak_rate'])} | {_pct(r['core_leak_rate'])} | {_pct(r['span_recall'])} | "
             f"{_pct(r['span_precision'])} | {_pct(r['type_accuracy'])} | {_pct(r['valid_rate'])} | {_pct(r['first_try_rate'])} | "

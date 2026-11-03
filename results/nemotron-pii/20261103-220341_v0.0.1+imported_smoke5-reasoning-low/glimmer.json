@@ -126,5 +126,17 @@
     "in": 35966,
     "out": 11048
   },
-  "cost_usd": null
+  "cost_usd": 0.07,
+  "cost": {
+    "usd": 0.07,
+    "basis": "gpu_time",
+    "detail": {
+      "seconds": 31.5,
+      "gpus": 1,
+      "accelerator": "NVIDIA_H200_141GB",
+      "usd_per_gpu_hour": 8.0,
+      "note": "deployment idle time between runs is billed but not attributed",
+      "recosted_on_import": true
+    }
+  }
 }

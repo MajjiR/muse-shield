@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import subprocess
 import sys
 import time
@@ -87,6 +88,7 @@ def save_run(eval_name: str, tag: str, reports: list[dict], preds: dict[str, lis
                 "version": __version__, "git": manifest["git"], "backend": r["backend"], "model": r.get("model"),
                 "docs": r.get("docs") or r.get("n"), "settings": settings.get(r["backend"], {}),
                 **{k: r.get(k) for k, _, _ in HEADLINE}, "cost_usd": r.get("cost_usd"),
+                "cost_basis": (r.get("cost") or {}).get("basis"), "seconds": r.get("seconds"),
                 "path": str(out.relative_to(root)),
             }) + "\n")
     write_readme(root)
@@ -103,8 +105,13 @@ def write_readme(root: Path = RESULTS) -> None:
              "Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.", "",
              "| run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |",
              "|---|---|---|---|---|---|---|---|---|---|---|"]
+    total = sum(r["cost_usd"] for r in rows if r.get("cost_usd") is not None)
+    lines[4:4] = [f"Total recorded eval spend: **${total:.2f}** (token cost for API models; run time x GPU rate for "
+                  "on-demand deployments, excluding idle time between runs).", ""]
     for r in sorted(rows, key=lambda r: r["run_id"], reverse=True):
         cost = "–" if r.get("cost_usd") is None else f"${r['cost_usd']:.2f}"
+        if r.get("cost_basis") == "gpu_time":
+            cost += " GPU"
         lines.append(f"| [{r['run_id']}]({r['path']}/report.html) | {r['eval']} | {r['tag']} | {r['backend']} `{r.get('model')}` | "
                      f"{r.get('docs')} | {pct(r.get('leak_rate'))} | {pct(r.get('core_leak_rate'))} | {pct(r.get('span_recall'))} | "
                      f"{pct(r.get('span_precision'))} | {pct(r.get('valid_rate'))} | {cost} |")
@@ -207,10 +214,19 @@ tip.style.left=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8)+'px';tip.styl
 
 def import_benchmark_dir(run_dir: Path, tag: str, settings: dict | None = None, dataset: dict | None = None) -> Path:
     """Record an existing runs/benchmarks/<stamp>/ folder into the registry."""
+    from .config import load_env
+    from .costs import deployment_info, run_cost
+
+    load_env()
     reports = [json.loads(p.read_text()) for p in sorted(run_dir.glob("*.json"))]
-    for r in reports:
-        if "#" in str(r.get("model")):
-            r["cost_usd"] = None  # older reports priced deployment runs per token by mistake
+    gpu_cache: dict[str, dict | None] = {}
+    for r in reports:  # older reports used per-token prices for everything: re-cost with today's rules
+        model = str(r.get("model"))
+        if "#" in model and model not in gpu_cache:
+            gpu_cache[model] = deployment_info(model, os.environ.get("FIREWORKS_API_KEY", ""))
+        r["cost"] = run_cost(model, r.get("tokens") or {}, float(r.get("seconds") or 0), gpu_cache.get(model))
+        r["cost"]["detail"]["recosted_on_import"] = True
+        r["cost_usd"] = r["cost"]["usd"]
     preds = {p.name.removesuffix(".preds.jsonl"): [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
              for p in sorted(run_dir.glob("*.preds.jsonl"))}
     compare = (run_dir / "compare.md").read_text() if (run_dir / "compare.md").exists() else ""

@@ -23,11 +23,8 @@ from pathlib import Path
 
 from .analysis import Analysis
 from .backends import Backend, BackendError, backend_from_env
+from .costs import deployment_info, run_cost
 from .evalset import Case, generate
-
-# Fireworks serverless list price for muse-glimmer-30b, USD per 1M tokens (check before quoting).
-DEFAULT_PRICE_IN, DEFAULT_PRICE_OUT = 0.35, 1.50
-
 
 def _norm(s: str) -> str:
     return " ".join(s.casefold().split())
@@ -77,8 +74,7 @@ def score_case(case: Case, a: Analysis) -> dict:
     }
 
 
-def run(backend: Backend, cases: list[Case], workers: int = 4,
-        price_in: float = DEFAULT_PRICE_IN, price_out: float = DEFAULT_PRICE_OUT) -> dict:
+def run(backend: Backend, cases: list[Case], workers: int = 4) -> dict:
     t0 = time.perf_counter()
 
     def one(case: Case):
@@ -95,7 +91,7 @@ def run(backend: Backend, cases: list[Case], workers: int = 4,
     ctx = [0, 0, 0]
     kind = [0, 0]
     dropped = valid = first_try = errors = 0
-    latencies, tokens_in, tokens_out = [], 0, 0
+    latencies, tokens_in, tokens_out, tokens_cached = [], 0, 0, 0
     failures = []
     by_template: dict[str, list[float]] = defaultdict(list)
 
@@ -107,6 +103,7 @@ def run(backend: Backend, cases: list[Case], workers: int = 4,
         latencies.append(a.latency_ms)
         tokens_in += a.usage.get("prompt_tokens", 0)
         tokens_out += a.usage.get("completion_tokens", 0)
+        tokens_cached += a.usage.get("prompt_tokens_details.cached_tokens", 0)
         if not a.valid:
             failures.append({"id": case.id, "error": a.error})
             continue
@@ -130,13 +127,17 @@ def run(backend: Backend, cases: list[Case], workers: int = 4,
                              "hallucinated": [d["text"] for d in a.dropped]})
 
     n = len(cases)
+    seconds = time.perf_counter() - t0
+    model = getattr(backend, "model", "?")
+    tokens = {"in": tokens_in, "out": tokens_out, "cached_in": tokens_cached}
+    cost = run_cost(model, tokens, seconds, deployment_info(model, getattr(backend, "api_key", "")) if "#" in model else None)
     overall = _prf(*(sum(v[i] for v in totals.values()) for i in range(3)))
     lat = sorted(latencies)
     return {
         "backend": getattr(backend, "name", "?"),
-        "model": getattr(backend, "model", "?"),
+        "model": model,
         "n": n,
-        "seconds": round(time.perf_counter() - t0, 2),
+        "seconds": round(seconds, 2),
         "contract": {"valid_rate": valid / n, "first_try_rate": first_try / n, "errors": errors},
         "entities": overall,
         "entities_by_type": {t: _prf(*v) for t, v in sorted(totals.items())},
@@ -146,8 +147,8 @@ def run(backend: Backend, cases: list[Case], workers: int = 4,
         "hallucinated_spans": dropped,
         "f1_by_template": {t: statistics.mean(v) for t, v in sorted(by_template.items())},
         "latency_ms": {"p50": lat[len(lat) // 2] if lat else None, "p95": lat[min(len(lat) - 1, int(len(lat) * 0.95))] if lat else None},
-        "tokens": {"in": tokens_in, "out": tokens_out},
-        "cost_usd": tokens_in / 1e6 * price_in + tokens_out / 1e6 * price_out,
+        "tokens": tokens,
+        "cost_usd": cost["usd"], "cost": cost,
         "failures": failures[:25],
     }
 
@@ -155,10 +156,12 @@ def run(backend: Backend, cases: list[Case], workers: int = 4,
 def render(r: dict) -> str:
     pct = lambda x: "–" if x is None else f"{x:.0%}"  # noqa: E731
     e, c = r["entities"], r["contexts"]
+    cost = "–" if r["cost_usd"] is None else f"${r['cost_usd']:.4f}"
+    cost += f" ({r['cost']['basis']})" if r.get("cost") else ""
     lines = [
         f"# Eval: {r['backend']} · {r['model']}",
         "",
-        f"n={r['n']} · {r['seconds']}s · cost ${r['cost_usd']:.4f} · tokens in/out {r['tokens']['in']}/{r['tokens']['out']}"
+        f"n={r['n']} · {r['seconds']}s · cost {cost} · tokens in/out {r['tokens']['in']}/{r['tokens']['out']}"
         f" · latency p50 {r['latency_ms']['p50'] or 0:.0f} ms, p95 {r['latency_ms']['p95'] or 0:.0f} ms",
         "",
         "| metric | value |", "|---|---|",

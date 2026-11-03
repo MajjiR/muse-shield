@@ -126,5 +126,19 @@
     "in": 32332,
     "out": 42211
   },
-  "cost_usd": null
+  "cost_usd": 0.21981175,
+  "cost": {
+    "usd": 0.21981175,
+    "basis": "tokens",
+    "detail": {
+      "usd_per_1m": {
+        "input": 1.25,
+        "cached_input": 0.15,
+        "output": 4.25
+      },
+      "in": 32332,
+      "out": 42211,
+      "recosted_on_import": true
+    }
+  }
 }
