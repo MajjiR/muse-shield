@@ -203,3 +203,23 @@ def test_waits_for_scaled_to_zero_deployment(monkeypatch):
 
     assert backend(handler).analyze(["Hi."])[0].valid
     assert slept == [15] * 5
+
+
+def test_meta_effort_and_budget_from_env(monkeypatch):
+    monkeypatch.setenv("MODEL_API_KEY", "k")
+    monkeypatch.setenv("META_SYNTHETIC_ONLY", "1")
+    monkeypatch.setenv("META_REASONING_EFFORT", "high")
+    monkeypatch.setenv("META_MAX_TOKENS", "8192")
+    b = backend_from_env("muse_spark")
+    assert b.extra == {"reasoning_effort": "high"} and b.max_tokens == 8192
+
+
+def test_rate_limits_get_patient_backoff(monkeypatch):
+    monkeypatch.setattr("muse_shield.backends.time.sleep", lambda s: None)
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        return httpx.Response(429) if len(calls) <= 8 else reply('{"entities": [], "contexts": []}')
+
+    assert backend(handler).analyze(["Hi."])[0].valid and len(calls) == 9

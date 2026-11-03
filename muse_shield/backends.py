@@ -98,7 +98,12 @@ class ChatBackend(Backend):
                     time.sleep(15)
                     waited += 15
                     continue
-                if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                if r.status_code == 429 and attempt < 10:
+                    # Rate limits are per team (Contributor: 150 RPM), so back off patiently instead of failing.
+                    time.sleep(float(r.headers.get("retry-after") or min(2 ** attempt, 30)))
+                    attempt += 1
+                    continue
+                if r.status_code in (500, 502, 503, 504) and attempt < 3:
                     time.sleep(float(r.headers.get("retry-after") or 2 ** attempt))
                     attempt += 1
                     continue
@@ -200,5 +205,6 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
             os.environ.get("MODEL_API_KEY", ""),
             name=name, synthetic_only=synthetic, client=client,
             reasoning_effort=os.environ.get("META_REASONING_EFFORT", "low"),
+            max_tokens=int(os.environ.get("META_MAX_TOKENS", "4096")),
         )
     raise BackendError(f"unknown ENGINE_BACKEND {name!r} (expected glimmer, muse_spark or muse_wonder)")
