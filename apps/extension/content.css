@@ -9,6 +9,8 @@
 .muse-shield-reply {
   display: block;
   width: 100%;
+  flex: 1 1 100%;
+  min-width: 0;
   height: 48px;
   border: 0;
   background: transparent;

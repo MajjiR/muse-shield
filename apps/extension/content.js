@@ -100,12 +100,15 @@ chrome.storage.onChanged.addListener((c, area) => { if (area === "local" && c.sh
 
 // -- restored replies inside the chat ------------------------------------------------------
 
+// Your sent messages are covered the same way, so you see what you typed, not the masked text.
 function mountReply(id) {
   const item = document.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
-  const msg = item && item.querySelector(SEL.assistant);
+  if (!item) return;
+  const user = item.dataset.messageRole === "user";
+  const msg = user ? item : item.querySelector(SEL.assistant);
   if (!msg) return;
   for (const c of msg.children) {
-    if (!c.classList.contains("muse-shield-reply") && !c.querySelector(SEL.thinking)) c.setAttribute("data-muse-shield-hidden", "");
+    if (!c.classList.contains("muse-shield-reply") && (user || !c.querySelector(SEL.thinking))) c.setAttribute("data-muse-shield-hidden", "");
   }
   let f = msg.querySelector(":scope > iframe.muse-shield-reply");
   if (!f) {
@@ -201,6 +204,13 @@ function replyText(item) {
   return { text, done };
 }
 
+// The user message of the same turn (meta.ai gives both halves of a turn one data-turn-id).
+function userIdFor(item) {
+  const turn = item.dataset.turnId;
+  const u = turn && document.querySelector(`[data-message-role="user"][data-turn-id="${CSS.escape(turn)}"]`);
+  return u ? u.dataset.messageId : null;
+}
+
 async function watchReply(before, requestId) {
   const item = await waitFor(() => {
     const items = [...document.querySelectorAll(SEL.item)].filter((e) => e.dataset.messageRole === "assistant" && !before.has(e.dataset.messageId));
@@ -216,10 +226,11 @@ async function watchReply(before, requestId) {
     const { text, done } = replyText(item);
     if (text !== last) {
       last = text;
-      if (!done) post({ type: "reply", requestId, state: "streaming", text, messageId: item.dataset.messageId });
+      if (!done) post({ type: "reply", requestId, state: "streaming", text, messageId: item.dataset.messageId, userMessageId: userIdFor(item) });
     }
     if (done && text) {
-      post({ type: "reply", requestId, state: "done", text, messageId: item.dataset.messageId, conversationId: conversationId() });
+      post({ type: "reply", requestId, state: "done", text, messageId: item.dataset.messageId, userMessageId: userIdFor(item),
+             conversationId: conversationId() });
       return;
     }
     await sleep(300);

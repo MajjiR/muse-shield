@@ -139,7 +139,7 @@ def apply_overrides(vault: Vault, chat_id: str, masked: Masked, keep: set[str], 
 
 
 class Bindings:
-    """meta.ai conversation id -> vault chat id. Ids only; kept next to the vault."""
+    """meta.ai conversation id -> vault chat id, and meta.ai message id -> vault message id. Ids only."""
 
     def __init__(self, vault: Vault):
         path = ":memory:" if vault.path == ":memory:" else str(Path(vault.path).with_name("extension.db"))
@@ -147,6 +147,7 @@ class Bindings:
         self._db = sqlite3.connect(path, check_same_thread=False)
         self._db.execute("CREATE TABLE IF NOT EXISTS bindings (site TEXT NOT NULL, conversation_id TEXT NOT NULL, "
                          "chat_id TEXT NOT NULL, created_at REAL NOT NULL, PRIMARY KEY (site, conversation_id))")
+        self._db.execute("CREATE TABLE IF NOT EXISTS message_links (message_id TEXT PRIMARY KEY, site_message_id TEXT NOT NULL)")
 
     def get(self, site: str, conversation_id: str) -> str | None:
         row = self._db.execute("SELECT chat_id FROM bindings WHERE site=? AND conversation_id=?", (site, conversation_id)).fetchone()
@@ -155,6 +156,13 @@ class Bindings:
     def set(self, site: str, conversation_id: str, chat_id: str) -> None:
         with self._lock, self._db:
             self._db.execute("INSERT OR REPLACE INTO bindings VALUES (?,?,?,?)", (site, conversation_id, chat_id, time.time()))
+
+    def link(self, message_id: str, site_message_id: str) -> None:
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO message_links VALUES (?,?)", (message_id, site_message_id))
+
+    def site_ids(self) -> dict[str, str]:
+        return dict(self._db.execute("SELECT message_id, site_message_id FROM message_links"))
 
 
 class BindRequest(BaseModel):
@@ -180,6 +188,12 @@ class ExtReplyRequest(BaseModel):
     message_id: str | None = None  # meta.ai's id for the reply, so a re-read doesn't store it twice
 
 
+class ExtLinkRequest(BaseModel):
+    chat_id: str
+    message_id: str  # the vault's id for your message
+    site_message_id: str  # meta.ai's id for the same message
+
+
 class ExtConsentRequest(BaseModel):
     chat_id: str
     label: str
@@ -188,13 +202,13 @@ class ExtConsentRequest(BaseModel):
     reason: str = ""
 
 
-def history(vault: Vault, chat_id: str) -> list[dict]:
-    """The chat as the side panel shows it: your words, and Meta AI's replies restored."""
+def history(vault: Vault, chat_id: str, site_ids: dict[str, str] | None = None) -> list[dict]:
+    """The chat as the extension shows it: your words, and Meta AI's replies restored."""
     out = []
     for m in vault.messages(chat_id):
         if m["role"] == "user":
             out.append({"role": "user", "text": m["original"], "masked": m["meta"].get("outbound") or m["masked_text"],
-                        "spans": m["meta"].get("spans", [])})
+                        "spans": m["meta"].get("spans", []), "site_message_id": (site_ids or {}).get(m["message_id"])})
         elif m["role"] == "assistant":
             out.append({"role": "assistant", "masked": m["masked_text"], "segments": segments(m["masked_text"], chat_id, vault),
                         "site_message_id": m["meta"].get("site_message_id")})
@@ -235,7 +249,7 @@ def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_
             need_chat(body.chat_id)
             bindings.set(body.site, body.conversation_id, body.chat_id)
             chat_id = body.chat_id
-        return {"chat_id": chat_id, "messages": history(vault, chat_id) if chat_id else [],
+        return {"chat_id": chat_id, "messages": history(vault, chat_id, bindings.site_ids()) if chat_id else [],
                 "analysis": bool(masker), "analysis_off_reason": off_reason}
 
     @app.post("/ext/preview")
@@ -271,9 +285,19 @@ def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_
             return {**masked.to_dict(), "analysis_ok": False, "error": f"raw values for {', '.join(found)} are still in the text",
                     "outbound": None, "first": first, "leaks": found}
         stored = [{k: v for k, v in s.items() if k != "text"} for s in spans]
-        vault.add_message(chat_id, "user", masked_text, original=body.text,
-                          meta={"spans": stored, "cost_usd": masked.cost_usd, "site": "meta.ai", "outbound": outbound})
-        return {**masked.to_dict(), "masked_text": masked_text, "spans": spans, "outbound": outbound, "first": first, "leaks": []}
+        message_id = vault.add_message(chat_id, "user", masked_text, original=body.text,
+                                       meta={"spans": stored, "cost_usd": masked.cost_usd, "site": "meta.ai", "outbound": outbound})
+        return {**masked.to_dict(), "masked_text": masked_text, "spans": spans, "outbound": outbound, "first": first, "leaks": [],
+                "message_id": message_id}
+
+    @app.post("/ext/link")
+    def link(body: ExtLinkRequest):
+        """Once meta.ai shows the sent message, remember its id so the original can cover it again later."""
+        need_chat(body.chat_id)
+        if not any(m["message_id"] == body.message_id for m in vault.messages(body.chat_id)):
+            raise HTTPException(404, "unknown message")
+        bindings.link(body.message_id, body.site_message_id)
+        return {"ok": True}
 
     @app.post("/ext/restore")
     def restore(body: ExtReplyRequest):

@@ -34,6 +34,16 @@ def test_bind_new_chat_once_meta_assigns_an_id_then_history_comes_back(tmp_path)
     assert "".join(s["text"] for s in h[1]["segments"]) == "Hi Rohan!"
 
 
+def test_sent_message_is_linked_to_its_meta_ai_id_for_history(tmp_path):
+    c = make(tmp_path)
+    r = c.post("/ext/mask", json={"text": ACCEPT}).json()
+    c.post("/ext/bind", json={"conversation_id": "conv", "chat_id": r["chat_id"]})
+    assert c.post("/ext/link", json={"chat_id": r["chat_id"], "message_id": r["message_id"], "site_message_id": "conv_1_user"}).json()["ok"]
+    h = c.post("/ext/bind", json={"conversation_id": "conv"}).json()["messages"]
+    assert h[0]["site_message_id"] == "conv_1_user" and h[0]["text"] == ACCEPT
+    assert c.post("/ext/link", json={"chat_id": r["chat_id"], "message_id": "m_nope", "site_message_id": "x"}).status_code == 404
+
+
 def test_reply_restores_bracket_variants_and_is_stored_once(tmp_path):
     c = make(tmp_path)
     cid = c.post("/ext/mask", json={"text": ACCEPT}).json()["chat_id"]

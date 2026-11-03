@@ -68,6 +68,24 @@ function segmentsNode(segments) {
   return p;
 }
 
+// Your text with what was masked highlighted (spans are offsets into it; hover shows the placeholder).
+function userTextNode(text, spans) {
+  const p = el("div", "text");
+  const marks = (spans || []).filter((s) => !s.kept && s.placeholder && (s.kind === "context" || !s.in_context))
+    .sort((a, b) => a.start - b.start);
+  let i = 0;
+  for (const s of marks) {
+    if (s.start < i) continue;
+    p.append(text.slice(i, s.start));
+    const m = el("mark", s.kind === "context" ? "ctx" : "", text.slice(s.start, s.end));
+    m.title = `Meta AI saw ${s.placeholder}`;
+    p.append(m);
+    i = s.end;
+  }
+  p.append(text.slice(i));
+  return p;
+}
+
 // Tell the page how tall this frame needs to be (a number only; nothing private). Measure the
 // content, not the document: the document is at least as tall as the frame, so it would only grow.
 function reportHeight(tabId, extra, target = document.body) {

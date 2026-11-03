@@ -13,6 +13,7 @@ const state = {
   tabId: null, conversationId: null, chatId: null, analysis: false, busy: false,
   spans: [], keep: new Set(), extra: new Map(), previewTimer: null, previewSeq: 0, checking: false,
   requestId: 0, askRounds: 0,
+  sent: null, // what you just sent: {message_id, text, spans, masked} or a consent note, until its bubble is covered
 };
 
 // -- status --------------------------------------------------------------------------------
@@ -205,6 +206,7 @@ async function submit() {
     if (!r.analysis_ok) throw new Error(`Not sent: ${r.error}`);
     state.chatId = r.chat_id;
     state.askRounds = 0;
+    state.sent = { state: "user", message_id: r.message_id, text, spans: r.spans, masked: r.outbound };
     setBusy(true, "Sending masked text…");
     await sendToMeta(r.outbound);
     input.value = "";
@@ -227,7 +229,18 @@ function showReply(messageId, data) {
   chrome.tabs.sendMessage(state.tabId, { type: "mount-reply", messageId }).catch(() => {});
 }
 
+// Cover your sent bubble with what you typed (once per meta.ai id; ids can settle late on a new chat).
+function coverSent(userMessageId) {
+  const s = state.sent;
+  if (!s || !userMessageId || s.covered === userMessageId) return;
+  s.covered = userMessageId;
+  const { message_id, covered, ...data } = s;
+  showReply(userMessageId, data);
+  if (message_id) api("/ext/link", { chat_id: state.chatId, message_id, site_message_id: userMessageId }).catch(() => {});
+}
+
 async function onReply(msg) {
+  coverSent(msg.userMessageId);
   if (msg.state === "streaming") {
     if (state.chatId) {
       api("/ext/restore", { chat_id: state.chatId, text: msg.text })
@@ -265,6 +278,8 @@ async function onConsent(msg) {
   try {
     const r = await api("/ext/consent", { chat_id: ask.chat_id, label: ask.label, level: msg.level, decision: msg.decision, reason: ask.reason });
     await chrome.storage.session.set({ [key]: { ...data, state: "answered", decision: msg.decision, level: msg.level } });
+    state.sent = { state: "note", text: msg.decision === "allow" ? `You let Meta AI see ${ask.label} (${msg.level}).` : `You declined to reveal ${ask.label}.`,
+      masked: r.outbound };
     await sendToMeta(r.outbound);
     setBusy(true, "Meta AI is replying…");
   } catch (e) {
@@ -285,6 +300,7 @@ async function openConversation(conversationId, keepChat = false) {
     if (!keepChat) {
       for (const m of b.messages) {
         if (m.role === "assistant" && m.site_message_id) showReply(m.site_message_id, { state: "done", segments: m.segments, masked: m.masked });
+        if (m.role === "user" && m.site_message_id) showReply(m.site_message_id, { state: "user", text: m.text, spans: m.spans, masked: m.masked });
       }
     }
   } catch (e) {

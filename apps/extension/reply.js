@@ -7,9 +7,12 @@ const HINTS = { shape: "structure, details still masked", summary: "a one-line g
 let tabId = null;
 let showMasked = false;
 
+const BADGE = { ask: "🛡️ Muse Shield · Meta AI asked for hidden context", answered: "🛡️ Muse Shield · Meta AI asked for hidden context",
+  user: "🛡️ Only you see this · Meta AI got placeholders", note: "🛡️ Your answer to Meta AI" };
+
 function header(data) {
   const h = el("div", "rhead");
-  h.append(el("span", "rbadge", data.state === "ask" || data.state === "answered" ? "🛡️ Muse Shield · Meta AI asked for hidden context" : "🛡️ Restored on your device"));
+  h.append(el("span", "rbadge", BADGE[data.state] || "🛡️ Restored on your device"));
   if (data.masked) {
     const t = el("button", "link", showMasked ? "Show restored" : "What Meta AI saw");
     t.onclick = () => { showMasked = !showMasked; render(data); };
@@ -68,8 +71,15 @@ function render(data) {
   const root = document.getElementById("root");
   root.replaceChildren();
   if (!data) return;
+  const mine = data.state === "user" || data.state === "note";
+  document.body.classList.toggle("mine", mine);
   root.append(header(data));
   if (showMasked) root.append(maskedNode(data.masked));
+  else if (mine) {
+    const bubble = el("div", "bubble");
+    bubble.append(data.state === "user" ? userTextNode(data.text, data.spans) : el("div", "text", data.text));
+    root.append(bubble);
+  }
   else if (data.state === "ask" || data.state === "answered") root.append(askCard(data));
   else {
     const body = segmentsNode(data.segments);
