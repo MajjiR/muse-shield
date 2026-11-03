@@ -1,0 +1,48 @@
+{
+  "backend": "muse_spark+sam",
+  "model": "muse-spark-1.3 + sam-3.1",
+  "docs": 7,
+  "leak_rate": 0.1111111111111111,
+  "span_recall": 0.8888888888888888,
+  "span_precision": null,
+  "valid_rate": 1.0,
+  "overmask_rate": 0.020833333333333332,
+  "id_photos_blurred": "1/1",
+  "faces": [
+    {
+      "name": "bus.jpg",
+      "faces_expected": 3,
+      "faces_blurred": 3
+    },
+    {
+      "name": "zidane.jpg",
+      "faces_expected": 2,
+      "faces_blurred": 2
+    }
+  ],
+  "rescan_ok": "4/5",
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 0.75,
+    "CONTACT": 0.75,
+    "DATE": 1.0,
+    "ID": 1.0,
+    "PERSON": 0.875,
+    "SECRET": 1.0,
+    "SENSITIVE_ATTRIBUTE": 0.5
+  },
+  "latency_s": {
+    "p50": 25.8,
+    "max": 34.7
+  },
+  "sam_requests": 14,
+  "seconds": 76.6,
+  "cost_usd": 0.15899755,
+  "cost": {
+    "usd": 0.15899755,
+    "basis": "tokens",
+    "detail": {
+      "note": "Muse Spark tokens only; SAM 3.1 requests are counted, not priced"
+    }
+  }
+}
