@@ -58,6 +58,42 @@ export interface Turn {
   error: string;
   cost_usd: number;
   unknown_labels: string[];
+  /** A tool call Muse Spark planned: pending (waiting for you) or how it ended. */
+  action: AgentAction | null;
+}
+
+export type ActionStatus = "pending" | "done" | "refused" | "denied" | "failed";
+
+/** A tool call. `args` is what the model wrote (placeholders); `preview` holds the real values and never leaves this device. */
+export interface AgentAction {
+  action_id: string;
+  chat_id: string;
+  tool: string;
+  status: ActionStatus;
+  violations: string[];
+  args: Record<string, unknown>;
+  preview: Record<string, unknown>;
+  /** What Muse Spark wrote, the contact it resolved through, and the real name and address (this device only). */
+  recipients: { label: string; via: string; person: string | null; address: string }[];
+  unmasked: string[];
+  result: Record<string, unknown>;
+  error: string;
+  created_at: number;
+}
+
+export interface OutboxItem {
+  id: string;
+  chat_id: string;
+  tool: string;
+  payload: Record<string, unknown>;
+  created_at: number;
+}
+
+export interface AuditChain {
+  ok: boolean;
+  entries?: number;
+  head?: string;
+  broken_at?: number;
 }
 
 export interface Segment {
@@ -70,11 +106,11 @@ export interface Segment {
 
 export interface Message {
   message_id: string;
-  role: "user" | "assistant" | "reveal";
+  role: "user" | "assistant" | "reveal" | "tool_call" | "tool_result";
   masked_text: string;
   text: string;
   original: string | null;
-  meta: { spans?: Span[]; cost_usd?: number | null; label?: string; level?: Level; decision?: "allow" | "deny" };
+  meta: { spans?: Span[]; cost_usd?: number | null; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
   segments?: Segment[];
   created_at: number;
 }
