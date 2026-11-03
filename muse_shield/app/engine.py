@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from itertools import combinations
 
@@ -66,6 +66,16 @@ class Masked:
     latency_ms: float = 0.0
     cost_usd: float | None = None
     tokens: dict = field(default_factory=dict)
+    # Values the model already saw unmasked earlier in this chat. Chat text keeps them (hiding them now would
+    # only trip the pre-send guard), but a masked file copy must still hide them.
+    already_sent: list[dict] = field(default_factory=list)
+
+    def replacements(self) -> list[tuple[int, int, str]]:
+        """(start, end, label) for every piece of `original` the masked text replaces, in order.
+        Context blocks swallow the entities inside them."""
+        out = [(c["start"], c["end"], c["label"]) for c in self.contexts]
+        out += [(s["start"], s["end"], s["placeholder"]) for s in self.spans if s["kind"] == "entity" and not s.get("in_context")]
+        return sorted(out)
 
     def to_dict(self) -> dict:
         return {"chat_id": self.chat_id, "masked_text": self.masked_text, "spans": self.spans, "contexts": self.contexts,
@@ -80,11 +90,33 @@ class Masker:
     def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4):
         self.vault, self.analyzer, self.workers = vault, analyzer, workers
 
-    def _analyze(self, paras: list[tuple[int, str]]) -> list[Analysis]:
+    def _analyze(self, paras: list[tuple[int, str]], on_progress=None) -> list[Analysis]:
         if not paras:
             return []
         with ThreadPoolExecutor(max_workers=min(self.workers, len(paras))) as pool:
-            return list(pool.map(lambda p: self.analyzer.analyze([p[1]])[0], paras))
+            futures = [pool.submit(lambda p: self.analyzer.analyze([p[1]])[0], p) for p in paras]
+            if on_progress:
+                on_progress(0, len(futures))
+                for done, _ in enumerate(as_completed(futures), 1):
+                    on_progress(done, len(futures))
+            return [f.result() for f in futures]
+
+    @staticmethod
+    def _propagate(text: str, entities: list[dict]) -> list[dict]:
+        """Every other occurrence of a value the model found, with the same type and role (documents: the model
+        may flag a name on page 1 and miss it on page 9)."""
+        out, seen = [], set()
+        for e in entities:
+            value = e["text"].strip()
+            key = (value.casefold(), e["type"], e["role"])
+            if key in seen or (len(value) < 3 and e["type"] not in ALWAYS_MASK):
+                continue
+            seen.add(key)
+            pattern = r"\s+".join(re.escape(w) for w in value.split())
+            for m in re.finditer(rf"(?<!\w){pattern}(?!\w)", text, re.IGNORECASE):
+                if "\n\n" not in m.group(0):
+                    out.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": e["type"], "role": e["role"]})
+        return out
 
     def _link_contacts(self, text: str, chat_id: str, spans: list[dict]) -> None:
         """Link each CONTACT/ID to the nearest PERSON within LINK_WINDOW characters, in the same paragraph."""
@@ -100,11 +132,13 @@ class Masker:
                 self.vault.add_edge(chat_id, c["placeholder"], best["placeholder"], "identifies")
                 self.vault.link_entities(c["entity_id"], best["entity_id"], "identifies")
 
-    def mask(self, text: str, chat_id: str) -> Masked:
+    def mask(self, text: str, chat_id: str, *, propagate: bool = False, on_progress=None, title: bool = True) -> Masked:
+        """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
+        on_progress(done, total) per analysed unit, and title=False (a document shouldn't name the chat)."""
         t0 = time.perf_counter()
         paras = paragraphs(text)
         try:
-            analyses = self._analyze(paras)
+            analyses = self._analyze(paras, on_progress)
         except BackendError as exc:
             return Masked(chat_id, text, text, analysis_ok=False, error=f"analysis failed: {exc}",
                           latency_ms=(time.perf_counter() - t0) * 1000)
@@ -133,6 +167,8 @@ class Masker:
                 blocks.append({"start": start, "end": end, "kind": c.kind, "subtype": c.subtype, "summary": c.summary})
             for s in a.entities:
                 entities.append({"start": off + s.start, "end": off + s.end, "text": s.text, "type": s.type, "role": s.role})
+        if propagate:
+            entities += self._propagate(text, entities)
 
         # Longest entity wins on overlap.
         kept: list[dict] = []
@@ -145,7 +181,7 @@ class Masker:
         # would only make the pre-send guard refuse the chat (e.g. "the staging database password" masked on turn 2).
         mapped = set(self.vault.mapping(chat_id).values())
         seen = "\n".join(m["masked_text"] for m in self.vault.messages(chat_id))
-        already_sent = [e for e in kept if e["text"] not in mapped and e["text"] in seen]
+        already_sent = [e for e in kept if e["text"] not in mapped and e["text"] in seen] if seen else []
         kept = [e for e in kept if e not in already_sent]
 
         spans: list[dict] = []
@@ -171,16 +207,16 @@ class Masker:
             contexts.append({"label": label, "kind": b["kind"], "subtype": b["subtype"], "start": b["start"], "end": b["end"],
                              "summary": b["summary"]})
 
-        # Build the masked text: context blocks first (they swallow their inner entities).
+        result = Masked(chat_id, text, "", spans=spans, contexts=contexts, cost_usd=cost, tokens=tokens,
+                        already_sent=[{k: e[k] for k in ("start", "end", "text", "type", "role")} for e in already_sent])
         pieces, cursor = [], 0
-        replacements = [(c["start"], c["end"], c["label"]) for c in contexts]
-        replacements += [(s["start"], s["end"], s["placeholder"]) for s in spans if not s.get("in_context")]
-        for start, end, label in sorted(replacements):
+        for start, end, label in result.replacements():
             pieces += [text[cursor:start], label]
             cursor = end
         pieces.append(text[cursor:])
         masked_text = "".join(pieces)
-        self.vault.title_from_masked(chat_id, masked_text)
+        if title:
+            self.vault.title_from_masked(chat_id, masked_text)
 
         labels = sorted({s["placeholder"] for s in spans})
         for a_, b_ in combinations(labels[:25], 2):
@@ -198,8 +234,9 @@ class Masker:
                     for s in spans]
         span_out += [{"start": c["start"], "end": c["end"], "text": text[c["start"]:c["end"]], "type": c["kind"], "role": None,
                       "placeholder": c["label"], "kind": "context", "source": "model", "in_context": None} for c in contexts]
-        return Masked(chat_id, text, masked_text, span_out, contexts, latency_ms=(time.perf_counter() - t0) * 1000,
-                      cost_usd=cost, tokens=tokens)
+        result.masked_text, result.spans = masked_text, span_out
+        result.latency_ms = (time.perf_counter() - t0) * 1000
+        return result
 
 
 _LABEL = re.compile(r"<[A-Z][A-Z_]*_\d+>")
