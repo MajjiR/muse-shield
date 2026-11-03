@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Muse Shield</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">🛡️ <strong>Muse Shield</strong> <span class="muted">for Meta AI</span></div>
+    <label class="switch" title="When on, meta.ai's own message box is locked">
+      <input type="checkbox" id="shield" checked> <span>Shield</span>
+    </label>
+  </header>
+  <div id="status" class="status"></div>
+
+  <main id="log" class="log" aria-live="polite"></main>
+
+  <form id="composer" class="composer">
+    <textarea id="input" rows="3" placeholder="Message Meta AI privately… (Enter to send, Shift+Enter for a new line)"></textarea>
+    <div class="composer__row">
+      <label class="muted small"><input type="checkbox" id="review"> Review masked text before sending</label>
+      <button id="sendBtn" type="submit">Mask &amp; send</button>
+    </div>
+  </form>
+
+  <template id="tpl-ask">
+    <div class="ask">
+      <div class="ask__title">Meta AI asks to see <code class="ask__label"></code></div>
+      <div class="ask__reason muted"></div>
+      <div class="ask__levels"></div>
+      <pre class="ask__preview"></pre>
+      <div class="ask__actions">
+        <button type="button" class="ask__allow">Allow &amp; send</button>
+        <button type="button" class="ask__deny secondary">Deny</button>
+      </div>
+    </div>
+  </template>
+  <script src="panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Muse Shield for Meta AI",
+  "version": "0.1.0",
+  "description": "Type in Muse Shield instead of meta.ai: sensitive details are masked on your device before Meta AI sees them, and restored only in the side panel.",
+  "permissions": [
+    "sidePanel",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.meta.ai/*",
+    "https://meta.ai/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open Muse Shield"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.meta.ai/*",
+        "https://meta.ai/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

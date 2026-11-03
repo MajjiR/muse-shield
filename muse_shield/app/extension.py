@@ -96,7 +96,8 @@ def history(vault: Vault, chat_id: str) -> list[dict]:
     out = []
     for m in vault.messages(chat_id):
         if m["role"] == "user":
-            out.append({"role": "user", "text": m["original"], "masked": m["meta"].get("outbound") or m["masked_text"]})
+            out.append({"role": "user", "text": m["original"], "masked": m["meta"].get("outbound") or m["masked_text"],
+                        "spans": m["meta"].get("spans", [])})
         elif m["role"] == "assistant":
             out.append({"role": "assistant", "masked": m["masked_text"], "segments": segments(m["masked_text"], chat_id, vault)})
         elif m["role"] == "reveal":

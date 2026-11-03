@@ -1,0 +1,37 @@
+.muse-shield-lock {
+  position: fixed;
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border-radius: 28px;
+  border: 1.5px solid #3b6ef5;
+  background: color-mix(in srgb, #eef3ff 92%, transparent);
+  backdrop-filter: blur(6px);
+  color: #1d3a8a;
+  font: 500 14px/1.35 system-ui, -apple-system, "Segoe UI", sans-serif;
+  text-align: left;
+  cursor: default;
+}
+.muse-shield-lock__icon { font-size: 18px; }
+.muse-shield-lock button {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: #3b6ef5;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.muse-shield-lock--nudge { animation: muse-shield-nudge 0.35s ease; }
+@keyframes muse-shield-nudge {
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+@media (prefers-color-scheme: dark) {
+  .muse-shield-lock { background: color-mix(in srgb, #14213f 92%, transparent); color: #cfdcff; border-color: #5b86ff; }
+}
