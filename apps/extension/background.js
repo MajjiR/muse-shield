@@ -1,6 +1,11 @@
-// Clicking the toolbar icon opens the side panel; the lock on meta.ai's composer can ask for it too.
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+// Frames inside meta.ai ask which tab they're in (tabs.getCurrent can come back empty in a frame).
+chrome.runtime.onMessage.addListener((msg, sender, respond) => {
+  if (msg.type === "whoami") respond({ tabId: sender.tab ? sender.tab.id : null });
+  return false;
+});
 
-chrome.runtime.onMessage.addListener((msg, sender) => {
-  if (msg.type === "open-panel" && sender.tab) chrome.sidePanel.open({ tabId: sender.tab.id }).catch(() => {});
+// The toolbar icon toggles the shield.
+chrome.action.onClicked.addListener(async () => {
+  const { shieldOn = true } = await chrome.storage.local.get("shieldOn");
+  await chrome.storage.local.set({ shieldOn: !shieldOn });
 });

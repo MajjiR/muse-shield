@@ -5,7 +5,8 @@ masked message is typed into meta.ai by the extension, and Meta AI's reply is re
 from the page. The engine still does Call 1 (analysis), the vault, rehydration and consent.
 
     /ext/bind     meta.ai conversation id <-> vault chat (ids only, no values)
-    /ext/mask     mask a message; returns the exact text to put in meta.ai's composer
+    /ext/preview  what would be masked, for underlines while you type (writes nothing to the vault)
+    /ext/mask     mask a message, with your keep / extra overrides; returns the exact text for meta.ai
     /ext/restore  rehydrate a reply that is still streaming (nothing stored)
     /ext/reply    a finished reply: store it, or turn a NEED_CONTEXT line into an ask
     /ext/consent  allow or deny an ask; returns the note to send to Meta AI
@@ -16,17 +17,20 @@ localhost, so meta.ai's page never sees a real value.
 
 from __future__ import annotations
 
+import dataclasses
 import re
 import sqlite3
 import threading
 import time
+from collections import OrderedDict
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from ..analysis import ENTITY_TYPES, Analysis, split_sentences
 from .chat import LEVELS, NEED, find_leaks
-from .engine import Masker, rehydrate, segments
+from .engine import ALWAYS_MASK, Masked, Masker, paragraphs, rehydrate, segments, sentence_offsets
 from .vault import Vault
 
 # Sent once, ahead of the first message of every shielded meta.ai chat (meta.ai has no system prompt).
@@ -45,6 +49,93 @@ _BARE = re.compile(r"(?<![<\w\[])\[?([A-Z][A-Z_]*_\d+)\]?(?![>\w])")
 def normalize_labels(text: str, mapping: dict[str, str]) -> str:
     """Meta AI sometimes writes [PERSON_1] or PERSON_1: map those back to <PERSON_1> when the vault knows the label."""
     return _BARE.sub(lambda m: f"<{m.group(1)}>" if f"<{m.group(1)}>" in mapping else m.group(0), text)
+
+
+class CachedAnalyzer:
+    """Remembers each paragraph's analysis, so sending right after a live preview costs no second call."""
+
+    def __init__(self, inner, size: int = 256):
+        self.inner, self.size = inner, size
+        self.model, self.name = getattr(inner, "model", ""), getattr(inner, "name", "analyzer")
+        self._cache: OrderedDict[str, Analysis] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def analyze(self, paras: list[str], known_labels: list[str] | None = None) -> list[Analysis]:
+        out = []
+        for p in paras:
+            with self._lock:
+                hit = self._cache.get(p)
+                if hit is not None:
+                    self._cache.move_to_end(p)
+            if hit is not None:
+                out.append(dataclasses.replace(hit, usage={}, latency_ms=0.0))  # already paid for
+                continue
+            a = self.inner.analyze([p], known_labels)[0]
+            if a.valid:
+                with self._lock:
+                    self._cache[p] = a
+                    while len(self._cache) > self.size:
+                        self._cache.popitem(last=False)
+            out.append(a)
+        return out
+
+
+def preview_spans(text: str, analyses: list[Analysis]) -> list[dict]:
+    """Detected entities and context blocks with offsets into text, without minting placeholders."""
+    out = []
+    for (off, para), a in zip(paragraphs(text), analyses):
+        sentences = a.sentences or split_sentences(para) or [para]
+        offs = sentence_offsets(para, sentences)
+        for c in a.contexts:
+            lo, hi = min(c.sentences), max(c.sentences)
+            start, end = off + offs[lo - 1][0], off + offs[hi - 1][1]
+            out.append({"kind": "context", "type": c.kind, "role": None, "start": start, "end": end, "text": text[start:end],
+                        "summary": c.summary, "policy": False})
+        for e in a.entities:
+            out.append({"kind": "entity", "type": e.type, "role": e.role, "start": off + e.start, "end": off + e.end, "text": e.text,
+                        "summary": "", "policy": e.type in ALWAYS_MASK})
+    return sorted(out, key=lambda s: (s["start"], -s["end"]))
+
+
+def apply_overrides(vault: Vault, chat_id: str, masked: Masked, keep: set[str], extra: list[dict]) -> tuple[str, list[dict]]:
+    """Rebuild the masked text with your choices: kept spans go as written (hard-rule types can't be kept;
+    a kept passage still hides the entities inside it), extra spans get placeholders like any other."""
+    text = masked.original
+    ctx = {s["placeholder"]: s for s in masked.spans if s["kind"] == "context"}
+    kept_ctx = {label for label, s in ctx.items() if s["text"] in keep}
+    reps, spans = [], []
+    for s in masked.spans:
+        s = dict(s)
+        if s["kind"] == "context":
+            s["kept"] = s["placeholder"] in kept_ctx
+            if not s["kept"]:
+                reps.append((s["start"], s["end"], s["placeholder"]))
+        else:
+            s["kept"] = s["text"] in keep and s["type"] not in ALWAYS_MASK
+            swallowed = s.get("in_context") and s["in_context"] not in kept_ctx
+            if not s["kept"] and not swallowed:
+                reps.append((s["start"], s["end"], s["placeholder"]))
+            if s["kept"]:
+                s["placeholder"] = None
+        spans.append(s)
+    for x in extra:
+        value, etype = x.get("text", ""), (x.get("type") or "ID").upper()
+        if not value.strip() or etype not in ENTITY_TYPES:
+            continue
+        label = None
+        for m in re.finditer(re.escape(value), text):
+            if any(m.start() < e and b < m.end() for b, e, _ in reps):
+                continue
+            label = label or vault.entity_placeholder(chat_id, etype, value)[0]
+            reps.append((m.start(), m.end(), label))
+            spans.append({"start": m.start(), "end": m.end(), "text": value, "type": etype, "role": None, "placeholder": label,
+                          "kind": "entity", "source": "user", "in_context": None, "kept": False})
+    pieces, cursor = [], 0
+    for start, end, label in sorted(reps):
+        pieces += [text[cursor:start], label]
+        cursor = end
+    pieces.append(text[cursor:])
+    return "".join(pieces), spans
 
 
 class Bindings:
@@ -72,9 +163,15 @@ class BindRequest(BaseModel):
     chat_id: str | None = None  # the vault chat already used for this tab, to bind once meta.ai assigns an id
 
 
+class ExtPreviewRequest(BaseModel):
+    text: str
+
+
 class ExtMaskRequest(BaseModel):
     text: str
     chat_id: str | None = None
+    keep: list[str] = []  # span texts you chose to send as written
+    extra: list[dict] = []  # [{"text", "type"}] spans you chose to mask
 
 
 class ExtReplyRequest(BaseModel):
@@ -99,7 +196,8 @@ def history(vault: Vault, chat_id: str) -> list[dict]:
             out.append({"role": "user", "text": m["original"], "masked": m["meta"].get("outbound") or m["masked_text"],
                         "spans": m["meta"].get("spans", [])})
         elif m["role"] == "assistant":
-            out.append({"role": "assistant", "masked": m["masked_text"], "segments": segments(m["masked_text"], chat_id, vault)})
+            out.append({"role": "assistant", "masked": m["masked_text"], "segments": segments(m["masked_text"], chat_id, vault),
+                        "site_message_id": m["meta"].get("site_message_id")})
         elif m["role"] == "reveal":
             out.append({"role": "reveal", **{k: m["meta"].get(k) for k in ("label", "level", "decision")}})
     return out
@@ -108,6 +206,8 @@ def history(vault: Vault, chat_id: str) -> list[dict]:
 def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_reason: str) -> None:
     bindings = Bindings(vault)
     seen_replies: dict[str, set[str]] = {}
+    cached = CachedAnalyzer(masker.analyzer) if masker else None
+    masker = Masker(vault, cached, masker.workers) if masker else None
 
     def need_chat(chat_id: str) -> None:
         if not any(c["chat_id"] == chat_id for c in vault.chats()):
@@ -133,6 +233,22 @@ def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_
         return {"chat_id": chat_id, "messages": history(vault, chat_id) if chat_id else [],
                 "analysis": bool(masker), "analysis_off_reason": off_reason}
 
+    @app.post("/ext/preview")
+    def preview(body: ExtPreviewRequest):
+        if not masker:
+            raise HTTPException(503, off_reason or "analysis unavailable")
+        t0 = time.perf_counter()
+        paras = paragraphs(body.text)
+        try:
+            analyses = masker._analyze(paras)
+        except Exception as exc:  # noqa: BLE001 - shown as "couldn't check" in the composer
+            return {"ok": False, "error": str(exc), "spans": []}
+        bad = [a for a in analyses if not a.valid]
+        if bad:
+            return {"ok": False, "error": bad[0].error, "spans": []}
+        return {"ok": True, "error": "", "spans": preview_spans(body.text, analyses),
+                "latency_ms": round((time.perf_counter() - t0) * 1000, 1)}
+
     @app.post("/ext/mask")
     def ext_mask(body: ExtMaskRequest):
         if not masker:
@@ -142,15 +258,17 @@ def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_
         masked = masker.mask(body.text, chat_id)
         if not masked.analysis_ok:
             return {**masked.to_dict(), "outbound": None, "first": first, "leaks": []}
-        outbound = f"{PREAMBLE}\n\n{masked.masked_text}" if first else masked.masked_text
-        found = leaks(chat_id, outbound)
-        if found:  # a value the analyzer missed elsewhere is still in the text: don't send
+        masked_text, spans = apply_overrides(vault, chat_id, masked, set(body.keep), body.extra)
+        outbound = f"{PREAMBLE}\n\n{masked_text}" if first else masked_text
+        kept = {s["text"] for s in spans if s.get("kept")}
+        found = [label for label in leaks(chat_id, outbound) if vault.resolve(chat_id, label) not in kept]
+        if found:  # a value masked elsewhere is still in the text: don't send
             return {**masked.to_dict(), "analysis_ok": False, "error": f"raw values for {', '.join(found)} are still in the text",
                     "outbound": None, "first": first, "leaks": found}
-        spans = [{k: v for k, v in s.items() if k != "text"} for s in masked.spans]
-        vault.add_message(chat_id, "user", masked.masked_text, original=body.text,
-                          meta={"spans": spans, "cost_usd": masked.cost_usd, "site": "meta.ai", "outbound": outbound})
-        return {**masked.to_dict(), "outbound": outbound, "first": first, "leaks": []}
+        stored = [{k: v for k, v in s.items() if k != "text"} for s in spans]
+        vault.add_message(chat_id, "user", masked_text, original=body.text,
+                          meta={"spans": stored, "cost_usd": masked.cost_usd, "site": "meta.ai", "outbound": outbound})
+        return {**masked.to_dict(), "masked_text": masked_text, "spans": spans, "outbound": outbound, "first": first, "leaks": []}
 
     @app.post("/ext/restore")
     def restore(body: ExtReplyRequest):

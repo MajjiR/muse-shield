@@ -1,6 +1,6 @@
 # Muse Shield for Meta AI (Chrome extension)
 
-You type in the Muse Shield side panel instead of meta.ai's own box. Your message is masked
+Muse Shield replaces meta.ai's message box with its own (an extension frame the page can't read).
 on your device, only placeholders go into meta.ai, and Meta AI's reply is restored in the
 side panel. meta.ai's page never holds a real value.
 

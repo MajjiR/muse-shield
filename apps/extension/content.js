@@ -1,8 +1,9 @@
 // Muse Shield content script for meta.ai.
 //
-// It never sees a real value: the side panel masks your message on 127.0.0.1 and hands this
-// script only the masked text. Here we lock meta.ai's own composer (so nothing raw is typed
-// into the page), put the masked text in it, press Send, and read Meta AI's reply back out.
+// It never sees a real value. It puts the Muse Shield composer (an extension frame the page
+// can't read) exactly where meta.ai's message box is, pastes the masked text it's handed into
+// meta.ai's real box, presses Send, reads Meta AI's reply back out, and shows restored replies
+// in extension frames inside the chat.
 
 const SEL = {
   composer: '[contenteditable="true"][data-testid="composer-input"]',
@@ -15,10 +16,12 @@ const REPLY_TIMEOUT_MS = 180000;
 
 let shieldOn = true;
 let inserting = false; // our own synthetic edits pass the lock
+let composerHeight = 0;
+const replies = new Map(); // meta.ai message id -> reported frame height (ids only)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const squash = (s) => (s || "").replace(/\s+/g, "");
-const post = (msg) => chrome.runtime.sendMessage(msg).catch(() => {}); // the panel may be closed
+const post = (msg) => chrome.runtime.sendMessage(msg).catch(() => {}); // frames may not be listening yet
 
 function conversationId() {
   const m = location.pathname.match(/^\/prompt\/([^/?#]+)/);
@@ -35,12 +38,18 @@ async function waitFor(fn, ms, every = 100) {
   return null;
 }
 
-// -- the lock over meta.ai's composer ---------------------------------------------------------
+// -- the Muse Shield composer over meta.ai's box ---------------------------------------------
 
-const lock = document.createElement("div");
-lock.className = "muse-shield-lock";
-lock.innerHTML = '<span class="muse-shield-lock__icon">🛡️</span><span>Muse Shield is on. Type in the side panel, so Meta AI only sees masked text.</span><button type="button">Open panel</button>';
-lock.querySelector("button").addEventListener("click", () => post({ type: "open-panel" }));
+const frame = document.createElement("iframe");
+frame.className = "muse-shield-composer";
+frame.src = chrome.runtime.getURL("composer.html");
+frame.title = "Muse Shield";
+
+const offPill = document.createElement("button");
+offPill.className = "muse-shield-off";
+offPill.type = "button";
+offPill.textContent = "🛡️ Muse Shield is off · turn on";
+offPill.addEventListener("click", () => chrome.storage.local.set({ shieldOn: true }));
 
 function composerBox() {
   const ed = document.querySelector(SEL.composer);
@@ -51,21 +60,29 @@ function composerBox() {
   return box;
 }
 
-function placeLock() {
-  const box = shieldOn && composerBox();
-  if (!box) {
-    lock.remove();
+function place() {
+  const box = composerBox();
+  if (!shieldOn || !box) {
+    frame.remove();
+    if (!shieldOn) document.documentElement.appendChild(offPill); else offPill.remove();
+    if (box) box.style.opacity = "";
     return;
   }
+  offPill.remove();
+  box.style.opacity = "0"; // the frame takes its place (opacity, not visibility: the box must stay focusable for our paste)
   const r = box.getBoundingClientRect();
-  Object.assign(lock.style, { top: `${r.top}px`, left: `${r.left}px`, width: `${r.width}px`, height: `${r.height}px` });
-  if (!lock.isConnected) document.documentElement.appendChild(lock);
+  const height = Math.max(composerHeight, r.height + 4);
+  Object.assign(frame.style, {
+    left: `${r.left - 2}px`, width: `${r.width + 4}px`, height: `${height}px`, top: `${r.bottom + 2 - height}px`,
+  });
+  if (!frame.isConnected) document.documentElement.appendChild(frame);
+  mountReplies();
 }
-setInterval(placeLock, 250);
-window.addEventListener("resize", placeLock);
+setInterval(place, 250);
+window.addEventListener("resize", place);
 
-// Keystrokes, paste, drop and dictation into the real composer are blocked while the shield is on
-// (it autofocuses, so the overlay alone isn't enough). Our own edits are synthetic and pass.
+// Keystrokes, paste, drop and IME into meta.ai's real box are blocked while the shield is on
+// (it autofocuses under the frame). Our own edits are synthetic and pass.
 for (const type of ["beforeinput", "keydown", "keypress", "paste", "drop", "compositionstart"]) {
   window.addEventListener(type, (e) => {
     if (!shieldOn || inserting || !e.isTrusted) return;
@@ -73,15 +90,40 @@ for (const type of ["beforeinput", "keydown", "keypress", "paste", "drop", "comp
     if (ed && e.target instanceof Node && ed.contains(e.target)) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      lock.classList.remove("muse-shield-lock--nudge");
-      void lock.offsetWidth;
-      lock.classList.add("muse-shield-lock--nudge");
+      frame.focus();
     }
   }, true);
 }
 
-chrome.storage.local.get({ shieldOn: true }).then((v) => { shieldOn = v.shieldOn; placeLock(); });
-chrome.storage.onChanged.addListener((c) => { if (c.shieldOn) { shieldOn = c.shieldOn.newValue; placeLock(); } });
+chrome.storage.local.get({ shieldOn: true }).then((v) => { shieldOn = v.shieldOn; place(); });
+chrome.storage.onChanged.addListener((c, area) => { if (area === "local" && c.shieldOn) { shieldOn = c.shieldOn.newValue; place(); } });
+
+// -- restored replies inside the chat ------------------------------------------------------
+
+function mountReply(id) {
+  const item = document.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
+  const msg = item && item.querySelector(SEL.assistant);
+  if (!msg) return;
+  for (const c of msg.children) {
+    if (!c.classList.contains("muse-shield-reply") && !c.querySelector(SEL.thinking)) c.setAttribute("data-muse-shield-hidden", "");
+  }
+  let f = msg.querySelector(":scope > iframe.muse-shield-reply");
+  if (!f) {
+    f = document.createElement("iframe");
+    f.className = "muse-shield-reply";
+    f.title = "Restored by Muse Shield";
+    f.src = chrome.runtime.getURL(`reply.html#${encodeURIComponent(id)}`);
+    msg.appendChild(f);
+  }
+  const h = replies.get(id);
+  if (h) f.style.height = `${h}px`;
+}
+
+// React may re-render a message and drop our frame: put it back.
+function mountReplies() {
+  if (!shieldOn) return;
+  for (const id of replies.keys()) mountReply(id);
+}
 
 // -- writing into meta.ai -------------------------------------------------------------------
 
@@ -133,7 +175,7 @@ function toText(root) {
     if (n.nodeType === Node.TEXT_NODE) { out += n.nodeValue; return; }
     if (n.nodeType !== Node.ELEMENT_NODE) return;
     const tag = n.tagName;
-    if (["BUTTON", "STYLE", "SCRIPT", "svg", "SVG"].includes(tag) || n.getAttribute("aria-hidden") === "true") return;
+    if (["BUTTON", "STYLE", "SCRIPT", "IFRAME", "svg", "SVG"].includes(tag) || n.getAttribute("aria-hidden") === "true") return;
     if (tag === "BR") { out += "\n"; return; }
     const block = /^(P|DIV|H[1-6]|LI|UL|OL|PRE|BLOCKQUOTE|TABLE|TR|SECTION)$/.test(tag);
     if (block) nl();
@@ -153,7 +195,7 @@ function toText(root) {
 function replyText(item) {
   const msg = item.querySelector(SEL.assistant);
   if (!msg) return { text: "", done: false };
-  const parts = [...msg.children].filter((c) => !c.querySelector(SEL.thinking) && !c.matches(SEL.thinking));
+  const parts = [...msg.children].filter((c) => !c.classList.contains("muse-shield-reply") && !c.querySelector(SEL.thinking) && !c.matches(SEL.thinking));
   const text = parts.map(toText).filter(Boolean).join("\n\n");
   const done = msg.dataset.streamingComplete === "true" || msg.dataset.streamingState === "DONE";
   return { text, done };
@@ -185,11 +227,26 @@ async function watchReply(before, requestId) {
   post({ type: "reply", requestId, state: "error", error: "Meta AI's reply didn't finish in time", text: last });
 }
 
-// -- messages from the side panel ----------------------------------------------------------
+// -- messages from the Muse Shield frames --------------------------------------------------
 
 chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
   if (msg.type === "status") {
-    respond({ conversationId: conversationId(), composer: !!document.querySelector(SEL.composer), shieldOn, url: location.href });
+    respond({ conversationId: conversationId() });
+    return false;
+  }
+  if (msg.type === "composer-height") {
+    composerHeight = msg.height;
+    place();
+    return false;
+  }
+  if (msg.type === "mount-reply") {
+    if (!replies.has(msg.messageId)) replies.set(msg.messageId, 0);
+    mountReply(msg.messageId);
+    return false;
+  }
+  if (msg.type === "reply-height") {
+    replies.set(msg.messageId, msg.height);
+    mountReply(msg.messageId);
     return false;
   }
   if (msg.type === "send") {
@@ -211,6 +268,7 @@ setInterval(() => {
   const id = conversationId();
   if (id !== lastConversation) {
     lastConversation = id;
+    replies.clear();
     post({ type: "url", conversationId: id });
   }
 }, 400);

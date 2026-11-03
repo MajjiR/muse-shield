@@ -75,3 +75,46 @@ def test_mask_unavailable_without_analysis(tmp_path):
 def test_normalize_leaves_unknown_labels():
     m = {"<PERSON_1>": "Rohan"}
     assert normalize_labels("[PERSON_1] PERSON_1 <PERSON_1> PERSON_2 X_PERSON_1", m) == "<PERSON_1> <PERSON_1> <PERSON_1> PERSON_2 X_PERSON_1"
+
+
+def test_preview_underlines_without_touching_the_vault(tmp_path):
+    c = make(tmp_path)
+    r = c.post("/ext/preview", json={"text": ACCEPT}).json()
+    assert r["ok"]
+    got = {(s["kind"], s["type"], s["text"], s["policy"]) for s in r["spans"]}
+    assert ("entity", "PERSON", "Rohan", True) in got and ("entity", "AMOUNT", "10 lakh rupees", False) in got
+    ctx = [s for s in r["spans"] if s["kind"] == "context"][0]
+    assert ACCEPT[ctx["start"]:ctx["end"]] == ctx["text"] and ctx["type"] == "DECISION"
+    vault = c.app.state.vault
+    assert vault.chats() == [] and vault._db.execute("SELECT COUNT(*) FROM placeholders").fetchone()[0] == 0
+
+
+def test_send_after_preview_reuses_the_analysis(tmp_path):
+    from test_app_chat import make as make_chat
+    calls = []
+    c, _ = make_chat(tmp_path, [], analyzer_calls=calls)
+    c.post("/ext/preview", json={"text": ACCEPT})
+    r = c.post("/ext/mask", json={"text": ACCEPT}).json()
+    assert r["analysis_ok"] and len(calls) == 1
+
+
+def test_keep_sends_a_value_as_written_but_not_a_hard_rule_one(tmp_path):
+    c = make(tmp_path)
+    r = c.post("/ext/mask", json={"text": ACCEPT, "keep": ["10 lakh rupees", "Rohan"]}).json()
+    assert r["masked_text"] == "My name is <PERSON_1> and I earn 10 lakh rupees. <DECISION_1>"
+
+
+def test_keeping_a_passage_still_hides_the_entities_inside(tmp_path):
+    c = make(tmp_path)
+    passage = "Tomorrow I'm planning to buy a land at 12-4, MVP Colony, Visakhapatnam."
+    r = c.post("/ext/mask", json={"text": ACCEPT, "keep": [passage]}).json()
+    assert r["masked_text"].endswith("Tomorrow I'm planning to buy a land at <ADDRESS_1>.")
+    assert "Visakhapatnam" not in r["outbound"]
+
+
+def test_extra_masks_text_the_model_missed(tmp_path):
+    c = make(tmp_path)
+    r = c.post("/ext/mask", json={"text": "Is this a good offer?", "extra": [{"text": "offer", "type": "PROJECT"}]}).json()
+    assert r["masked_text"] == "Is this a good <PROJECT_1>?"
+    back = c.post("/ext/reply", json={"chat_id": r["chat_id"], "text": "About <PROJECT_1>: yes."}).json()
+    assert "".join(s["text"] for s in back["segments"]) == "About offer: yes."
