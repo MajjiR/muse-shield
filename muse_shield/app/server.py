@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .. import __version__
+from .. import __version__, documents
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
@@ -85,7 +85,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def health():
         return {"ok": True, "version": __version__, "analysis": bool(masker), "chat": bool(engine),
                 "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
-                "analysis_off_reason": off_reason, "chat_off_reason": chat_off}
+                "analysis_off_reason": off_reason, "chat_off_reason": chat_off, "documents": documents.available()}
 
     @app.post("/mask")
     def mask(body: MaskRequest):

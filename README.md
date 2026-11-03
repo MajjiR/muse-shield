@@ -245,3 +245,11 @@ CONTRACT.md       the protocol every client codes against
 | **Muse Spark 1.3** | Meta Model API | Call 1 analysis (for now) and call 2 answers; agent planning |
 | **Muse Glimmer 30B** | Fireworks on-demand deployment | Benchmarked baseline; the model we fine-tune for on-device or self-hosted analysis |
 | Muse Wonder 1.0 | Meta Model API | Smoke-tested on 5 docs; dropped (a coding and agentic model, at 3–5× Spark's price) |
+
+## Licence
+
+Muse Shield is licensed under the [GNU AGPL-3.0-or-later](LICENSE). PDF masking uses
+[PyMuPDF](https://pymupdf.readthedocs.io/), which is AGPL-3.0, so anyone distributing a build
+with document support (for example the planned desktop app) must publish its source under the
+AGPL or buy a commercial PyMuPDF licence from Artifex. The other dependencies (cryptography,
+FastAPI, lxml, python-docx, python-pptx, React and the web libraries) are permissively licensed.
