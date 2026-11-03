@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS entity_links (
     src TEXT NOT NULL, dst TEXT NOT NULL, rel TEXT NOT NULL, weight INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (src, dst, rel)
 );
+CREATE TABLE IF NOT EXISTS outbox (
+    id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, tool TEXT NOT NULL, nonce BLOB NOT NULL, payload_ct BLOB NOT NULL, created_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT
 );
@@ -299,6 +302,19 @@ class Vault:
             kind = "email" if "@" in value and "." in value.split("@")[-1] else "phone" if digits >= 7 else "other"
             out.append({"label": self._mint(chat_id, "CONTACT", "entity", eid), "kind": kind, "value": value})
         return out
+
+    def add_outbox(self, chat_id: str, tool: str, payload: dict) -> str:
+        """What a tool actually did, with real values, encrypted (the local record of sent mail, events, notes)."""
+        item_id = "o_" + uuid.uuid4().hex[:12]
+        nonce, ct = self._seal(f"outbox:{item_id}", json.dumps(payload, ensure_ascii=False).encode())
+        with self._lock, self._db:
+            self._db.execute("INSERT INTO outbox VALUES (?,?,?,?,?,?)", (item_id, chat_id, tool, nonce, ct, time.time()))
+        return item_id
+
+    def outbox(self, chat_id: str | None = None) -> list[dict]:
+        q = "SELECT id, chat_id, tool, nonce, payload_ct, created_at FROM outbox" + (" WHERE chat_id=?" if chat_id else "") + " ORDER BY created_at"
+        return [{"id": i, "chat_id": c, "tool": t, "payload": json.loads(self._open(f"outbox:{i}", n, ct)), "created_at": ts}
+                for i, c, t, n, ct, ts in self._db.execute(q, (chat_id,) if chat_id else ())]
 
     def members(self, chat_id: str, context_label: str) -> list[str]:
         """Entity placeholders inside a context block (mentioned_in edges)."""
