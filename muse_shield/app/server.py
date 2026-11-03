@@ -13,9 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
-from .chat import ChatEngine, ChatError, ChatModel
+from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .engine import Masker, rehydrate
-from .inspector import Inspector
+from .inspector import Inspector, user_text
 from .schemas import ChatRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
 
@@ -145,6 +145,43 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def chat_graph(chat_id: str):
         need_chat(chat_id)
         return vault.graph(chat_id)
+
+    @app.get("/inspector")
+    def inspect():
+        return {"summary": inspector.summary(), "requests": inspector.list()}
+
+    @app.get("/inspector/audit")
+    def leak_audit():
+        """Scan every chat (masked) request for raw vault values its chat never allowed."""
+        leaks, scanned, checks = [], 0, 0
+        for r in inspector.list():
+            cid = r.get("chat_id")
+            if r["purpose"] != "chat" or not cid:
+                continue
+            allowed = engine._allowed(cid) if engine else set()
+            secrets = {k: v for k, v in vault.mapping(cid).items() if k not in allowed}
+            scanned += 1
+            checks += len(secrets)
+            found = find_leaks(user_text(r["request_body"]), secrets)
+            if found:
+                leaks.append({"request": r["id"], "chat_id": cid, "labels": found})
+        return {"chat_requests_scanned": scanned, "checks": checks, "leaks": leaks, "clean": not leaks}
+
+    @app.get("/metrics")
+    def metrics():
+        counts: dict[str, int] = {}
+        cost_by_chat: dict[str, float] = {}
+        for row in vault.audit_rows():
+            if row["event"] == "mask":
+                for k, v in row["counts"].items():
+                    counts[k] = counts.get(k, 0) + v
+        for chat in vault.chats():
+            total = sum((m["meta"] or {}).get("cost_usd") or 0 for m in vault.messages(chat["chat_id"]))
+            cost_by_chat[chat["chat_id"]] = round(total, 6)
+        consents = vault.consents()
+        return {"masked_by_type": counts, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
+                "consents": {"allow": sum(c["decision"] == "allow" for c in consents), "deny": sum(c["decision"] == "deny" for c in consents)},
+                "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
 
     if WEB.exists():
         app.mount("/static", StaticFiles(directory=WEB), name="static")
