@@ -6,6 +6,7 @@ Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nem
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261103-220750_v0.0.1+imported_full500-glimmer-base](nemotron-pii/20261103-220750_v0.0.1+imported_full500-glimmer-base/report.html) | nemotron-pii | full500-glimmer-base | glimmer `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj` | 500 | 21.1% | 17.5% | 77.6% | 89.1% | 97.3% | – |
 | [20261103-220341_v0.0.1+imported_smoke5-reasoning-low](nemotron-pii/20261103-220341_v0.0.1+imported_smoke5-reasoning-low/report.html) | nemotron-pii | smoke5-reasoning-low | glimmer `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj` | 5 | 22.5% | 17.4% | 71.0% | 75.9% | 92.0% | – |
 | [20261103-220341_v0.0.1+imported_smoke5-reasoning-low](nemotron-pii/20261103-220341_v0.0.1+imported_smoke5-reasoning-low/report.html) | nemotron-pii | smoke5-reasoning-low | muse_spark `muse-spark-1.3` | 5 | 9.9% | 7.6% | 85.5% | 89.6% | 100.0% | – |
 | [20261103-220341_v0.0.1+imported_smoke5-reasoning-low](nemotron-pii/20261103-220341_v0.0.1+imported_smoke5-reasoning-low/report.html) | nemotron-pii | smoke5-reasoning-low | muse_wonder `muse-wonder-1.0` | 5 | 12.2% | 6.5% | 80.6% | 76.5% | 100.0% | – |
