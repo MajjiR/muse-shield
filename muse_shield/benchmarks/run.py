@@ -1,0 +1,185 @@
+"""Run analysis backends on the Nemotron-PII sample and compare them.
+
+    .venv/bin/python -m muse_shield.benchmarks.run --backends glimmer,muse_spark,muse_wonder --n 500
+    .venv/bin/python -m muse_shield.benchmarks.run --backends glimmer --n 500 --limit 5   # smoke test
+
+Documents are sent paragraph by paragraph, exactly as production will. The text goes
+to each provider, which is fine for this public benchmark and nothing else.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import statistics
+import time
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+from ..analysis import Analysis
+from ..backends import Backend, BackendError, backend_from_env
+from .nemotron import LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
+
+# USD per 1M tokens (input, output). Glimmer: Fireworks serverless list price. Meta prices aren't
+# published in the docs we found; set PRICE_<BACKEND>_IN / PRICE_<BACKEND>_OUT to fill them in.
+PRICES = {"glimmer": (0.35, 1.50)}
+
+
+def price(name: str) -> tuple[float, float] | None:
+    env_in, env_out = os.environ.get(f"PRICE_{name.upper()}_IN"), os.environ.get(f"PRICE_{name.upper()}_OUT")
+    if env_in and env_out:
+        return float(env_in), float(env_out)
+    return PRICES.get(name)
+
+
+def analyze_doc(backend: Backend, doc: Doc) -> dict:
+    t0 = time.perf_counter()
+    analyses: list[tuple[int, Analysis]] = []
+    errors = []
+    for off, para in paragraphs(doc.text):
+        try:
+            analyses.append((off, backend.analyze([para])[0]))
+        except BackendError as exc:
+            errors.append(str(exc))
+    return {"doc": doc, "analyses": analyses, "errors": errors, "latency_ms": (time.perf_counter() - t0) * 1000}
+
+
+def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dict:
+    total = DocScore()
+    found_by_label: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    calls = valid = first_try = dropped = errors = 0
+    tokens_in = tokens_out = 0
+    latencies = []
+    for r in results:
+        doc, analyses = r["doc"], r["analyses"]
+        errors += len(r["errors"])
+        latencies.append(r["latency_ms"])
+        for _, a in analyses:
+            calls += 1
+            valid += a.valid
+            first_try += a.valid and a.attempts == 1
+            dropped += len(a.dropped)
+            tokens_in += a.usage.get("prompt_tokens", 0)
+            tokens_out += a.usage.get("completion_tokens", 0)
+        s = score(doc, predictions(doc, analyses))
+        for f in ("gold_chars", "leaked_chars", "core_gold_chars", "core_leaked_chars", "pred_total", "pred_on_gold", "type_ok", "type_checked"):
+            setattr(total, f, getattr(total, f) + getattr(s, f))
+        for label, (fd, tt) in s.gold_found.items():
+            found_by_label[label][0] += fd
+            found_by_label[label][1] += tt
+
+    def rate(a, b):
+        return a / b if b else None
+
+    by_type: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    for label, (fd, tt) in found_by_label.items():
+        by_type[LABEL_MAP.get(label, "OTHER")][0] += fd
+        by_type[LABEL_MAP.get(label, "OTHER")][1] += tt
+    gold_found = sum(v[0] for v in found_by_label.values())
+    gold_total = sum(v[1] for v in found_by_label.values())
+    quasi_gold = total.gold_chars - total.core_gold_chars
+    lat = sorted(latencies)
+    p = price(name)
+    return {
+        "backend": name, "model": model, "docs": len(results), "seconds": round(seconds, 1),
+        "leak_rate": rate(total.leaked_chars, total.gold_chars),
+        "core_leak_rate": rate(total.core_leaked_chars, total.core_gold_chars),
+        "quasi_leak_rate": rate(total.leaked_chars - total.core_leaked_chars, quasi_gold),
+        "span_recall": rate(gold_found, gold_total),
+        "span_precision": rate(total.pred_on_gold, total.pred_total),
+        "type_accuracy": rate(total.type_ok, total.type_checked),
+        "recall_by_type": {t: rate(*v) for t, v in sorted(by_type.items())},
+        "recall_by_label": {l: {"recall": rate(*v), "n": v[1]} for l, v in sorted(found_by_label.items())},
+        "calls": calls, "valid_rate": rate(valid, calls), "first_try_rate": rate(first_try, calls),
+        "hallucinated_spans": dropped, "errors": errors,
+        "latency_ms_per_doc": {"p50": lat[len(lat) // 2] if lat else None,
+                               "p95": lat[min(len(lat) - 1, int(len(lat) * 0.95))] if lat else None},
+        "tokens": {"in": tokens_in, "out": tokens_out},
+        "cost_usd": (tokens_in / 1e6 * p[0] + tokens_out / 1e6 * p[1]) if p else None,
+    }
+
+
+def run_backend(backend: Backend, docs: list[Doc], workers: int = 8) -> tuple[dict, list[dict]]:
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(lambda d: analyze_doc(backend, d), docs))
+    report = aggregate(backend.name, getattr(backend, "model", "?"), results, time.perf_counter() - t0)
+    preds = [{"uid": r["doc"].uid, "errors": r["errors"],
+              "predictions": [p.__dict__ for p in predictions(r["doc"], r["analyses"])],
+              "invalid_calls": [a.error for _, a in r["analyses"] if not a.valid]} for r in results]
+    return report, preds
+
+
+def _pct(x) -> str:
+    return "–" if x is None else f"{x:.1%}"
+
+
+def render(reports: list[dict], n_docs: int) -> str:
+    lines = [f"# Nemotron-PII benchmark · {n_docs} test docs", "",
+             "Leak rate = share of gold PII characters left unmasked (lower is better). Core excludes weak quasi-identifiers "
+             f"({', '.join(sorted(QUASI))}).", "",
+             "| model | leak ↓ | core leak ↓ | span recall ↑ | span precision ↑ | type acc ↑ | valid JSON | 1st try | hallucinated | p50 / p95 per doc | tokens in/out | cost |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for r in reports:
+        lat = r["latency_ms_per_doc"]
+        cost = "–" if r["cost_usd"] is None else f"${r['cost_usd']:.2f}"
+        lines.append(
+            f"| {r['backend']} `{r['model']}` | {_pct(r['leak_rate'])} | {_pct(r['core_leak_rate'])} | {_pct(r['span_recall'])} | "
+            f"{_pct(r['span_precision'])} | {_pct(r['type_accuracy'])} | {_pct(r['valid_rate'])} | {_pct(r['first_try_rate'])} | "
+            f"{r['hallucinated_spans']} | {(lat['p50'] or 0) / 1000:.1f}s / {(lat['p95'] or 0) / 1000:.1f}s | "
+            f"{r['tokens']['in']:,}/{r['tokens']['out']:,} | {cost} |")
+    types = sorted({t for r in reports for t in r["recall_by_type"]})
+    lines += ["", "## Recall by type", "", "| type | " + " | ".join(r["backend"] for r in reports) + " |",
+              "|---" * (len(reports) + 1) + "|"]
+    lines += [f"| {t} | " + " | ".join(_pct(r["recall_by_type"].get(t)) for r in reports) + " |" for t in types]
+    labels = sorted({l for r in reports for l in r["recall_by_label"]})
+    lines += ["", "## Recall by label", "", "| label | n | " + " | ".join(r["backend"] for r in reports) + " |",
+              "|---" * (len(reports) + 2) + "|"]
+    for l in labels:
+        n = max(r["recall_by_label"].get(l, {}).get("n", 0) for r in reports)
+        lines.append(f"| {l} | {n} | " + " | ".join(_pct(r["recall_by_label"].get(l, {}).get("recall")) for r in reports) + " |")
+    return "\n".join(lines)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="python -m muse_shield.benchmarks.run")
+    ap.add_argument("--backends", default="glimmer", help="comma list: glimmer,muse_spark,muse_wonder")
+    ap.add_argument("--n", type=int, default=500, help="sample size (cached)")
+    ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--limit", type=int, default=0, help="only run the first K docs of the sample (smoke test)")
+    ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--out", type=Path, default=Path("runs/benchmarks"))
+    args = ap.parse_args(argv)
+
+    docs = load_or_sample(args.out / f"nemotron-test-{args.n}-s{args.seed}.jsonl", args.n, args.seed)
+    if args.limit:
+        docs = docs[: args.limit]
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    run_dir = args.out / stamp
+    run_dir.mkdir(parents=True, exist_ok=True)
+    reports = []
+    for name in [b.strip() for b in args.backends.split(",") if b.strip()]:
+        try:
+            backend = backend_from_env(name)
+        except BackendError as exc:
+            print(f"skip {name}: {exc}")
+            continue
+        print(f"running {name} ({backend.model}) on {len(docs)} docs …", flush=True)
+        report, preds = run_backend(backend, docs, args.workers)
+        reports.append(report)
+        (run_dir / f"{name}.json").write_text(json.dumps(report, indent=2))
+        (run_dir / f"{name}.preds.jsonl").write_text("".join(json.dumps(p, ensure_ascii=False) + "\n" for p in preds))
+        print(f"  leak {_pct(report['leak_rate'])} · recall {_pct(report['span_recall'])} · valid {_pct(report['valid_rate'])} "
+              f"· errors {report['errors']} · {report['seconds']}s", flush=True)
+    if not reports:
+        return 2
+    md = render(reports, len(docs))
+    (run_dir / "compare.md").write_text(md + "\n")
+    print("\n" + md + f"\n\nsaved {run_dir}/")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
