@@ -49,10 +49,6 @@ export function ChatView({ chatId, onChat }: { chatId: string | null; onChat: (i
   }, [messages])
 
   useEffect(() => {
-    setAsk(null)
-    setPreview(null)
-  }, [chatId])
-  useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" })
   }, [messages.length, ask])
 
@@ -77,6 +73,7 @@ export function ChatView({ chatId, onChat }: { chatId: string | null; onChat: (i
     if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
     setPreview({ ...m, original: text })
     if (!chatId) onChat(m.chat_id)
+    qc.invalidateQueries({ queryKey: ["chats"] }) // the new chat shows up with its masked title right away
     return m
   }
 
