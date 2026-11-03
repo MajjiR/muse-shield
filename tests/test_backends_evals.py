@@ -128,3 +128,41 @@ def test_harness_counts_misses_and_wrong_roles():
     assert r["role_accuracy"] == 0.0
     assert r["hallucinated_spans"] == 1
     assert r["contexts"]["tp"] == 0 and r["context_kind_accuracy"] == 0.0
+
+
+def test_muse_wonder_backend_and_guard(monkeypatch):
+    monkeypatch.setenv("MODEL_API_KEY", "k")
+    monkeypatch.delenv("META_SYNTHETIC_ONLY", raising=False)
+    monkeypatch.delenv("MUSE_SPARK_SYNTHETIC_ONLY", raising=False)
+    monkeypatch.delenv("MUSE_WONDER_MODEL", raising=False)
+    with pytest.raises(BackendError, match="raw text"):
+        backend_from_env("muse_wonder")
+    monkeypatch.setenv("META_SYNTHETIC_ONLY", "1")
+    b = backend_from_env("muse_wonder")
+    assert (b.name, b.model, b.base_url) == ("muse_wonder", "muse-wonder-1.0", "https://api.meta.ai/v1")
+
+
+def test_json_mode_fallback_when_server_rejects_response_format():
+    seen = []
+
+    def handler(request):
+        body = json.loads(request.content)
+        seen.append("response_format" in body)
+        if "response_format" in body:
+            return httpx.Response(400, json={"error": {"message": "response_format is not supported"}})
+        return reply('{"entities": [], "contexts": []}')
+
+    b = backend(handler)
+    assert b.analyze(["Hello there."])[0].valid
+    assert seen == [True, False] and b.json_mode is False
+
+
+def test_rate_limit_is_retried(monkeypatch):
+    monkeypatch.setattr("muse_shield.backends.time.sleep", lambda s: None)
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        return httpx.Response(429) if len(calls) < 3 else reply('{"entities": [], "contexts": []}')
+
+    assert backend(handler).analyze(["Hi."])[0].valid and len(calls) == 3

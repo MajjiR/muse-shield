@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import statistics
 import time
 from collections import defaultdict
@@ -178,24 +177,15 @@ def render(r: dict) -> str:
     return "\n".join(lines)
 
 
-def _load_dotenv(path: Path = Path(".env")) -> None:
-    if path.exists():
-        for line in path.read_text().splitlines():
-            if "=" in line and not line.lstrip().startswith("#"):
-                k, _, v = line.partition("=")
-                os.environ.setdefault(k.strip(), v.strip())
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m muse_shield.evals")
-    ap.add_argument("--backend", default=None, help="glimmer | muse_spark (default: ENGINE_BACKEND or glimmer)")
+    ap.add_argument("--backend", default=None, help="glimmer | muse_spark | muse_wonder (default: ENGINE_BACKEND or glimmer)")
     ap.add_argument("--n", type=int, default=60)
     ap.add_argument("--seed", type=int, default=3)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--out", type=Path, default=Path("runs/evals"))
     args = ap.parse_args(argv)
 
-    _load_dotenv()
     try:
         backend = backend_from_env(args.backend)
     except BackendError as exc:

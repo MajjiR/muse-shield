@@ -2,11 +2,11 @@
 
     GlimmerBackend    Muse Glimmer 30B. Fireworks serverless by default; point
                       GLIMMER_BASE_URL at a vLLM/SGLang server to self-host.
-    MuseSparkBackend  Muse Spark on the Meta Model API. Development and synthetic
-                      data only: it refuses to run unless MUSE_SPARK_SYNTHETIC_ONLY=1,
-                      because analysis sees raw text.
+    MetaModelBackend  Any Meta Model API model (muse-spark-1.3, muse-wonder-1.0).
+                      Analysis sees raw text, so it refuses to run unless
+                      META_SYNTHETIC_ONLY=1: synthetic or public benchmark data only.
 
-ENGINE_BACKEND=glimmer | muse_spark selects one via backend_from_env().
+ENGINE_BACKEND=glimmer | muse_spark | muse_wonder selects one via backend_from_env().
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ import time
 import httpx
 
 from .analysis import AMOUNT_ROLES, CONTEXT_KINDS, ENTITY_TYPES, Analysis, ContractError, number_sentences, parse, split_sentences
+from .config import load_env
 
 SYSTEM_PROMPT = f"""You find private and confidential information in text for a privacy gateway.
 The input is one paragraph with numbered sentences, plus labels of contexts already known in this chat.
@@ -72,16 +73,27 @@ class ChatBackend(Backend):
             raise BackendError(f"{self.name}: missing API key")
         self.base_url, self.model, self.api_key = base_url.rstrip("/"), model, api_key
         self.timeout, self.max_tokens, self.retries = timeout, max_tokens, retries
+        self.json_mode = True  # turned off once if the server rejects response_format
         self._client = client or httpx.Client()
 
+    def _post(self, messages: list[dict]) -> httpx.Response:
+        payload = {"model": self.model, "messages": messages, "temperature": 0, "max_tokens": self.max_tokens}
+        if self.json_mode:
+            payload["response_format"] = {"type": "json_object"}
+        return self._client.post(f"{self.base_url}/chat/completions", json=payload, timeout=self.timeout,
+                                 headers={"Authorization": f"Bearer {self.api_key}"})
+
     def _call(self, messages: list[dict]) -> tuple[str, dict]:
-        payload = {
-            "model": self.model, "messages": messages, "temperature": 0,
-            "max_tokens": self.max_tokens, "response_format": {"type": "json_object"},
-        }
         try:
-            r = self._client.post(f"{self.base_url}/chat/completions", json=payload, timeout=self.timeout,
-                                  headers={"Authorization": f"Bearer {self.api_key}"})
+            for attempt in range(4):
+                r = self._post(messages)
+                if r.status_code in (400, 422) and self.json_mode and "response_format" in r.text:
+                    self.json_mode = False  # this server doesn't take JSON mode; the prompt still asks for JSON
+                    continue
+                if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                    time.sleep(float(r.headers.get("retry-after") or 2 ** attempt))
+                    continue
+                break
             r.raise_for_status()
             data = r.json()
             return data["choices"][0]["message"]["content"] or "", data.get("usage") or {}
@@ -127,16 +139,24 @@ class GlimmerBackend(ChatBackend):
     name = "glimmer"
 
 
-class MuseSparkBackend(ChatBackend):
-    name = "muse_spark"
+class MetaModelBackend(ChatBackend):
+    """A Meta Model API model. Raw text reaches Meta, so only synthetic or public data is allowed."""
 
-    def __init__(self, *args, synthetic_only: bool = False, **kwargs):
+    def __init__(self, *args, name: str = "meta", synthetic_only: bool = False, **kwargs):
+        self.name = name
         if not synthetic_only:
-            raise BackendError("muse_spark analysis sees raw text: only allowed on synthetic data (MUSE_SPARK_SYNTHETIC_ONLY=1)")
+            raise BackendError(f"{name} analysis sends raw text to the Meta Model API: "
+                               "only allowed on synthetic or public data (META_SYNTHETIC_ONLY=1)")
         super().__init__(*args, **kwargs)
 
 
+MuseSparkBackend = MetaModelBackend  # backwards-compatible name
+
+META_MODELS = {"muse_spark": ("CLOUD_MODEL", "muse-spark-1.3"), "muse_wonder": ("MUSE_WONDER_MODEL", "muse-wonder-1.0")}
+
+
 def backend_from_env(name: str | None = None, client: httpx.Client | None = None) -> Backend:
+    load_env()
     name = name or os.environ.get("ENGINE_BACKEND", "glimmer")
     if name == "glimmer":
         return GlimmerBackend(
@@ -145,12 +165,13 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
             os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", ""),
             client=client,
         )
-    if name == "muse_spark":
-        return MuseSparkBackend(
-            os.environ.get("CLOUD_BASE_URL", "https://api.meta.ai/v1"),
-            os.environ.get("CLOUD_MODEL", "muse-spark-1.3"),
+    if name in META_MODELS:
+        env_var, default = META_MODELS[name]
+        synthetic = "1" in (os.environ.get("META_SYNTHETIC_ONLY"), os.environ.get("MUSE_SPARK_SYNTHETIC_ONLY"))
+        return MetaModelBackend(
+            os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"),
+            os.environ.get(env_var, default),
             os.environ.get("MODEL_API_KEY", ""),
-            synthetic_only=os.environ.get("MUSE_SPARK_SYNTHETIC_ONLY") == "1",
-            client=client,
+            name=name, synthetic_only=synthetic, client=client,
         )
-    raise BackendError(f"unknown ENGINE_BACKEND {name!r} (expected glimmer or muse_spark)")
+    raise BackendError(f"unknown ENGINE_BACKEND {name!r} (expected glimmer, muse_spark or muse_wonder)")
