@@ -11,6 +11,7 @@ it goes back to any agent.
 from __future__ import annotations
 
 import json
+import re
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -70,6 +71,17 @@ class Executor:
             return action
         self.vault.audit("tool_proposed", chat_id, {"tool": 1, "unmasked": len(checked.unmasked)})
         return self._run(action) if not checked.tool.side_effect else action
+
+    def propose_with_capability(self, caps, token: str, agent: str, tool: str, args: dict) -> Action:
+        """A remote agent uses a capability: it may only target the one placeholder it was granted, with that tool."""
+        from .protocol import ProtocolError
+
+        claims = caps.redeem(token, agent, tool)  # raises ProtocolError: bad signature, expired, reused, wrong agent/tool
+        recipients = {lbl for v in (args.get("to"), args.get("attendees")) if v
+                      for lbl in re.findall(r"<[A-Z][A-Z_]*_\d+>", json.dumps(v))}
+        if recipients - {claims["label"]}:
+            raise ProtocolError(f"capability covers {claims['label']} only, not {sorted(recipients - {claims['label']})}")
+        return self.propose(claims["chat"], tool, args)
 
     def confirm(self, action_id: str) -> Action:
         action = self._pending(action_id)
