@@ -203,3 +203,11 @@ def test_waits_for_scaled_to_zero_deployment(monkeypatch):
 
     assert backend(handler).analyze(["Hi."])[0].valid
     assert slept == [15] * 5
+
+
+def test_sentence_split_keeps_abbreviations_attached():
+    assert split_sentences("Dear Mrs. Fernandes, your son was seen today. Fr. Joseph D'Souza signed it.") == [
+        "Dear Mrs. Fernandes, your son was seen today.", "Fr. Joseph D'Souza signed it."]
+    assert split_sentences("Halcyon Pvt. Ltd. said yes. Dr. Rao agreed.") == ["Halcyon Pvt. Ltd. said yes.", "Dr. Rao agreed."]
+    assert split_sentences("It costs Rs. 500 approx. Then we left. A. B. Kumar came.") == [
+        "It costs Rs. 500 approx. Then we left.", "A. B. Kumar came."]

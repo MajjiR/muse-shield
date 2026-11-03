@@ -20,10 +20,23 @@ AMOUNT_ROLES = {"SALARY", "PRICE", "DEAL_VALUE", "LOAN", "REVENUE", "BUDGET", "F
 CONTEXT_KINDS = {"DEAL", "DECISION", "PLAN", "NEGOTIATION", "PROJECT", "HR", "NONE"}
 
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])")
+# A dot after these doesn't end a sentence ("Dear Mrs. Fernandes", "Halcyon Pvt. Ltd. said").
+_ABBREVIATIONS = re.compile(
+    r"(?:\b(?:Mr|Mrs|Ms|Mx|Dr|Fr|Prof|Sr|Jr|St|Mt|No|Nos|Vs|vs|Pvt|Ltd|Inc|Co|Corp|Dept|Govt|Rs|approx|etc|e\.g|i\.e)|\b[A-Z])\.$"
+)
 
 
 def split_sentences(paragraph: str) -> list[str]:
-    return [s.strip() for s in _SENTENCE_END.split(paragraph.strip()) if s.strip()]
+    out: list[str] = []
+    for part in _SENTENCE_END.split(paragraph.strip()):
+        part = part.strip()
+        if not part:
+            continue
+        if out and _ABBREVIATIONS.search(out[-1]):
+            out[-1] = f"{out[-1]} {part}"
+        else:
+            out.append(part)
+    return out
 
 
 def number_sentences(sentences: list[str]) -> str:
