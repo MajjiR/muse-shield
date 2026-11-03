@@ -70,3 +70,12 @@ def test_text_outside_the_page_is_removed():
     r = mask_document(doc.tobytes(), Masker(vault, fake_values({})), vault.create_chat())
     assert b"BNZPV" not in r.data and "424e5a50" not in r.data.hex()
     assert {w["code"] for w in r.warnings} == {"offpage_text_removed"}
+
+
+def test_text_after_a_redacted_word_stays_in_place(result):
+    """PyMuPDF 2.0/2.1 shift the rest of the line left by one glyph after a redaction, under the fill."""
+    def x_of(data, word):
+        page = pymupdf.open(stream=data, filetype="pdf")[0]
+        return next(w[0] for w in page.get_text("words") if w[4] == word)
+
+    assert abs(x_of(result.data, "Call") - x_of(tricky_pdf(), "Call")) < 0.5

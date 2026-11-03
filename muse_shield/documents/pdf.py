@@ -192,7 +192,7 @@ def _rect(boxes: list[tuple], direction: tuple[float, float]) -> pymupdf.Rect:
 
 def apply(pd: PdfDoc, dt: DocText, replacements: list[tuple[int, int, str]]) -> int:
     doc = pd.doc
-    todo: dict[int, list[tuple[pymupdf.Rect, str | None, float, tuple, tuple]]] = {}
+    todo: dict[int, list[tuple[pymupdf.Rect, str, bool, float, tuple, tuple]]] = {}  # rect, label, first piece, …
     missed = 0
     for start, end, label in replacements:
         pieces = [(a, lo, hi) for a, lo, hi in dt.locate(start, end) if a.kind == "text"]
@@ -207,15 +207,15 @@ def apply(pd: PdfDoc, dt: DocText, replacements: list[tuple[int, int, str]]) -> 
             if not boxes:
                 continue
             size, origin = line.chars[lo][2], line.chars[lo][3]
-            todo.setdefault(line.page, []).append((_rect(boxes, line.dir), label if i == 0 else None, size, origin, line.dir))
+            todo.setdefault(line.page, []).append((_rect(boxes, line.dir), label, i == 0, size, origin, line.dir))
     for pno, items in todo.items():
         page = doc[pno]
-        for rect, label, *_ in items:
+        for rect, label, *_ in items:  # every piece of a value in its type's colour
             page.add_redact_annot(rect, fill=_tone(label, pd.label_types)[0], cross_out=False)
         page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
                               text=pymupdf.PDF_REDACT_TEXT_REMOVE)
-        for rect, label, size, origin, direction in items:  # after apply_redactions, which would erase them
-            if not label:
+        for rect, label, first, size, origin, direction in items:  # after apply_redactions, which would erase them
+            if not first:  # a value wrapped onto the next line is labelled once
                 continue
             if direction not in ROTATE:
                 pd.unlabelled += 1
