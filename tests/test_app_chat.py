@@ -68,6 +68,7 @@ def test_need_context_ask_allow_shape_then_answer(tmp_path):
     r = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id}).json()
     assert r["ask"] and r["ask"]["label"] == "<DEAL_1>" and r["ask"]["level"] == "shape" and r["reply"] == ""
     assert r["ask"]["preview"] == "Confidential: <ORG_1> will acquire <ORG_2> for <DEAL_VALUE_1>."
+    assert set(r["ask"]["previews"]) == {"shape", "summary", "full"} and r["ask"]["previews"]["summary"] == "company acquisition"
     done = c.post("/reveal", json={"ask_id": r["ask"]["ask_id"], "decision": "allow"}).json()
     assert done["reply"] == "It depends: 120 crore for Kestrel Labs is fair."
     last = m.payloads[-1]["messages"][-1]["content"]
@@ -144,3 +145,12 @@ def test_full_reveal_note_is_encrypted_at_rest(tmp_path):
     assert b"Acme" not in (tmp_path / "v.db").read_bytes()
     c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id})  # later turns still carry the allowed text
     assert "Acme Corp will acquire" in json.dumps(m.payloads[-1])
+
+
+def test_chat_detail_segments_restored_values(tmp_path):
+    c, _ = make(tmp_path, ["Dear <PERSON_1>, about <DECISION_1>: fine."])
+    r = c.post("/chat", json={"message": ACCEPT}).json()
+    msgs = c.get(f"/chats/{r['chat_id']}").json()["messages"]
+    seg = msgs[1]["segments"]
+    assert seg[0] == {"text": "Dear "} and seg[1] == {"label": "<PERSON_1>", "kind": "entity", "text": "Rohan"}
+    assert seg[3]["kind"] == "context" and seg[3]["text"].startswith("Tomorrow I'm planning")

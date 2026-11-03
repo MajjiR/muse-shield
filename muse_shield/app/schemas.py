@@ -61,6 +61,7 @@ class Ask(BaseModel):
     level: Literal["shape", "summary", "full"]
     reason: str = ""
     preview: str  # exactly what would be sent to the model if allowed
+    previews: dict[str, str] = Field(default_factory=dict)  # every level the user can pick, and its exact text
 
 
 class ChatRequest(BaseModel):

@@ -8,8 +8,9 @@ ENV_KEYS = ["FIREWORKS_API_KEY", "GLIMMER_API_KEY", "GLIMMER_MODEL", "GLIMMER_DE
 
 
 @pytest.fixture(autouse=True)
-def isolated_env(monkeypatch):
-    """Tests never read the real .env: no real keys, no real deployment."""
+def isolated_env(monkeypatch, tmp_path):
+    """Tests never read the real .env or touch the real vault: no real keys, no ~/.muse-shield."""
     monkeypatch.setattr(config, "_loaded", True)
     for key in ENV_KEYS:
         monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("MUSE_SHIELD_HOME", str(tmp_path / "muse-home"))

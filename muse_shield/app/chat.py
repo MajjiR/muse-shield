@@ -50,10 +50,11 @@ class Ask:
     level: str
     reason: str
     preview: str
+    previews: dict = field(default_factory=dict)  # level -> exact text that level would send
     rounds: int = 1
 
     def to_dict(self) -> dict:
-        return {k: getattr(self, k) for k in ("ask_id", "chat_id", "label", "kind", "level", "reason", "preview")}
+        return {k: getattr(self, k) for k in ("ask_id", "chat_id", "label", "kind", "level", "reason", "preview", "previews")}
 
 
 @dataclass
@@ -165,8 +166,9 @@ class ChatEngine:
                 kind = "context" if target and target[0] == "context" else "entity"
                 if kind == "entity":
                     level = "full"  # an entity has only its value
-                preview = self.vault.resolve(chat_id, label, level if kind == "context" else "full")
-                ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, kind, level, reason, preview)
+                levels = LEVELS if kind == "context" else ("full",)
+                previews = {lv: self.vault.resolve(chat_id, label, lv) for lv in levels}
+                ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, kind, level, reason, previews[level], previews)
                 self.pending[ask.ask_id] = ask
                 turn.ask = ask
                 self.vault.audit("ask", chat_id, {"asks": 1})

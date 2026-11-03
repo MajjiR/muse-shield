@@ -2,6 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "muse-shield",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "MUSE_SHIELD_DEV_RAW_ANALYSIS=1",
+        ".venv/bin/python",
+        "-m",
+        "muse_shield.app"
+      ],
+      "port": 8765
+    },
+    {
       "name": "dashboard",
       "runtimeExecutable": ".venv/bin/privacy-engine",
       "runtimeArgs": [

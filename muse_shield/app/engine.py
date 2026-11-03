@@ -190,3 +190,19 @@ def rehydrate(text: str, mapping: dict[str, str]) -> tuple[str, list[str]]:
         return label
 
     return _LABEL.sub(sub, text), sorted(set(unknown))
+
+
+def segments(text: str, chat_id: str, vault: Vault) -> list[dict]:
+    """Split masked text into plain runs and restored placeholders, for highlighting in the UI (local only)."""
+    out, cursor = [], 0
+    for m in _LABEL.finditer(text):
+        if m.start() > cursor:
+            out.append({"text": text[cursor:m.start()]})
+        label = m.group(0)
+        target = vault._target(chat_id, label)
+        value = vault.resolve(chat_id, label) if target else None
+        out.append({"label": label, "kind": target[0] if target else "unknown", "text": value if value is not None else label})
+        cursor = m.end()
+    if cursor < len(text):
+        out.append({"text": text[cursor:]})
+    return out

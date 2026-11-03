@@ -7,6 +7,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -14,12 +15,13 @@ from .. import __version__
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
-from .engine import Masker, rehydrate
+from .engine import Masker, rehydrate, segments
 from .inspector import Inspector, user_text
 from .schemas import ChatRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
 
-WEB = Path(__file__).resolve().parents[2] / "web"
+ROOT = Path(__file__).resolve().parents[2]
+WEB = ROOT / "apps" / "web" / "dist"  # the built React app (npm run build in apps/web)
 META_URL = "https://api.meta.ai/v1"
 
 
@@ -64,6 +66,10 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     engine = ChatEngine(vault, masker, chat_model, inspector=inspector) if masker and chat_model else None
 
     app = FastAPI(title="Muse Shield", version=__version__, docs_url="/docs")
+    # The React dev server (and later the Electron renderer) call the engine from another local origin.
+    origins = os.environ.get("MUSE_SHIELD_CORS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+    app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in origins if o.strip()],
+                       allow_methods=["GET", "POST"], allow_headers=["content-type"])
     app.state.vault, app.state.masker, app.state.engine, app.state.inspector = vault, masker, engine, inspector
 
     def need_chat(chat_id: str) -> None:
@@ -124,7 +130,10 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         msgs = []
         for m in vault.messages(chat_id):
             shown = m["original"] if m["role"] == "user" else rehydrate(m["masked_text"], mapping)[0]
-            msgs.append({**m, "text": shown})
+            extra = {"segments": segments(m["masked_text"], chat_id, vault)} if m["role"] == "assistant" else {}
+            if m["role"] == "reveal":
+                m = {**m, "original": None}  # the note's text is for the model; the UI shows the consent itself
+            msgs.append({**m, "text": shown, **extra})
         return {"chat_id": chat_id, "messages": msgs, "consents": vault.consents(chat_id)}
 
     @app.get("/chats/{chat_id}/vault")
@@ -183,12 +192,12 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 "consents": {"allow": sum(c["decision"] == "allow" for c in consents), "deny": sum(c["decision"] == "deny" for c in consents)},
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
 
-    if WEB.exists():
-        app.mount("/static", StaticFiles(directory=WEB), name="static")
+    if (WEB / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=WEB / "assets"), name="assets")
 
     @app.get("/")
     def index():
         page = WEB / "index.html"
-        return FileResponse(page) if page.exists() else {"ok": True, "hint": "web UI not built yet"}
+        return FileResponse(page) if page.exists() else {"ok": True, "hint": "UI not built: cd apps/web && npm run build"}
 
     return app
