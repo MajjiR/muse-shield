@@ -57,6 +57,57 @@ SECTORS = {
     },
 }
 
+FIRST = ["Aarav", "Ishita", "Kabir", "Meenakshi", "Rehan", "Tanya", "Sameer", "Lavanya", "Joseph", "Fatima", "Harpreet", "Deepa",
+         "Arnav", "Nandini", "Yusuf", "Bhavna", "Clara", "Mihir", "Shreya", "Gaurav", "Anika", "Wen", "Diego", "Amara", "Sven", "Leila",
+         "Pranav", "Rukmini", "Tobias", "Keerthi", "Imran", "Jasleen", "Oliver", "Sana", "Vivek", "Priyanka", "Kenji", "Esther"]
+LAST = ["Bhattacharya", "Narayanan", "Gill", "Sood", "Pillai", "Chakraborty", "Rao", "Kulkarni", "D'Souza", "Ansari", "Mehra",
+        "Venkatesh", "Thakur", "Banerjee", "Fernandes", "Iyengar", "Lobo", "Chopra", "Ramaswamy", "Okonkwo", "Lindholm", "Haddad",
+        "Moreno", "Tanaka", "Weber", "Mukherjee", "Saxena", "Dutta", "Kapoor", "Menon"]
+ORG_A = ["Vardhan", "Silverline", "Bluegate", "Konark", "Northstar", "Tarang", "Evergreen", "Sahyadri", "Crescent", "Pinnacle",
+         "Arcadia", "Indus", "Lumina", "Maple", "Orion", "Saffron", "Trident", "Zenith", "Coral", "Granite"]
+ORG_B = ["Capital", "Pharma", "Logistics", "Retail", "Healthcare", "Holdings", "Technologies", "Foods", "Ventures", "Hospital",
+         "Insurance", "Finserv", "Textiles", "Labs", "Motors"]
+STREETS = ["MG Road", "Linking Road", "Residency Road", "Anna Salai", "Park Street", "FC Road", "Banjara Hills Road No. 3",
+           "Sector 18", "Hill Road", "Brigade Road", "Civil Lines", "Ring Road"]
+CITIES = [("Mumbai", "400"), ("Bengaluru", "560"), ("Chennai", "600"), ("Kolkata", "700"), ("Pune", "411"), ("Hyderabad", "500"),
+          ("Delhi", "110"), ("Ahmedabad", "380"), ("Jaipur", "302"), ("Kochi", "682"), ("Lucknow", "226"), ("Indore", "452")]
+
+
+def identity_pack(rng: random.Random) -> dict:
+    """Fictional, randomly generated details for one document, so no two documents share values."""
+    people = []
+    for _ in range(3):
+        f, l = rng.choice(FIRST), rng.choice(LAST)
+        people.append(f"{f} {l}")
+    city, pin = rng.choice(CITIES)
+    org = f"{rng.choice(ORG_A)} {rng.choice(ORG_B)}"
+    first = people[0].split()[0].lower()
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    return {
+        "people": people,
+        "organization": org,
+        "phone": f"+91 {rng.choice('6789')}{rng.randint(1000, 9999)} {rng.randint(10000, 99999)}",
+        "email": f"{first}.{people[0].split()[1].lower().replace(chr(39), '')}{rng.randint(1, 99)}@{rng.choice(['gmail.com', 'outlook.com', org.split()[0].lower() + '.in'])}",
+        "aadhaar_like": f"{rng.randint(2, 9)}{rng.randint(100, 999)} {rng.randint(1000, 9999)} {rng.randint(1000, 9999)}",
+        "pan_like": "".join(rng.choice(letters) for _ in range(3)) + "P" + rng.choice(letters) + f"{rng.randint(1000, 9999)}" + rng.choice(letters),
+        "ifsc_like": "".join(rng.choice(letters) for _ in range(4)) + "0" + "".join(rng.choice("0123456789") for _ in range(6)),
+        "account_number": "".join(rng.choice("0123456789") for _ in range(rng.choice([11, 12, 14]))),
+        "address": f"{rng.randint(1, 450)}, {rng.choice(['Sunrise Apartments', 'Lake View Towers', 'Green Park Society', 'Shanti Nagar', 'Palm Grove Layout'])}, {rng.choice(STREETS)}, {city} {pin}{rng.randint(1, 99):03d}",
+        "date": f"{rng.randint(1, 28)} {rng.choice(['January', 'March', 'May', 'July', 'September', 'November'])} {rng.choice([2025, 2026, 2027])}",
+        "amount": rng.choice([f"₹{rng.randint(2, 95)} lakh", f"₹{rng.randint(1, 900)} crore", f"${rng.randint(2, 950)},{rng.randint(100, 999)}", f"₹{rng.randint(1, 99)},{rng.randint(100, 999)}"]),
+    }
+
+
+PACK_VALUE_KEYS = ["phone", "email", "aadhaar_like", "pan_like", "ifsc_like", "account_number"]
+
+GEN_PROMPT_PACKED = """Write ONE realistic workplace document of this type: "{doc_type}" (sector: {sector}).
+Use these fictional details, copied exactly, wherever they fit naturally (at least 6 of them):
+{pack}
+Rules: everything is fictional; do not invent other phone numbers, emails or ID numbers than the ones given; you may add
+nicknames, initials, job titles, relative dates and harmless generic phrases. Include confidential business or HR context where
+it fits the document type. 2 to 5 paragraphs separated by blank lines. No placeholders like [NAME].
+Reply with JSON only: {{"doc_type": "...", "text": "..."}}"""
+
 GEN_PROMPT = """Write {n} realistic, varied workplace documents for the sector "{sector}".
 Document types to draw from: {types}.
 Requirements:
@@ -91,6 +142,29 @@ def generate(sector: str, n: int, seed: int, model: str) -> tuple[list[dict], di
     return [{"sector": sector, "doc_type": d.get("doc_type", ""), "text": d.get("text", "")} for d in docs if d.get("text")], usage
 
 
+def generate_one(sector: str, doc_type: str, pack: dict, model: str) -> tuple[dict | None, dict]:
+    b = spark(model, "medium", max_tokens=8192)
+    pack_text = "\n".join(f"- {k}: {', '.join(v) if isinstance(v, list) else v}" for k, v in pack.items())
+    msg = [{"role": "user", "content": GEN_PROMPT_PACKED.format(doc_type=doc_type, sector=SECTORS[sector]["name"], pack=pack_text)}]
+    raw, usage = b._call(msg)
+    try:
+        d = json.loads(raw)
+    except ValueError:
+        return None, usage
+    text = d.get("text") or ""
+    return ({"sector": sector, "doc_type": doc_type, "text": text, "pack": pack} if text else None), usage
+
+
+def pack_misses(paragraph: str, entities: list[dict], pack: dict) -> list[str]:
+    """Planted identifiers present in this paragraph but not covered by any label: independent ground truth."""
+    misses = []
+    values = [pack[k] for k in PACK_VALUE_KEYS] + list(pack.get("people", []))
+    for v in values:
+        if v and v in paragraph and not any(v in e["text"] or e["text"] in v and len(e["text"]) >= 4 for e in entities):
+            misses.append(v)
+    return misses
+
+
 def agree(a, b, max_disagreement: float = 0.34) -> dict | None:
     ea, eb = {(s.text, s.type): s.role for s in a.entities}, {(s.text, s.type): s.role for s in b.entities}
     both = ea.keys() & eb.keys()
@@ -117,9 +191,14 @@ def label_doc(doc: dict, low: MetaModelBackend, med: MetaModelBackend) -> list[d
             continue
         g = agree(a, b)
         if g is None:
-            out.append({"dropped": True, "paragraph": para, "low": [(s.text, s.type) for s in a.entities],
+            out.append({"dropped": True, "reason": "disagreement", "paragraph": para, "low": [(s.text, s.type) for s in a.entities],
                         "medium": [(s.text, s.type) for s in b.entities]})
             continue
+        if doc.get("pack"):
+            missed = pack_misses(para, g["entities"], doc["pack"])
+            if missed:
+                out.append({"dropped": True, "reason": "planted PII unlabelled", "paragraph": para, "missed": missed})
+                continue
         row = chat_row(sentences, json.dumps({"entities": g["entities"], "contexts": g["contexts"]}, ensure_ascii=False))
         row["_meta"] = {"source": "synthetic-spark", "domain": doc["sector"], "doc_type": doc["doc_type"], "agreement": g["agreement"],
                         "usage_low": a.usage, "usage_medium": b.usage}
@@ -168,5 +247,91 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+
+
+# -- at-scale generation with planted identities, train/test split, resumable ----------------------
+
+def build_scale(out: Path, sectors: list[str], train_docs: int, test_docs: int, seed: int, model: str, workers: int) -> dict:
+    """Generate, double-label and verify documents per sector; split by document into train/test.
+
+    Resumable: finished documents are appended to <split>/rows.jsonl (+ manifest) as they complete,
+    and docs already recorded in done.jsonl are skipped on restart.
+    """
+    os.environ.setdefault("META_SYNTHETIC_ONLY", "1")
+    out.mkdir(parents=True, exist_ok=True)
+    done_file = out / "done.jsonl"
+    done = {json.loads(l)["doc_id"] for l in done_file.read_text().splitlines()} if done_file.exists() else set()
+    jobs = []
+    for sector in sectors:
+        rng = random.Random(f"{seed}:{sector}")
+        for i in range(train_docs + test_docs):
+            doc_id = f"{sector}-{i:04d}"
+            split = "test" if i < test_docs else "train"
+            jobs.append((doc_id, split, sector, rng.choice(SECTORS[sector]["doc_types"]), identity_pack(rng)))
+    jobs = [j for j in jobs if j[0] not in done]
+    low, med = spark(model, "low", 4096), spark(model, "medium", 8192)
+    import threading
+
+    lock = threading.Lock()
+    t0 = time.time()
+
+    def work(job):
+        doc_id, split, sector, doc_type, pack = job
+        try:
+            doc, gen_usage = generate_one(sector, doc_type, pack, model)
+        except Exception as exc:  # noqa: BLE001
+            return {"doc_id": doc_id, "error": str(exc)[:200]}
+        if not doc:
+            return {"doc_id": doc_id, "error": "generation returned no document"}
+        rows = label_doc(doc, low, med)
+        kept = [r for r in rows if not r.get("dropped")]
+        dropped = [r for r in rows if r.get("dropped")]
+        with lock:
+            d = out / split
+            d.mkdir(exist_ok=True)
+            with (d / "rows.jsonl").open("a") as f, (d / "rows.manifest.jsonl").open("a") as m:
+                for r in kept:
+                    f.write(json.dumps({"messages": r["messages"]}, ensure_ascii=False) + "\n")
+                    m.write(json.dumps({**r["_meta"], "doc_id": doc_id, "split": split}, ensure_ascii=False) + "\n")
+            with (d / "dropped.jsonl").open("a") as f:
+                for r in dropped:
+                    f.write(json.dumps({**r, "doc_id": doc_id}, ensure_ascii=False) + "\n")
+            with (d / "docs.jsonl").open("a") as f:
+                f.write(json.dumps({**doc, "doc_id": doc_id}, ensure_ascii=False) + "\n")
+            with done_file.open("a") as f:
+                f.write(json.dumps({"doc_id": doc_id, "kept": len(kept), "dropped": len(dropped),
+                                    "gen_usage": gen_usage, "t": time.time()}) + "\n")
+        return {"doc_id": doc_id, "kept": len(kept), "dropped": len(dropped)}
+
+    results = []
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for i, r in enumerate(pool.map(work, jobs), 1):
+            results.append(r)
+            if i % 25 == 0:
+                print(f"{i}/{len(jobs)} docs · {time.time() - t0:.0f}s", flush=True)
+    summary = {"sectors": sectors, "train_docs_per_sector": train_docs, "test_docs_per_sector": test_docs,
+               "docs_done_now": len(results), "errors": sum("error" in r for r in results),
+               "rows_kept_now": sum(r.get("kept", 0) for r in results), "rows_dropped_now": sum(r.get("dropped", 0) for r in results),
+               "seconds": round(time.time() - t0, 1)}
+    (out / "summary.json").write_text(json.dumps(summary, indent=2))
+    return summary
+
+
+def scale_main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="python -m muse_shield.synth scale")
+    ap.add_argument("--sectors", default="ma_legal,healthcare,ecommerce,admin")
+    ap.add_argument("--train-docs", type=int, default=400)
+    ap.add_argument("--test-docs", type=int, default=75)
+    ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--model", default="muse-spark-1.3-contributor")
+    ap.add_argument("--workers", type=int, default=12)
+    ap.add_argument("--out", type=Path, default=Path("runs/synth/v2"))
+    a = ap.parse_args(argv)
+    print(json.dumps(build_scale(a.out, a.sectors.split(","), a.train_docs, a.test_docs, a.seed, a.model, a.workers), indent=2))
+    return 0
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    import sys as _sys
+
+    raise SystemExit(scale_main(_sys.argv[2:]) if len(_sys.argv) > 1 and _sys.argv[1] == "scale" else main())
