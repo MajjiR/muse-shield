@@ -19,6 +19,7 @@ import argparse
 import json
 import os
 import random
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -122,10 +123,21 @@ Requirements:
 Reply with JSON only: {{"documents": [{{"doc_type": "...", "text": "..."}}]}}"""
 
 
+# One cap on concurrent Meta API calls for the whole process. Contributor mode allows 150 requests a
+# minute per team; at ~5-6 s per reasoning call, ~12 in flight uses that fully. More only buys 429s.
+API_SLOTS = threading.BoundedSemaphore(int(os.environ.get("SYNTH_API_CONCURRENCY", "12")))
+
+
+class _CappedSpark(MetaModelBackend):
+    def _call(self, messages):
+        with API_SLOTS:
+            return super()._call(messages)
+
+
 def spark(model: str, effort: str, max_tokens: int = 8192) -> MetaModelBackend:
     load_env()
-    return MetaModelBackend(os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"), model, os.environ["MODEL_API_KEY"],
-                            name=f"spark-{effort}", synthetic_only=True, reasoning_effort=effort, max_tokens=max_tokens)
+    return _CappedSpark(os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"), model, os.environ["MODEL_API_KEY"],
+                        name=f"spark-{effort}", synthetic_only=True, reasoning_effort=effort, max_tokens=max_tokens)
 
 
 def generate(sector: str, n: int, seed: int, model: str) -> tuple[list[dict], dict]:
@@ -183,10 +195,14 @@ def agree(a, b, max_disagreement: float = 0.34) -> dict | None:
 
 
 def label_doc(doc: dict, low: MetaModelBackend, med: MetaModelBackend) -> list[dict]:
+    """Label every paragraph with both passes concurrently (the global API cap keeps the total in check)."""
+    paras = [p for _, p in paragraphs(doc["text"])]
+    with ThreadPoolExecutor(max_workers=max(1, 2 * len(paras))) as pool:
+        futs = [(p, pool.submit(low.analyze_one, p), pool.submit(med.analyze_one, p)) for p in paras]
+        labelled = [(p, fa.result(), fb.result()) for p, fa, fb in futs]
     out = []
-    for _, para in paragraphs(doc["text"]):
+    for para, a, b in labelled:
         sentences = split_sentences(para) or [para]
-        a, b = low.analyze_one(para), med.analyze_one(para)
         if not (a.valid and b.valid):
             continue
         g = agree(a, b)
