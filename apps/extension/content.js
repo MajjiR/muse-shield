@@ -15,6 +15,7 @@ const SEL = {
 const REPLY_TIMEOUT_MS = 180000;
 
 let shieldOn = true;
+let restoreOn = true; // off: meta.ai is shown exactly as Meta sees it
 let inserting = false; // our own synthetic edits pass the lock
 let composerHeight = 0;
 const replies = new Map(); // meta.ai message id -> reported frame height (ids only)
@@ -64,6 +65,7 @@ function composerBox() {
 // it gets its id): removing an iframe reloads it, and the composer would forget its vault chat.
 function place() {
   const box = composerBox();
+  mountReplies();
   if (!shieldOn) {
     frame.remove();
     document.documentElement.appendChild(offPill);
@@ -83,7 +85,6 @@ function place() {
     left: `${r.left - 2}px`, width: `${r.width + 4}px`, height: `${height}px`, top: `${r.bottom + 2 - height}px`,
   });
   if (!frame.isConnected) document.documentElement.appendChild(frame);
-  mountReplies();
 }
 setInterval(place, 250);
 window.addEventListener("resize", place);
@@ -102,13 +103,22 @@ for (const type of ["beforeinput", "keydown", "keypress", "paste", "drop", "comp
   }, true);
 }
 
-chrome.storage.local.get({ shieldOn: true }).then((v) => { shieldOn = v.shieldOn; place(); });
-chrome.storage.onChanged.addListener((c, area) => { if (area === "local" && c.shieldOn) { shieldOn = c.shieldOn.newValue; place(); } });
+chrome.storage.local.get({ shieldOn: true, restoreOn: true }).then((v) => { shieldOn = v.shieldOn; restoreOn = v.restoreOn; place(); });
+chrome.storage.onChanged.addListener((c, area) => {
+  if (area !== "local") return;
+  if (c.shieldOn) shieldOn = c.shieldOn.newValue;
+  if (c.restoreOn) {
+    restoreOn = c.restoreOn.newValue;
+    if (!restoreOn) unmountReplies();
+  }
+  place();
+});
 
 // -- restored replies inside the chat ------------------------------------------------------
 
 // Your sent messages are covered the same way, so you see what you typed, not the masked text.
 function mountReply(id) {
+  if (!restoreOn) return;
   const item = document.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
   if (!item) return;
   const user = item.dataset.messageRole === "user";
@@ -134,8 +144,13 @@ function mountReply(id) {
 
 // React may re-render a message and drop our frame: put it back.
 function mountReplies() {
-  if (!shieldOn) return;
+  if (!restoreOn) return;
   for (const id of replies.keys()) mountReply(id);
+}
+
+function unmountReplies() {
+  document.querySelectorAll("iframe.muse-shield-reply").forEach((f) => f.remove());
+  document.querySelectorAll("[data-muse-shield-hidden]").forEach((e) => e.removeAttribute("data-muse-shield-hidden"));
 }
 
 // -- writing into meta.ai -------------------------------------------------------------------
@@ -175,6 +190,20 @@ async function pressSend() {
 }
 
 // -- reading Meta AI's reply ----------------------------------------------------------------
+
+function userIds() {
+  return new Set([...document.querySelectorAll(SEL.item)].filter((e) => e.dataset.messageRole === "user").map((e) => e.dataset.messageId));
+}
+
+// The messages on the page as meta.ai shows them (masked), for restoring chats from before this tab.
+function pageMessages() {
+  return [...document.querySelectorAll(SEL.item)].map((e) => {
+    const role = e.dataset.messageRole;
+    const text = role === "assistant" ? replyText(e).text
+      : [...e.children].filter((c) => !c.classList.contains("muse-shield-reply")).map(toText).join("\n");
+    return { site_message_id: e.dataset.messageId, role, text };
+  }).filter((m) => m.text);
+}
 
 function assistantIds() {
   return new Set([...document.querySelectorAll(SEL.item)].filter((e) => e.dataset.messageRole === "assistant").map((e) => e.dataset.messageId));
@@ -270,12 +299,23 @@ chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
     mountReply(msg.messageId);
     return false;
   }
+  if (msg.type === "page-messages") {
+    respond({ conversationId: conversationId(), messages: pageMessages() });
+    return false;
+  }
   if (msg.type === "send") {
     (async () => {
       const before = assistantIds();
+      const beforeUsers = userIds();
       await placeText(msg.text);
       await pressSend();
-      respond({ ok: true });
+      // Hide the masked bubble the moment meta.ai draws it; the composer covers it with what you typed.
+      const mine = await waitFor(() => {
+        const items = [...document.querySelectorAll(SEL.item)].filter((e) => e.dataset.messageRole === "user" && !beforeUsers.has(e.dataset.messageId));
+        return items[items.length - 1];
+      }, 4000, 40);
+      if (mine && restoreOn) [...mine.children].forEach((c) => { if (!c.classList.contains("muse-shield-reply")) c.setAttribute("data-muse-shield-hidden", ""); });
+      respond({ ok: true, userMessageId: mine ? mine.dataset.messageId : null });
       watchReply(before, msg.requestId);
     })().catch((e) => respond({ ok: false, error: e.message }));
     return true; // respond asynchronously

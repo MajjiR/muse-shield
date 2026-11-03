@@ -44,6 +44,27 @@ def test_sent_message_is_linked_to_its_meta_ai_id_for_history(tmp_path):
     assert c.post("/ext/link", json={"chat_id": r["chat_id"], "message_id": "m_nope", "site_message_id": "x"}).status_code == 404
 
 
+def test_adopt_restores_an_unbound_older_chat_from_the_page(tmp_path):
+    c = make(tmp_path)
+    a = c.post("/ext/mask", json={"text": ACCEPT}).json()  # sent, but the conversation was never bound
+    b = c.post("/ext/mask", json={"text": "Draft a note to Rohan about my salary."}).json()  # a second, split-off vault chat
+    page = [
+        {"site_message_id": "u1", "role": "user", "text": a["outbound"][:120] + "…"},  # meta.ai collapsed it
+        {"site_message_id": "a1", "role": "assistant", "text": "Noted, [PERSON_1] earns <SALARY_1>."},
+        {"site_message_id": "u2", "role": "user", "text": b["outbound"]},
+        {"site_message_id": "a2", "role": "assistant", "text": "I'll remind <PERSON_1>; the plan was <DECISION_1>."},
+        {"site_message_id": "x", "role": "user", "text": "a message sent without Muse Shield"},
+    ]
+    r = c.post("/ext/adopt", json={"conversation_id": "old", "messages": page}).json()
+    items = r["items"]
+    assert items["u1"]["text"] == ACCEPT and items["u2"]["text"] == "Draft a note to Rohan about my salary." and "x" not in items
+    assert "".join(s["text"] for s in items["a1"]["segments"]) == "Noted, Rohan earns 10 lakh rupees."
+    # DECISION_1 only exists in the first vault chat: found there as a fallback
+    assert "Tomorrow I'm planning" in "".join(s["text"] for s in items["a2"]["segments"])
+    assert r["chat_id"] == b["chat_id"]
+    assert c.post("/ext/bind", json={"conversation_id": "old"}).json()["chat_id"] == b["chat_id"]
+
+
 def test_reply_restores_bracket_variants_and_is_stored_once(tmp_path):
     c = make(tmp_path)
     cid = c.post("/ext/mask", json={"text": ACCEPT}).json()["chat_id"]

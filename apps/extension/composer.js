@@ -193,6 +193,8 @@ async function sendToMeta(outbound) {
   state.requestId += 1;
   const r = await chrome.tabs.sendMessage(state.tabId, { type: "send", text: outbound, requestId: state.requestId });
   if (!r || !r.ok) throw new Error(r?.error || "meta.ai didn't take the message");
+  coverSent(r.userMessageId); // cover your bubble right away, before Meta AI starts replying
+  return r;
 }
 
 async function submit() {
@@ -306,6 +308,7 @@ async function openConversation(conversationId, keepChat = false) {
     if (!keepChat || b.chat_id) state.chatId = b.chat_id;
     if (!b.analysis) setStatus(`Masking is off: ${b.analysis_off_reason}`, "error");
     if (!keepChat) {
+      adoptPage();
       for (const m of b.messages) {
         if (m.role === "assistant" && m.site_message_id) showReply(m.site_message_id, { state: "done", segments: m.segments, masked: m.masked });
         if (m.role === "user" && m.site_message_id) showReply(m.site_message_id, { state: "user", text: m.text, spans: m.spans, masked: m.masked });
@@ -317,6 +320,21 @@ async function openConversation(conversationId, keepChat = false) {
   }
   $("send").disabled = state.busy || !state.analysis;
   if (!keepChat) setBusy(false);
+}
+
+// Restore what's already on the page (chats from before this tab, or whose binding was lost).
+// meta.ai renders history after load, so look again shortly after.
+async function adoptPage() {
+  for (const wait of [300, 1500, 4000]) {
+    await new Promise((r) => setTimeout(r, wait));
+    try {
+      const page = await chrome.tabs.sendMessage(state.tabId, { type: "page-messages" });
+      if (!page || page.conversationId !== state.conversationId || !page.messages.length) continue;
+      const r = await api("/ext/adopt", { conversation_id: state.conversationId, messages: page.messages });
+      if (r.chat_id && !state.chatId) state.chatId = r.chat_id;
+      for (const [id, data] of Object.entries(r.items)) showReply(id, data);
+    } catch {}
+  }
 }
 
 chrome.runtime.onMessage.addListener((msg, sender) => {
@@ -342,6 +360,18 @@ input.addEventListener("keyup", (e) => { if (e.key.startsWith("Arrow") || e.key 
 input.addEventListener("select", onCaret);
 $("send").addEventListener("click", submit);
 $("shield").addEventListener("click", () => chrome.storage.local.set({ shieldOn: false }));
+const restoreBtn = $("restore");
+const showRestore = (on) => {
+  restoreBtn.textContent = on ? "👁 Real values" : "👁 Meta's view";
+  restoreBtn.title = on ? "Showing your real values in this chat. Click to see exactly what Meta AI sees." : "Showing exactly what Meta AI sees. Click to restore your real values.";
+  restoreBtn.classList.toggle("chip--on", on);
+};
+chrome.storage.local.get({ restoreOn: true }).then((v) => showRestore(v.restoreOn));
+chrome.storage.onChanged.addListener((c, area) => { if (area === "local" && c.restoreOn) showRestore(c.restoreOn.newValue); });
+restoreBtn.addEventListener("click", async () => {
+  const { restoreOn = true } = await chrome.storage.local.get("restoreOn");
+  chrome.storage.local.set({ restoreOn: !restoreOn });
+});
 
 (async () => {
   state.tabId = await myTabId();

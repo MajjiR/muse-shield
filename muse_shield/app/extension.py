@@ -10,6 +10,7 @@ from the page. The engine still does Call 1 (analysis), the vault, rehydration a
     /ext/restore  rehydrate a reply that is still streaming (nothing stored)
     /ext/reply    a finished reply: store it, or turn a NEED_CONTEXT line into an ask
     /ext/consent  allow or deny an ask; returns the note to send to Meta AI
+    /ext/adopt    messages already on a meta.ai page -> what to show for each (restores older chats)
 
 Only the extension's own pages (side panel) call these: content scripts can't reach
 localhost, so meta.ai's page never sees a real value.
@@ -30,7 +31,7 @@ from pydantic import BaseModel
 
 from ..analysis import ENTITY_TYPES, Analysis, split_sentences
 from .chat import LEVELS, NEED, find_leaks
-from .engine import ALWAYS_MASK, Masked, Masker, paragraphs, rehydrate, segments, sentence_offsets
+from .engine import _LABEL, ALWAYS_MASK, Masked, Masker, paragraphs, rehydrate, segments, sentence_offsets
 from .vault import Vault
 
 # Sent once, ahead of the first message of every shielded meta.ai chat (meta.ai has no system prompt).
@@ -188,6 +189,42 @@ class ExtReplyRequest(BaseModel):
     message_id: str | None = None  # meta.ai's id for the reply, so a re-read doesn't store it twice
 
 
+class PageMessage(BaseModel):
+    site_message_id: str
+    role: str  # user | assistant
+    text: str  # as meta.ai shows it (masked)
+
+
+class ExtAdoptRequest(BaseModel):
+    site: str = "meta.ai"
+    conversation_id: str | None = None
+    messages: list[PageMessage] = []
+
+
+def squash(s: str) -> str:
+    return re.sub(r"\s+", "", s or "")
+
+
+def segments_from(vault: Vault, text: str, chat_ids: list[str]) -> list[dict]:
+    """Like engine.segments, but a label unknown in the first chat is looked up in the others, in order
+    (a conversation can span several vault chats if it was ever split)."""
+    out, cursor = [], 0
+    for m in _LABEL.finditer(text):
+        if m.start() > cursor:
+            out.append({"text": text[cursor:m.start()]})
+        label, hit = m.group(0), None
+        for cid in chat_ids:
+            target = vault._target(cid, label)
+            if target:
+                hit = {"label": label, "kind": target[0], "text": vault.resolve(cid, label)}
+                break
+        out.append(hit or {"label": label, "kind": "unknown", "text": label})
+        cursor = m.end()
+    if cursor < len(text):
+        out.append({"text": text[cursor:]})
+    return out
+
+
 class ExtLinkRequest(BaseModel):
     chat_id: str
     message_id: str  # the vault's id for your message
@@ -289,6 +326,50 @@ def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_
                                        meta={"spans": stored, "cost_usd": masked.cost_usd, "site": "meta.ai", "outbound": outbound})
         return {**masked.to_dict(), "masked_text": masked_text, "spans": spans, "outbound": outbound, "first": first, "leaks": [],
                 "message_id": message_id}
+
+    @app.post("/ext/adopt")
+    def adopt(body: ExtAdoptRequest):
+        """Match the user messages on the page to the vault by their masked text, then restore each turn.
+        Binds the conversation if it wasn't bound (older chats, or one whose binding was lost)."""
+        sent: list[tuple[str, dict]] = []  # (squashed outbound, vault message) for every message the extension sent
+        for chat in vault.chats():
+            for m in vault.messages(chat["chat_id"]):
+                if m["role"] == "user" and m["meta"].get("site") == "meta.ai":
+                    sent.append((squash(m["meta"].get("outbound") or m["masked_text"]), {**m, "chat_id": chat["chat_id"]}))
+
+        def match(text: str) -> dict | None:
+            s = squash(text)
+            cut = s.endswith("…") or s.endswith("...")  # meta.ai collapses long messages
+            s = s.rstrip(".…") if cut else s
+            if len(s) < 8:
+                return None
+            hits = [m for out, m in sent if (out.startswith(s) if cut else out == s)]
+            return hits[-1] if hits else None
+
+        bound = bindings.get(body.site, body.conversation_id) if body.conversation_id else None
+        chats: list[str] = [bound] if bound else []
+        items, turn_chat = {}, bound
+        for pm in body.messages:
+            if pm.role == "user":
+                m = match(pm.text)
+                if not m:
+                    continue
+                turn_chat = m["chat_id"]
+                if turn_chat not in chats:
+                    chats.append(turn_chat)
+                bindings.link(m["message_id"], pm.site_message_id)
+                items[pm.site_message_id] = {"state": "user", "text": m["original"], "spans": m["meta"].get("spans", []),
+                                             "masked": m["meta"].get("outbound") or m["masked_text"]}
+            elif pm.role == "assistant" and turn_chat:
+                text = normalize_labels(pm.text.strip(), {k: "" for cid in chats for k in vault.mapping(cid)})
+                if not _LABEL.search(text):
+                    continue
+                order = [turn_chat] + [c for c in reversed(chats) if c != turn_chat]
+                items[pm.site_message_id] = {"state": "done", "segments": segments_from(vault, text, order), "masked": text}
+        if not bound and body.conversation_id and chats:
+            bound = chats[-1]
+            bindings.set(body.site, body.conversation_id, bound)
+        return {"chat_id": bound, "items": items}
 
     @app.post("/ext/link")
     def link(body: ExtLinkRequest):

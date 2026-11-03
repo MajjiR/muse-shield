@@ -104,3 +104,4 @@ textarea::placeholder { color: var(--muted); }
 .mine .rbadge { color: var(--muted); font-weight: 500; }
 .bubble { max-width: 85%; background: var(--soft); border-radius: 20px; padding: 10px 16px; }
 .mine .masked { max-width: 85%; }
+.chip--on { border-color: var(--ok); color: var(--ok); }
