@@ -1,0 +1,250 @@
+{"source": "nemotron", "domain": "Automotive", "locale": "intl", "format": "unstructured", "uid": "5ef872eefe554009816cca0ca450e16e", "approx_tokens": 922}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "us", "format": "structured", "uid": "8dc7b5ba29db478db7696abd6cebb79b", "approx_tokens": 1020}
+{"source": "nemotron", "domain": "Media", "locale": "us", "format": "structured", "uid": "97449e4a4962431dbdbfc0c7a2dc8b6b", "approx_tokens": 949}
+{"source": "nemotron", "domain": "Chemicals", "locale": "us", "format": "structured", "uid": "ce52e2de4b8148c98519154cc7296c03", "approx_tokens": 1011}
+{"source": "nemotron", "domain": "Media", "locale": "intl", "format": "structured", "uid": "97449e4a4962431dbdbfc0c7a2dc8b6b", "approx_tokens": 997}
+{"source": "nemotron", "domain": "Chemicals", "locale": "intl", "format": "structured", "uid": "eed7942371fd44d097f2e926049e8d85", "approx_tokens": 998}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "us", "format": "structured", "uid": "b5e1f52c923240b1843e1d17e854e1e9", "approx_tokens": 1378}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "8b60bf7a6fdf4029934e2d5917945228", "approx_tokens": 933}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "intl", "format": "structured", "uid": "eb77dcec318a401ca4fb09cd4177997c", "approx_tokens": 1144}
+{"source": "nemotron", "domain": "Entertainment", "locale": "intl", "format": "unstructured", "uid": "144eb76e3eb143a182f437f68520c65c", "approx_tokens": 1005}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "intl", "format": "structured", "uid": "293a4b7e42fe44f8aa102a331a9564a6", "approx_tokens": 968}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "unstructured", "uid": "4f330ee91b8e45b083f900def8d195f1", "approx_tokens": 911}
+{"source": "nemotron", "domain": "Retail", "locale": "intl", "format": "unstructured", "uid": "296e246476004deb951280087ffe8390", "approx_tokens": 1094}
+{"source": "nemotron", "domain": "Real Estate", "locale": "intl", "format": "structured", "uid": "c3be2639376b428290f646d2dccd9f46", "approx_tokens": 987}
+{"source": "nemotron", "domain": "Identity Verification Services", "locale": "intl", "format": "structured", "uid": "004f401f43c041e293fe54169276d890", "approx_tokens": 943}
+{"source": "synthetic", "domain": "synthetic:negotiation", "approx_tokens": 1035}
+{"source": "nemotron", "domain": "Finance", "locale": "intl", "format": "structured", "uid": "6bbef7081e334c55ad4bbc98316ac460", "approx_tokens": 962}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "us", "format": "unstructured", "uid": "c7cd19ad177446a88cf31cd08055468d", "approx_tokens": 920}
+{"source": "nemotron", "domain": "Chemicals", "locale": "intl", "format": "structured", "uid": "d0cac06300064eb4b4a8851b498010c1", "approx_tokens": 910}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "unstructured", "uid": "0011cccd71364848bc4bf2f0bbdb8800", "approx_tokens": 1200}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e39b9eee01604e3185d1b56d91bc5e37", "approx_tokens": 975}
+{"source": "synthetic", "domain": "synthetic:negotiation", "approx_tokens": 1037}
+{"source": "synthetic", "domain": "synthetic:plan", "approx_tokens": 1000}
+{"source": "nemotron", "domain": "Construction", "locale": "us", "format": "unstructured", "uid": "be35a78876a64e23be5d7ea701751251", "approx_tokens": 1290}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "unstructured", "uid": "e8a7278264b042ac9ee5e446b04a9730", "approx_tokens": 1032}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "intl", "format": "unstructured", "uid": "6030c1baa5794eb8b31237a466020a55", "approx_tokens": 1184}
+{"source": "nemotron", "domain": "Entertainment", "locale": "us", "format": "structured", "uid": "b86009ae9ec24e289097897644c92f2a", "approx_tokens": 957}
+{"source": "nemotron", "domain": "Automotive", "locale": "intl", "format": "unstructured", "uid": "0c7f4157a7df47d5ba73eb29e30f9771", "approx_tokens": 958}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "intl", "format": "structured", "uid": "5d0223ad75b84c7589e03fccdeefcfd8", "approx_tokens": 953}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e39b9eee01604e3185d1b56d91bc5e37", "approx_tokens": 957}
+{"source": "nemotron", "domain": "Technology", "locale": "us", "format": "structured", "uid": "4194c645d5854d8eb97cd3ca9f5d627e", "approx_tokens": 1738}
+{"source": "nemotron", "domain": "Automotive", "locale": "us", "format": "unstructured", "uid": "7f831bcbad184a30844f5ba6955c1dab", "approx_tokens": 1048}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "structured", "uid": "1310ed2cc86a4d329543ea11dd1ad661", "approx_tokens": 942}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "intl", "format": "structured", "uid": "293a4b7e42fe44f8aa102a331a9564a6", "approx_tokens": 975}
+{"source": "nemotron", "domain": "Energy", "locale": "us", "format": "unstructured", "uid": "ead79e1ce154407f86983dac53efa60a", "approx_tokens": 1127}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "intl", "format": "structured", "uid": "2f9adbf25bdb4e6f889b62c44135dd80", "approx_tokens": 1051}
+{"source": "nemotron", "domain": "Media", "locale": "us", "format": "structured", "uid": "97449e4a4962431dbdbfc0c7a2dc8b6b", "approx_tokens": 975}
+{"source": "nemotron", "domain": "Healthcare", "locale": "intl", "format": "unstructured", "uid": "a61bb946d8e744a49090b0e2ba09a10a", "approx_tokens": 907}
+{"source": "synthetic", "domain": "synthetic:price", "approx_tokens": 953}
+{"source": "nemotron", "domain": "Legal", "locale": "intl", "format": "structured", "uid": "5d4007a4af2e415da97b30b7cb07b63e", "approx_tokens": 1024}
+{"source": "nemotron", "domain": "Legal", "locale": "us", "format": "structured", "uid": "f01def7a26b1468f9868b5955932d756", "approx_tokens": 1120}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "intl", "format": "structured", "uid": "1a4b55065a9843c7b5c8c2ec43336336", "approx_tokens": 934}
+{"source": "nemotron", "domain": "Insurance", "locale": "intl", "format": "unstructured", "uid": "3e5512c4adab4239bb1bf10574538bc4", "approx_tokens": 935}
+{"source": "nemotron", "domain": "Technology", "locale": "us", "format": "unstructured", "uid": "f16ad9576385415589729f82d4a2ac9f", "approx_tokens": 1379}
+{"source": "nemotron", "domain": "Identity Verification Services", "locale": "intl", "format": "structured", "uid": "4ccb36ad50014f6ea214ca47388aa2f3", "approx_tokens": 910}
+{"source": "nemotron", "domain": "Chemicals", "locale": "intl", "format": "structured", "uid": "f6ea02024834460fb2a89750cad26da7", "approx_tokens": 939}
+{"source": "nemotron", "domain": "Government", "locale": "us", "format": "structured", "uid": "3a7e556107cb4b0bb99fd0ed3304b01c", "approx_tokens": 1034}
+{"source": "nemotron", "domain": "Agriculture", "locale": "intl", "format": "structured", "uid": "d2a9f3b6c4b946889de284970d648d50", "approx_tokens": 1044}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "us", "format": "unstructured", "uid": "9697e324d7e343428490b47c5eb31be6", "approx_tokens": 1005}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "us", "format": "structured", "uid": "e7f54124ae3249ff919e2412e0ece130", "approx_tokens": 1003}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "intl", "format": "structured", "uid": "eab8a878dc224e10855c1a2a158e13af", "approx_tokens": 1001}
+{"source": "nemotron", "domain": "Retail", "locale": "us", "format": "structured", "uid": "8f1eea354d4942e8952e6c59da409af6", "approx_tokens": 1051}
+{"source": "synthetic", "domain": "synthetic:deal", "approx_tokens": 1051}
+{"source": "nemotron", "domain": "Technology", "locale": "intl", "format": "unstructured", "uid": "f4969dc4c2834148bb36edccea3e6fd4", "approx_tokens": 1010}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "us", "format": "unstructured", "uid": "cd8669e6b13f4bfca21a2e09d4f72b1d", "approx_tokens": 1083}
+{"source": "nemotron", "domain": "Identity Management", "locale": "us", "format": "structured", "uid": "d8895f08217a4f40a8a342a0d6e3b82d", "approx_tokens": 921}
+{"source": "nemotron", "domain": "Identity Verification Services", "locale": "us", "format": "structured", "uid": "eb34e540b0fb44f7bc453aef7bab38ea", "approx_tokens": 965}
+{"source": "nemotron", "domain": "Chemicals", "locale": "us", "format": "unstructured", "uid": "7457e489676a4fd5af131cb68c830363", "approx_tokens": 1336}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "intl", "format": "unstructured", "uid": "ff8974cf4bef4d689f28a1967f400516", "approx_tokens": 1378}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "intl", "format": "structured", "uid": "5d0223ad75b84c7589e03fccdeefcfd8", "approx_tokens": 996}
+{"source": "nemotron", "domain": "Retail", "locale": "intl", "format": "structured", "uid": "28f0e5474e2141d680c95bff93e0599e", "approx_tokens": 930}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "structured", "uid": "20c64b121d054699a05d5beef766072f", "approx_tokens": 922}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "structured", "uid": "11f2755e83bc4a7fb419fe3ef600dc81", "approx_tokens": 1149}
+{"source": "nemotron", "domain": "Construction", "locale": "us", "format": "structured", "uid": "9286d7b511344109a6fdcba79189f912", "approx_tokens": 958}
+{"source": "nemotron", "domain": "Healthcare", "locale": "us", "format": "structured", "uid": "f0322dbe2aca4ded8d635e38ae2f6eb8", "approx_tokens": 945}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "intl", "format": "structured", "uid": "882467cf7b8b43bfb9ebb7e8f09ef41f", "approx_tokens": 1026}
+{"source": "synthetic", "domain": "synthetic:project", "approx_tokens": 1025}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "intl", "format": "structured", "uid": "b516e3a6a93343c98ded351ea5f07211", "approx_tokens": 923}
+{"source": "nemotron", "domain": "Transportation", "locale": "us", "format": "structured", "uid": "5b03fc2fc25445748029f094b5136738", "approx_tokens": 929}
+{"source": "nemotron", "domain": "Technology", "locale": "intl", "format": "structured", "uid": "abc5a04749424c79b71509c8c46ec320", "approx_tokens": 934}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "structured", "uid": "182ba19f71a743709c5064874dc84864", "approx_tokens": 917}
+{"source": "synthetic", "domain": "synthetic:deal", "approx_tokens": 1049}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "intl", "format": "structured", "uid": "f743daa7fa66421983e38d7ddc2fbc4e", "approx_tokens": 1036}
+{"source": "synthetic", "domain": "synthetic:hr", "approx_tokens": 1014}
+{"source": "nemotron", "domain": "Insurance", "locale": "us", "format": "unstructured", "uid": "d16de0d6e65b42bd81f8226a4612832e", "approx_tokens": 932}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "dc310e103c274fb99b66f5d1e02562b3", "approx_tokens": 999}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "structured", "uid": "1310ed2cc86a4d329543ea11dd1ad661", "approx_tokens": 1053}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "structured", "uid": "fdf3ab78af3b483c8258b3162f7e1771", "approx_tokens": 1044}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "intl", "format": "structured", "uid": "ef205b58ff2a46c3847b937c6ad48585", "approx_tokens": 936}
+{"source": "nemotron", "domain": "Transportation", "locale": "us", "format": "structured", "uid": "5b03fc2fc25445748029f094b5136738", "approx_tokens": 907}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "us", "format": "structured", "uid": "fd811e31d1e94f6c83427810edf4e9e1", "approx_tokens": 910}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "intl", "format": "structured", "uid": "f77af2974af04866930f0659870dec73", "approx_tokens": 1104}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "structured", "uid": "35618f56b80443b59b2f961c84a39bd5", "approx_tokens": 985}
+{"source": "nemotron", "domain": "Media", "locale": "us", "format": "structured", "uid": "d555b7f5d29748beafdb02c3866acdbe", "approx_tokens": 980}
+{"source": "synthetic", "domain": "synthetic:price", "approx_tokens": 945}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "structured", "uid": "fdf3ab78af3b483c8258b3162f7e1771", "approx_tokens": 1016}
+{"source": "nemotron", "domain": "Government", "locale": "us", "format": "structured", "uid": "69ff2c52ff79478a9c7d7eb1c37ed13c", "approx_tokens": 918}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "us", "format": "unstructured", "uid": "1e9009c76bbd461f8a71af643a9c57d0", "approx_tokens": 1010}
+{"source": "nemotron", "domain": "Finance", "locale": "us", "format": "structured", "uid": "bef244ebd70d45ce919bf941c375e954", "approx_tokens": 906}
+{"source": "synthetic", "domain": "synthetic:negotiation", "approx_tokens": 1038}
+{"source": "nemotron", "domain": "Legal", "locale": "intl", "format": "structured", "uid": "5d4007a4af2e415da97b30b7cb07b63e", "approx_tokens": 995}
+{"source": "nemotron", "domain": "Retail", "locale": "intl", "format": "structured", "uid": "ef14b694864943e2bc966309fc789a5c", "approx_tokens": 919}
+{"source": "synthetic", "domain": "synthetic:plan", "approx_tokens": 999}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "unstructured", "uid": "f62f3fe600a3498d9987dc6f5edeb9fc", "approx_tokens": 1279}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "unstructured", "uid": "b4b8e9ffe6774e1e8239f67ea4dbdc7c", "approx_tokens": 1247}
+{"source": "nemotron", "domain": "Identity Management", "locale": "intl", "format": "unstructured", "uid": "d58c113dc14e4fc8abdd73c1fb6b185f", "approx_tokens": 966}
+{"source": "synthetic", "domain": "synthetic:project", "approx_tokens": 1023}
+{"source": "nemotron", "domain": "Government", "locale": "us", "format": "structured", "uid": "cd0b0c38bd0c4d6bbb93a9eb3c428909", "approx_tokens": 1017}
+{"source": "nemotron", "domain": "Identity Management", "locale": "intl", "format": "unstructured", "uid": "d58c113dc14e4fc8abdd73c1fb6b185f", "approx_tokens": 935}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "structured", "uid": "0767d8e301f34f0ab28b1b4e656b70f7", "approx_tokens": 909}
+{"source": "nemotron", "domain": "Healthcare", "locale": "us", "format": "structured", "uid": "fe5476e7538241faa981e658d89c75d8", "approx_tokens": 1085}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "structured", "uid": "d2c55a8c47a147359c48acc0e0578032", "approx_tokens": 944}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "a1da5b6a8dc640d6a95414aca64067c5", "approx_tokens": 924}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "us", "format": "structured", "uid": "1f053f49df164c7b9a1c564e06b22494", "approx_tokens": 921}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "intl", "format": "structured", "uid": "94293ba8d4544f8eb46400e648cc6d78", "approx_tokens": 1038}
+{"source": "nemotron", "domain": "Construction", "locale": "intl", "format": "structured", "uid": "6e2e1f19df9c4e18a1a1272b3e2eb1f5", "approx_tokens": 954}
+{"source": "nemotron", "domain": "Technology", "locale": "intl", "format": "structured", "uid": "c14ff9199879476282ecbda6eb1b44e2", "approx_tokens": 993}
+{"source": "nemotron", "domain": "Identity Management", "locale": "intl", "format": "structured", "uid": "ccecea8484f842d49c350246e6538753", "approx_tokens": 917}
+{"source": "nemotron", "domain": "Insurance", "locale": "us", "format": "structured", "uid": "35c5dee3e2f1455a8302936eff25a15b", "approx_tokens": 921}
+{"source": "nemotron", "domain": "Government", "locale": "us", "format": "unstructured", "uid": "afd1c917d0804b83887f6f4f349c09ec", "approx_tokens": 1220}
+{"source": "nemotron", "domain": "Legal", "locale": "intl", "format": "structured", "uid": "66e7e2ffec9141229f78e46b7e0b1e25", "approx_tokens": 943}
+{"source": "nemotron", "domain": "Agriculture", "locale": "intl", "format": "structured", "uid": "1cbef64252c74b7eaf019e2705b92efa", "approx_tokens": 1003}
+{"source": "synthetic", "domain": "synthetic:deal", "approx_tokens": 1042}
+{"source": "nemotron", "domain": "Identity Management", "locale": "us", "format": "unstructured", "uid": "204733ec76e3432da68892330975380a", "approx_tokens": 1119}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "ffffa2fb71824266aa9d0dfd64a82d82", "approx_tokens": 1075}
+{"source": "nemotron", "domain": "Entertainment", "locale": "intl", "format": "structured", "uid": "e0034f4150614fa797aedc0bf4c03318", "approx_tokens": 1009}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "intl", "format": "structured", "uid": "5d0223ad75b84c7589e03fccdeefcfd8", "approx_tokens": 936}
+{"source": "synthetic", "domain": "synthetic:deal", "approx_tokens": 1050}
+{"source": "nemotron", "domain": "Agriculture", "locale": "us", "format": "structured", "uid": "fbc57fcd2c72496aa51245564bae7963", "approx_tokens": 918}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e39b9eee01604e3185d1b56d91bc5e37", "approx_tokens": 961}
+{"source": "nemotron", "domain": "Insurance", "locale": "intl", "format": "unstructured", "uid": "3e5512c4adab4239bb1bf10574538bc4", "approx_tokens": 956}
+{"source": "nemotron", "domain": "Education", "locale": "intl", "format": "structured", "uid": "344f24c246ea4784aa309ce7c1bb2ddd", "approx_tokens": 1032}
+{"source": "nemotron", "domain": "Identity Verification Services", "locale": "us", "format": "structured", "uid": "24ec17dce1204c9788df50375bc4fa82", "approx_tokens": 926}
+{"source": "nemotron", "domain": "Transportation", "locale": "intl", "format": "structured", "uid": "de43fc2dde9b4e47886b9d4d56f26367", "approx_tokens": 996}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "intl", "format": "structured", "uid": "4642e61d5ffd41aa8c5489fff9d1bb22", "approx_tokens": 929}
+{"source": "nemotron", "domain": "Entertainment", "locale": "intl", "format": "unstructured", "uid": "ab15a7faa20941c3a4207090b3acfc9a", "approx_tokens": 960}
+{"source": "nemotron", "domain": "Finance", "locale": "intl", "format": "unstructured", "uid": "89557c2acc95441cbd95d37c62fdeb13", "approx_tokens": 1182}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "f039202d4df940e593e2546141eb6d87", "approx_tokens": 1109}
+{"source": "nemotron", "domain": "Insurance", "locale": "intl", "format": "structured", "uid": "1f627d0436fb457fa13392c31ea9bb8a", "approx_tokens": 921}
+{"source": "nemotron", "domain": "Retail", "locale": "intl", "format": "structured", "uid": "c0f5c494b2f54ae597c8b3676cc6cfea", "approx_tokens": 918}
+{"source": "nemotron", "domain": "Hospitality", "locale": "intl", "format": "structured", "uid": "c612df1610e3489eac16c6d95d405e08", "approx_tokens": 926}
+{"source": "nemotron", "domain": "Insurance", "locale": "us", "format": "structured", "uid": "9ddb4e38c6604f25a9a312b4556ff36a", "approx_tokens": 927}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "intl", "format": "structured", "uid": "4e33f7c1a27246ada841c9ed20874679", "approx_tokens": 991}
+{"source": "nemotron", "domain": "Identity Management", "locale": "intl", "format": "unstructured", "uid": "d7d341f6e89145c5adea1988f54d533e", "approx_tokens": 1093}
+{"source": "nemotron", "domain": "Finance", "locale": "intl", "format": "structured", "uid": "644d95b2537b4f83ae1f744755fa0fae", "approx_tokens": 929}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "us", "format": "structured", "uid": "f7e32f0c00744cefb8e1dfd8c423a401", "approx_tokens": 988}
+{"source": "synthetic", "domain": "synthetic:plan", "approx_tokens": 1001}
+{"source": "nemotron", "domain": "Retail", "locale": "us", "format": "structured", "uid": "f3e7f48f4e074d09add82afbe360bbcc", "approx_tokens": 965}
+{"source": "nemotron", "domain": "Chemicals", "locale": "us", "format": "unstructured", "uid": "5f26201060e348f0a5ef8f6f11c19047", "approx_tokens": 1084}
+{"source": "nemotron", "domain": "Energy", "locale": "us", "format": "unstructured", "uid": "0ce949a5fc074ff2a65be5d014c2ba23", "approx_tokens": 1318}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "unstructured", "uid": "536eb8950fe44a8d817676343c7fd4c6", "approx_tokens": 1013}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "intl", "format": "structured", "uid": "293a4b7e42fe44f8aa102a331a9564a6", "approx_tokens": 963}
+{"source": "synthetic", "domain": "synthetic:deal", "approx_tokens": 1049}
+{"source": "nemotron", "domain": "Hospitality", "locale": "us", "format": "structured", "uid": "cd3f792c034a4a69998689c126e698b1", "approx_tokens": 922}
+{"source": "nemotron", "domain": "Insurance", "locale": "us", "format": "unstructured", "uid": "cc7168078014492a9b6014d7e4978042", "approx_tokens": 928}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "us", "format": "structured", "uid": "18287b8554ca46519bba021369b92523", "approx_tokens": 1069}
+{"source": "nemotron", "domain": "Media", "locale": "us", "format": "structured", "uid": "9c8db7c54d3747049a92ef2329c38659", "approx_tokens": 1016}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "us", "format": "unstructured", "uid": "3251c42a25524405a4a80bdc5f434e2e", "approx_tokens": 960}
+{"source": "nemotron", "domain": "Hospitality", "locale": "intl", "format": "structured", "uid": "cac7479c7a914aac90769604cb317249", "approx_tokens": 909}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "unstructured", "uid": "878e4a00a87a4cc09c8014b66f281fcb", "approx_tokens": 923}
+{"source": "nemotron", "domain": "Media", "locale": "intl", "format": "structured", "uid": "ecd5f563e1d2428e893fb3947787f5af", "approx_tokens": 973}
+{"source": "nemotron", "domain": "Agriculture", "locale": "us", "format": "unstructured", "uid": "10d9effc84b0473ea2f64210c9e89f8c", "approx_tokens": 1112}
+{"source": "nemotron", "domain": "Entertainment", "locale": "us", "format": "structured", "uid": "6b2a84c5c65e4b24bff2d02b3a2f7848", "approx_tokens": 922}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "us", "format": "structured", "uid": "3e534d3bae2c4f6da24127cfcfc087f6", "approx_tokens": 912}
+{"source": "nemotron", "domain": "Automotive", "locale": "intl", "format": "structured", "uid": "7bc2e0067d6944f8b752bdf9db2bbd67", "approx_tokens": 917}
+{"source": "nemotron", "domain": "Chemicals", "locale": "intl", "format": "structured", "uid": "d0cac06300064eb4b4a8851b498010c1", "approx_tokens": 912}
+{"source": "nemotron", "domain": "Media", "locale": "us", "format": "structured", "uid": "97449e4a4962431dbdbfc0c7a2dc8b6b", "approx_tokens": 1032}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "structured", "uid": "214d9c69e312406ebf93cd026052798f", "approx_tokens": 998}
+{"source": "nemotron", "domain": "Construction", "locale": "intl", "format": "structured", "uid": "38685b815da945aaba048465cd5bd3c6", "approx_tokens": 962}
+{"source": "nemotron", "domain": "Logistics", "locale": "us", "format": "unstructured", "uid": "774c0406faac44ffa0c1885109d8bbb2", "approx_tokens": 1089}
+{"source": "synthetic", "domain": "synthetic:salary_decision", "approx_tokens": 1035}
+{"source": "nemotron", "domain": "Finance", "locale": "intl", "format": "structured", "uid": "1207bfe1b83e4e418a8572ee69d74abe", "approx_tokens": 941}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "us", "format": "structured", "uid": "8dc7b5ba29db478db7696abd6cebb79b", "approx_tokens": 994}
+{"source": "nemotron", "domain": "Insurance", "locale": "intl", "format": "unstructured", "uid": "97f44db3fbba474991b30fceaa6bea64", "approx_tokens": 1183}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "intl", "format": "structured", "uid": "fe9dc595b95046ff9fd08d4b5d54006e", "approx_tokens": 1055}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e39b9eee01604e3185d1b56d91bc5e37", "approx_tokens": 906}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "us", "format": "unstructured", "uid": "7ebd7af617064bdbb0fdc0f6126c364f", "approx_tokens": 1069}
+{"source": "nemotron", "domain": "Finance", "locale": "us", "format": "structured", "uid": "bef244ebd70d45ce919bf941c375e954", "approx_tokens": 1064}
+{"source": "nemotron", "domain": "Transportation", "locale": "us", "format": "structured", "uid": "35b76cc04e0148629231035fb59310ea", "approx_tokens": 1214}
+{"source": "nemotron", "domain": "Legal", "locale": "intl", "format": "structured", "uid": "207f6c8e86704030ada03e2c78a45964", "approx_tokens": 1006}
+{"source": "nemotron", "domain": "Media", "locale": "intl", "format": "structured", "uid": "ecd5f563e1d2428e893fb3947787f5af", "approx_tokens": 1014}
+{"source": "nemotron", "domain": "Technology", "locale": "us", "format": "unstructured", "uid": "de8800ed93474ea2933f932fb8af7567", "approx_tokens": 1134}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "unstructured", "uid": "878e4a00a87a4cc09c8014b66f281fcb", "approx_tokens": 920}
+{"source": "nemotron", "domain": "Entertainment", "locale": "intl", "format": "structured", "uid": "7767f90c21b44752945c42f69c7db932", "approx_tokens": 950}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e39b9eee01604e3185d1b56d91bc5e37", "approx_tokens": 939}
+{"source": "nemotron", "domain": "Entertainment", "locale": "us", "format": "structured", "uid": "1baba900181e48ffba21e54e7119b268", "approx_tokens": 992}
+{"source": "nemotron", "domain": "Construction", "locale": "us", "format": "structured", "uid": "0545ef99ab424dcdaaa65d26d33293da", "approx_tokens": 936}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "1f939f368acb46c48e899e3c7c1c3976", "approx_tokens": 969}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "intl", "format": "structured", "uid": "b25da7ef3b004a21a628c8205e8d576e", "approx_tokens": 1100}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "intl", "format": "structured", "uid": "4642e61d5ffd41aa8c5489fff9d1bb22", "approx_tokens": 924}
+{"source": "nemotron", "domain": "Entertainment", "locale": "us", "format": "structured", "uid": "6cc35f5263bb4ed3aaf36c54b51a1c7e", "approx_tokens": 938}
+{"source": "nemotron", "domain": "Insurance", "locale": "us", "format": "structured", "uid": "a5a24094c4e545888507db219c5a0823", "approx_tokens": 929}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "intl", "format": "structured", "uid": "a0d1d09463824f89add28911e0108223", "approx_tokens": 923}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "structured", "uid": "fdf3ab78af3b483c8258b3162f7e1771", "approx_tokens": 924}
+{"source": "nemotron", "domain": "Chemicals", "locale": "intl", "format": "unstructured", "uid": "5f26201060e348f0a5ef8f6f11c19047", "approx_tokens": 1100}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "1f939f368acb46c48e899e3c7c1c3976", "approx_tokens": 962}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "us", "format": "unstructured", "uid": "f10a4d3ec5b94c519f43225bee7ffbe3", "approx_tokens": 1148}
+{"source": "nemotron", "domain": "Legal", "locale": "us", "format": "unstructured", "uid": "36180d45d4b7447cb0ca1b52be732a36", "approx_tokens": 976}
+{"source": "nemotron", "domain": "Education", "locale": "intl", "format": "unstructured", "uid": "fac514f32aff41b48bfd6a20508c2e41", "approx_tokens": 1228}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "us", "format": "unstructured", "uid": "a8c41d2f5a1e48499f71a0a3f3e9b050", "approx_tokens": 924}
+{"source": "nemotron", "domain": "Identity Management", "locale": "intl", "format": "structured", "uid": "02a8ef61cbc14508a34e787e2704629b", "approx_tokens": 1100}
+{"source": "nemotron", "domain": "Automotive", "locale": "us", "format": "unstructured", "uid": "ac0df38076fa4cec971803b8b3e94e44", "approx_tokens": 927}
+{"source": "nemotron", "domain": "Real Estate", "locale": "intl", "format": "structured", "uid": "efe7df4a227b4b0c8a1e62f93cb61114", "approx_tokens": 1022}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "structured", "uid": "b1595aefd4fc4e1484ba57587ba26656", "approx_tokens": 912}
+{"source": "synthetic", "domain": "synthetic:negotiation", "approx_tokens": 1041}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "intl", "format": "unstructured", "uid": "3102e30023cf4ffe80bf28710a07d58b", "approx_tokens": 970}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "us", "format": "unstructured", "uid": "1ed0112e5db84739be06664964c51900", "approx_tokens": 1044}
+{"source": "nemotron", "domain": "Healthcare", "locale": "us", "format": "structured", "uid": "f0322dbe2aca4ded8d635e38ae2f6eb8", "approx_tokens": 1026}
+{"source": "synthetic", "domain": "synthetic:project", "approx_tokens": 1021}
+{"source": "nemotron", "domain": "Identity Management", "locale": "intl", "format": "structured", "uid": "02a8ef61cbc14508a34e787e2704629b", "approx_tokens": 1115}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "72fba5b6b783456aaea782d54ca30bb9", "approx_tokens": 992}
+{"source": "nemotron", "domain": "Media", "locale": "intl", "format": "structured", "uid": "43d1e9b2737a4c6e9ba9d036b9c6be7e", "approx_tokens": 1008}
+{"source": "nemotron", "domain": "Construction", "locale": "us", "format": "structured", "uid": "e36e13ab57044e228af2887a3a19dfc9", "approx_tokens": 911}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "us", "format": "unstructured", "uid": "1e9009c76bbd461f8a71af643a9c57d0", "approx_tokens": 986}
+{"source": "nemotron", "domain": "Construction", "locale": "intl", "format": "structured", "uid": "4e45c211ca6344b38c32cd36fceef5be", "approx_tokens": 935}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "intl", "format": "structured", "uid": "3020260b88674ae6a4a2d221c045505d", "approx_tokens": 991}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "intl", "format": "structured", "uid": "ed16ed0558a64b3987d9e79b3cc63ee4", "approx_tokens": 1229}
+{"source": "nemotron", "domain": "Construction", "locale": "intl", "format": "structured", "uid": "4af07684aefa43e1a9625b1948b9f04b", "approx_tokens": 962}
+{"source": "nemotron", "domain": "Construction", "locale": "us", "format": "structured", "uid": "e36e13ab57044e228af2887a3a19dfc9", "approx_tokens": 910}
+{"source": "nemotron", "domain": "Consumer Goods", "locale": "us", "format": "unstructured", "uid": "6a805a440e78411e87a549e35b93b400", "approx_tokens": 984}
+{"source": "nemotron", "domain": "Legal", "locale": "us", "format": "structured", "uid": "6222a2442a8a4eea96e2d46db5630f79", "approx_tokens": 1002}
+{"source": "nemotron", "domain": "Logistics", "locale": "intl", "format": "structured", "uid": "b933ffe94d90412c92bb517bd5650cd2", "approx_tokens": 949}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e39b9eee01604e3185d1b56d91bc5e37", "approx_tokens": 905}
+{"source": "nemotron", "domain": "Retail", "locale": "us", "format": "structured", "uid": "4381616cb6964e67aafb144bcb531757", "approx_tokens": 931}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "intl", "format": "structured", "uid": "eab8a878dc224e10855c1a2a158e13af", "approx_tokens": 1033}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "us", "format": "structured", "uid": "4f4b903ee8244680a9b90ccfd2e6cd76", "approx_tokens": 944}
+{"source": "nemotron", "domain": "Insurance", "locale": "intl", "format": "structured", "uid": "343269c90d8a4488b9dc76a75f0c96b8", "approx_tokens": 926}
+{"source": "synthetic", "domain": "synthetic:loan", "approx_tokens": 984}
+{"source": "nemotron", "domain": "Finance", "locale": "intl", "format": "structured", "uid": "b11b6ff2a7ce405d8e6ebdb2ae5f078d", "approx_tokens": 997}
+{"source": "nemotron", "domain": "Retail", "locale": "us", "format": "unstructured", "uid": "502b7258d7474bdbbe7eff6d3ce4508e", "approx_tokens": 1169}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "intl", "format": "structured", "uid": "009245bf514c4fa381c532be3d944f19", "approx_tokens": 1000}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "us", "format": "structured", "uid": "ae7a4a1b1ade4892a76cdd9e4dbe71df", "approx_tokens": 982}
+{"source": "nemotron", "domain": "Government", "locale": "us", "format": "unstructured", "uid": "f5dd447f30334cabb9c4950c4a7e1ec0", "approx_tokens": 926}
+{"source": "nemotron", "domain": "Non-Profit", "locale": "intl", "format": "unstructured", "uid": "ff7c1af8800640038d982a1e0bcef52a", "approx_tokens": 1131}
+{"source": "nemotron", "domain": "Manufacturing", "locale": "intl", "format": "structured", "uid": "293a4b7e42fe44f8aa102a331a9564a6", "approx_tokens": 908}
+{"source": "nemotron", "domain": "Retail", "locale": "us", "format": "structured", "uid": "b9e0d483250042a89a762c16370be019", "approx_tokens": 917}
+{"source": "synthetic", "domain": "synthetic:salary_decision", "approx_tokens": 1037}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "intl", "format": "structured", "uid": "58dd8a6186964762ae4716cec3b7dbf8", "approx_tokens": 1042}
+{"source": "nemotron", "domain": "Education", "locale": "intl", "format": "structured", "uid": "0e235026d8204b8cb35009f1e5ce41ce", "approx_tokens": 1012}
+{"source": "nemotron", "domain": "Government", "locale": "us", "format": "structured", "uid": "cd0b0c38bd0c4d6bbb93a9eb3c428909", "approx_tokens": 928}
+{"source": "nemotron", "domain": "Hospitality", "locale": "intl", "format": "structured", "uid": "65a7c0bf9c864abf9781a6200355f341", "approx_tokens": 993}
+{"source": "nemotron", "domain": "Legal", "locale": "intl", "format": "structured", "uid": "c56e0c973fe7489bad94b899d6a61ce9", "approx_tokens": 949}
+{"source": "synthetic", "domain": "synthetic:salary_decision", "approx_tokens": 1039}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "e3e1e818034846b1bba7bc7581351e88", "approx_tokens": 1022}
+{"source": "nemotron", "domain": "Real Estate", "locale": "us", "format": "structured", "uid": "dc310e103c274fb99b66f5d1e02562b3", "approx_tokens": 982}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "0986718755d34b34ab09074e25de8936", "approx_tokens": 926}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "intl", "format": "structured", "uid": "20c64b121d054699a05d5beef766072f", "approx_tokens": 920}
+{"source": "nemotron", "domain": "Cybersecurity", "locale": "us", "format": "unstructured", "uid": "ab50b3c2f2914ee99be3627171c312c6", "approx_tokens": 1071}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "intl", "format": "unstructured", "uid": "77437f188fe84f34a3aca754b2d238a7", "approx_tokens": 1097}
+{"source": "nemotron", "domain": "Construction", "locale": "intl", "format": "structured", "uid": "4e45c211ca6344b38c32cd36fceef5be", "approx_tokens": 1039}
+{"source": "nemotron", "domain": "Finance", "locale": "intl", "format": "structured", "uid": "b11b6ff2a7ce405d8e6ebdb2ae5f078d", "approx_tokens": 991}
+{"source": "nemotron", "domain": "Insurance", "locale": "us", "format": "unstructured", "uid": "2beda0425b9e402386b8da848864dee1", "approx_tokens": 1031}
+{"source": "nemotron", "domain": "Education", "locale": "intl", "format": "structured", "uid": "44a66367f27c4b028dc5ab44c1c62c6a", "approx_tokens": 921}
+{"source": "nemotron", "domain": "Telecommunications", "locale": "us", "format": "structured", "uid": "f9094d7b94674dbfac630146b39d97bf", "approx_tokens": 917}
+{"source": "nemotron", "domain": "Biotechnology", "locale": "us", "format": "structured", "uid": "dbf6530d97064b0da65a81b3dfafa70b", "approx_tokens": 1092}
+{"source": "synthetic", "domain": "synthetic:project", "approx_tokens": 1021}
+{"source": "nemotron", "domain": "Pharmaceuticals", "locale": "us", "format": "unstructured", "uid": "014419d8470e426bb74d1298d4eab129", "approx_tokens": 1046}
+{"source": "nemotron", "domain": "Civil Rights", "locale": "us", "format": "structured", "uid": "24aa67d4c1914e53b2a414a3e015df10", "approx_tokens": 1104}
+{"source": "nemotron", "domain": "Ecommerce", "locale": "intl", "format": "unstructured", "uid": "e6136d2c55ee40c69419a0595adf7869", "approx_tokens": 965}
+{"source": "nemotron", "domain": "Energy", "locale": "intl", "format": "structured", "uid": "1a641256b28d46f9ac78f8d62a96c386", "approx_tokens": 993}

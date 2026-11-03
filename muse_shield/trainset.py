@@ -95,6 +95,7 @@ def build(n: int = 600, seed: int = 101) -> list[dict]:
         r = row(c)
         a = parse(r["messages"][-1]["content"], c.paragraph, c.sentences)  # every gold row must pass the contract
         assert not a.dropped, c.id
+        r["_meta"] = {"source": "synthetic", "domain": f"synthetic:{c.template}", "approx_tokens": _approx_tokens(r)}
         rows.append(r)
     random.Random(seed).shuffle(rows)
     return rows
@@ -156,6 +157,8 @@ def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages
             a = parse(r["messages"][-1]["content"], para, sentences)
             if a.dropped:  # gold text not findable verbatim: skip rather than teach a mismatch
                 continue
+            r["_meta"] = {"source": "nemotron", "domain": d.domain, "locale": d.locale, "format": d.format,
+                          "uid": d.uid, "approx_tokens": _approx_tokens(r)}
             rows.append(r)
             if len(rows) >= n:
                 return rows
@@ -177,9 +180,12 @@ def _write(out: Path, rows: list[dict], val_fraction: float) -> dict:
     k = max(1, int(len(rows) * val_fraction))
     out.mkdir(parents=True, exist_ok=True)
     for name, chunk in (("val", rows[:k]), ("train", rows[k:])):
-        with (out / f"{name}.jsonl").open("w") as f:
+        # Training files carry only `messages`; where each row came from goes to a sidecar
+        # manifest (same order), for per-sector stats and per-sector datasets later.
+        with (out / f"{name}.jsonl").open("w") as f, (out / f"{name}.manifest.jsonl").open("w") as m:
             for r in chunk:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                f.write(json.dumps({"messages": r["messages"]}, ensure_ascii=False) + "\n")
+                m.write(json.dumps(r.get("_meta", {}), ensure_ascii=False) + "\n")
     types: dict[str, int] = {}
     for r in rows:
         for e in json.loads(r["messages"][-1]["content"])["entities"]:
@@ -202,7 +208,7 @@ def export(out: Path, n: int = 600, seed: int = 101, val_fraction: float = 0.1) 
     for name, chunk in (("val", rows[:k]), ("train", rows[k:])):
         with (out / f"{name}.jsonl").open("w") as f:
             for r in chunk:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                f.write(json.dumps({"messages": r["messages"]}, ensure_ascii=False) + "\n")
     longest = max(sum(len(m["content"]) for m in r["messages"]) for r in rows)
     return {"train": len(rows) - k, "val": k, "dir": str(out), "longest_row_chars": longest,
             "approx_longest_row_tokens": longest // 3}
