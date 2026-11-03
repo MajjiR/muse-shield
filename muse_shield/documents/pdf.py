@@ -83,6 +83,15 @@ def sanitize(pd: PdfDoc) -> list[dict]:
     pd.page_status = []
     for page in doc:
         page.remove_rotation()
+        # Text drawn outside the visible page isn't extracted, so it can't be analysed: remove it.
+        outside = [pymupdf.Rect(b) for kind, b in page.get_bboxlog() if "text" in kind and not pymupdf.Rect(b) in page.rect]
+        if outside:
+            for r in outside:
+                page.add_redact_annot(r, cross_out=False)
+            page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
+                                  text=pymupdf.PDF_REDACT_TEXT_REMOVE)
+            n["offpage_text_removed"] += len(outside)
+            where.setdefault("offpage_text_removed", []).append(page.number + 1)
         pd.page_status.append(_status(page))
         if pd.page_status[-1]["status"] not in ("ok", "empty"):
             pd.unchecked.add(page.number)
@@ -232,4 +241,7 @@ def save(pd: PdfDoc) -> bytes:
               metadata=True, redactions=False, remove_links=True, reset_fields=True, reset_responses=True,
               thumbnails=True, xml_metadata=True)
     doc.set_metadata({})
+    cat = doc.pdf_catalog()
+    for key in ("Names", "PageMode", "OpenAction", "AA", "AcroForm", "Outlines", "PageLabels", "Metadata"):
+        doc.xref_set_key(cat, key, "null")  # leftovers like an empty attachment list, or "open on attachments"
     return doc.tobytes(garbage=4, deflate=True, clean=True)

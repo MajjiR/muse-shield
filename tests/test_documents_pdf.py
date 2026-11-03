@@ -59,3 +59,14 @@ def test_encrypted_pdf_is_refused():
     with pytest.raises(DocumentError) as e:
         mask_document(data, Masker(vault, fake_values({})), vault.create_chat())
     assert e.value.status == 415
+
+
+def test_text_outside_the_page_is_removed():
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_text((72, 100), "Visible line.")
+    page.insert_text((72, 2000), "Hidden BNZPV4567L below the page")
+    vault = Vault(":memory:", b"\x77" * 32)
+    r = mask_document(doc.tobytes(), Masker(vault, fake_values({})), vault.create_chat())
+    assert b"BNZPV" not in r.data and "424e5a50" not in r.data.hex()
+    assert {w["code"] for w in r.warnings} == {"offpage_text_removed"}
