@@ -36,7 +36,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
             <ShieldCheck className="size-4" aria-hidden />
           </span>
           <div className="leading-tight">
-            <div className="text-[14px] font-semibold tracking-tight">Muse Shield</div>
+            <div className="text-[15px] font-semibold tracking-tight">Muse Shield</div>
             <div className="text-[11px] text-muted-foreground">Private AI workspace</div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
         <label className="flex items-center gap-2 rounded-md border border-sidebar-border bg-card px-2.5 py-1.5 text-muted-foreground focus-within:border-foreground/50">
           <Search className="size-3.5" aria-hidden />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search chats"
-            className="w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground" />
+            className="w-full bg-transparent text-[14px] text-foreground outline-none placeholder:text-muted-foreground" />
         </label>
       </div>
 
@@ -68,7 +68,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
                   className={cn("relative w-full rounded-md px-2.5 py-2 text-left transition-colors",
                     active ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60")}>
                   {active && <motion.span layoutId="chat-active" className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" />}
-                  <span className="block truncate text-[13px] leading-snug text-sidebar-foreground">
+                  <span className="block truncate text-[14px] leading-snug text-sidebar-foreground">
                     <MaskedText text={c.title} plain />
                   </span>
                   <span className="tabular mt-0.5 block text-[11px] text-muted-foreground">

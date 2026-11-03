@@ -9,7 +9,7 @@ export default function App() {
   // Bumped only when the user switches or starts a chat, so ChatView's local state (preview,
   // pending ask) resets then, and not when sending assigns an id to a brand-new chat.
   const [view, setView] = useState(0)
-  const [panelOpen, setPanelOpen] = useState(true)
+  const [panelOpen, setPanelOpen] = useState(false) // full-width chat by default; open the vault from the header
   const open = (id: string | null) => {
     setChatId(id)
     setView((v) => v + 1)

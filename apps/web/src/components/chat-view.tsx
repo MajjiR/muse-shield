@@ -1,6 +1,7 @@
 import { AskCard } from "@/components/ask-card"
 import { MessageView } from "@/components/message"
 import { MaskedText, OriginalText } from "@/components/privacy-text"
+import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
 import { cn } from "@/lib/utils"
@@ -21,8 +22,10 @@ const EXAMPLES = [
 const PREVIEW_MS = 1100 // how long Mask & send shows what will go out before sending
 
 type Phase = null | "masking" | "sending" | "revealing"
+type Pending = { text: string; stage: "analysing" | "masked" | "sending"; masked?: MaskResult }
+
 const PHASE_TEXT: Record<Exclude<Phase, null>, string> = {
-  masking: "Finding sensitive details…",
+  masking: "Analysing for sensitive details…",
   sending: "Muse Spark is thinking…",
   revealing: "Continuing with your decision…",
 }
@@ -33,7 +36,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const qc = useQueryClient()
   const [input, setInput] = useState("")
   const [preview, setPreview] = useState<(MaskResult & { original: string }) | null>(null)
-  const [pending, setPending] = useState<{ text: string; spans: MaskResult["spans"] } | null>(null)
+  const [pending, setPending] = useState<Pending | null>(null)
   const [autoSend, setAutoSend] = useState(false)
   const [ask, setAsk] = useState<Ask | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
@@ -109,17 +112,29 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
   const onPreview = () => run(async () => { if (input.trim()) await mask(input.trim()) })
 
+  // Send: the message moves into the thread at once and shimmers while it's analysed; when the
+  // result arrives each found detail lights up in its colour, then the masked version is sent.
   const onSend = () =>
     run(async () => {
       const text = input.trim()
       if (!text) return
-      const m = await mask(text)
-      setAutoSend(true)
-      await new Promise((r) => setTimeout(r, PREVIEW_MS))
-      setAutoSend(false)
-      setPreview(null)
       setInput("")
-      setPending({ text, spans: m.spans })
+      setPreview(null)
+      setPending({ text, stage: "analysing" })
+      setPhase("masking")
+      let m: MaskResult
+      try {
+        m = await engine.mask(text, chatId)
+        if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
+      } catch (e) {
+        setInput(text) // give the text back so nothing is lost
+        throw e
+      }
+      if (!chatId) onChat(m.chat_id)
+      qc.invalidateQueries({ queryKey: ["chats"] })
+      setPending({ text, stage: "masked", masked: m })
+      await new Promise((r) => setTimeout(r, Math.max(PREVIEW_MS, m.spans.length * 110 + 700)))
+      setPending({ text, stage: "sending", masked: m })
       setPhase("sending")
       await afterTurn(await engine.chat(text, m.chat_id, m.mask_id))
     })
@@ -143,7 +158,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       )}
 
       <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-5">
-        <h1 className="min-w-0 truncate text-[14px] font-semibold tracking-tight">
+        <h1 className="min-w-0 truncate text-[15px] font-semibold tracking-tight">
           {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
@@ -163,13 +178,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           {empty ? <Hero onPick={(t) => { setInput(t); inputRef.current?.focus() }} /> : (
             <>
               {messages.map((m) => <MessageView key={m.message_id} m={m} kinds={kinds} />)}
-              {pending && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
-                  <div className="max-w-[min(42rem,85%)] rounded-md bg-muted px-4 py-2.5 text-[14.5px] leading-[1.65] whitespace-pre-wrap">
-                    <OriginalText text={pending.text} spans={pending.spans} />
-                  </div>
-                </motion.div>
-              )}
+              {pending && <PendingMessage pending={pending} />}
               {(phase === "sending" || phase === "revealing") && <Thinking label={PHASE_TEXT[phase]} />}
               <AnimatePresence>{ask && !phase && <AskCard key={ask.ask_id} ask={ask} busy={!!phase} onDecide={onDecide} />}</AnimatePresence>
             </>
@@ -203,7 +212,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend() } }}
             placeholder="Message Muse Spark. Sensitive details are masked before they leave your device."
             rows={1}
-            className="block max-h-[220px] w-full resize-none bg-transparent px-4 pt-3.5 pb-2 text-[14.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
+            className="block max-h-[220px] w-full resize-none bg-transparent px-4 pt-3.5 pb-2 text-[16px] leading-relaxed outline-none placeholder:text-muted-foreground"
             aria-label="Message"
           />
           <div className="flex items-center justify-between gap-2 px-3 pb-2.5">
@@ -270,6 +279,54 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
           transition={{ duration: PREVIEW_MS / 1000, ease: "linear" }} />
       )}
     </div>
+  )
+}
+
+function PendingMessage({ pending }: { pending: Pending }) {
+  const { text, stage, masked } = pending
+  const spans = masked?.spans ?? []
+  const counts = spans.reduce<Record<string, { n: number; tone: Tone }>>((acc, s) => {
+    const label = s.kind === "context" ? "passage" : (s.role && s.role !== "OTHER" ? s.role : s.type).toLowerCase().replace(/_/g, " ")
+    const tone = s.kind === "context" ? "context" : toneForType(s.role && s.role !== "OTHER" ? s.role : s.type)
+    acc[label] = { n: (acc[label]?.n ?? 0) + 1, tone }
+    return acc
+  }, {})
+  const kinds = Object.fromEntries(spans.map((s) => [s.placeholder, s.kind]))
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-end gap-1.5">
+      <div className="relative max-w-[min(42rem,85%)] overflow-hidden rounded-md bg-muted px-4 py-2.5 text-[16px] leading-[1.7] whitespace-pre-wrap break-words">
+        {stage === "analysing" ? <span className="ms-analysing">{text}</span> : <OriginalText text={text} spans={spans} animate />}
+        {stage === "analysing" && (
+          <span className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-border" aria-hidden>
+            <span className="block h-full w-1/3 bg-foreground/50" style={{ animation: "ms-progress 1.2s ease-in-out infinite" }} />
+          </span>
+        )}
+      </div>
+      <div className="flex max-w-[min(42rem,85%)] flex-wrap items-center justify-end gap-1.5 text-[12px] text-muted-foreground" aria-live="polite">
+        {stage === "analysing" ? (
+          <span className="flex items-center gap-1.5"><ShieldPulse /> Analysing for sensitive details…</span>
+        ) : spans.length === 0 ? (
+          <span>Nothing sensitive found</span>
+        ) : (
+          Object.entries(counts).map(([label, { n, tone }], i) => (
+            <motion.span key={label} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.08 }}
+              className="tabular flex items-center gap-1 rounded-[3px] border px-1.5 py-px"
+              style={{ background: toneVars(tone).bg, borderColor: toneVars(tone).line, color: toneVars(tone).ink }}>
+              {n} {label}
+            </motion.span>
+          ))
+        )}
+      </div>
+      {masked && spans.length > 0 && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} transition={{ delay: 0.35 }}
+          className="max-w-[min(42rem,85%)] overflow-hidden">
+          <div className="border-l-2 border-border pl-3 text-[13.5px] leading-relaxed text-muted-foreground whitespace-pre-wrap">
+            <span className="mr-1 text-[11px] font-medium tracking-wide uppercase">Muse Spark receives</span>
+            <MaskedText text={masked.masked_text} kinds={kinds} />
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
   )
 }
 

@@ -1,13 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
 @import "@fontsource-variable/jetbrains-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-heading: var(--font-sans);
     --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
@@ -101,6 +100,16 @@
     --kept-line: #b0b0b0;
     --warn: #f4f4f4;
     --warn-foreground: #4d4d4d;
+
+    /* Pastel colour per kind of masked detail: soft fill, a stronger line, dark ink for text. */
+    --pii-person: #ece4fb;      --pii-person-line: #9a83d6;   --pii-person-ink: #3d2a73;
+    --pii-org: #fde7d6;         --pii-org-line: #e29a63;      --pii-org-ink: #6b3510;
+    --pii-amount: #daf3e5;      --pii-amount-line: #5fb88a;   --pii-amount-ink: #1d5a3a;
+    --pii-id: #fbe1e6;          --pii-id-line: #d9798c;       --pii-id-ink: #6e1f31;
+    --pii-contact: #ddeefb;     --pii-contact-line: #6aa6d8;  --pii-contact-ink: #1c4a70;
+    --pii-place: #f6eedb;       --pii-place-line: #c4a560;    --pii-place-ink: #5a4513;
+    --pii-date: #efe3f6;        --pii-date-line: #b07fcc;     --pii-date-ink: #55256e;
+    --pii-context: #e2ecfd;     --pii-context-line: #6f97e0;  --pii-context-ink: #1f3f7a;
 }
 
 .dark {
@@ -150,13 +159,12 @@
     }
     html {
         @apply font-sans antialiased;
-        font-feature-settings: "cv11", "ss01", "ss03"; /* Inter: straight-sided 1, open digits */
         text-rendering: optimizeLegibility;
     }
     body {
         @apply bg-background text-foreground;
-        font-size: 14px;
-        line-height: 1.55;
+        font-size: 15px;
+        line-height: 1.6;
     }
     ::selection {
         background: #d6d6d6;
@@ -168,6 +176,34 @@
     .tabular {
         font-variant-numeric: tabular-nums;
     }
+}
+
+/* Analysing: a soft sheen sweeps across the text while Muse Spark looks for sensitive details. */
+@keyframes ms-sheen {
+    from { background-position: 150% 0; }
+    to { background-position: -50% 0; }
+}
+.ms-analysing {
+    background: linear-gradient(100deg, var(--foreground) 35%, #b9b9b9 45%, #e6e6e6 50%, #b9b9b9 55%, var(--foreground) 65%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ms-sheen 1.8s linear infinite;
+}
+/* A found detail lights up: fill fades in with a brief glow, staggered by --ms-delay. */
+@keyframes ms-mark-in {
+    0% { background-color: transparent; box-shadow: 0 0 0 0 transparent; }
+    45% { box-shadow: 0 0 0 3px var(--ms-glow, transparent); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+.ms-mark-in {
+    animation: ms-mark-in 0.7s ease-out both;
+    animation-delay: var(--ms-delay, 0ms);
+}
+@keyframes ms-progress {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
