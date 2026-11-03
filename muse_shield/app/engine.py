@@ -141,6 +141,13 @@ class Masker:
                 kept.append(e)
         kept.sort(key=lambda e: e["start"])
 
+        # A value the model already saw unmasked in this chat can't be hidden after the fact; masking it now
+        # would only make the pre-send guard refuse the chat (e.g. "the staging database password" masked on turn 2).
+        mapped = set(self.vault.mapping(chat_id).values())
+        seen = "\n".join(m["masked_text"] for m in self.vault.messages(chat_id))
+        already_sent = [e for e in kept if e["text"] not in mapped and e["text"] in seen]
+        kept = [e for e in kept if e not in already_sent]
+
         spans: list[dict] = []
         for e in kept:
             label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], e["text"], placeholder_base(e["type"], e["role"]))
@@ -183,6 +190,8 @@ class Masker:
             counts[s["type"]] = counts.get(s["type"], 0) + 1
         for c in contexts:
             counts[f"CONTEXT_{c['kind']}"] = counts.get(f"CONTEXT_{c['kind']}", 0) + 1
+        if already_sent:
+            counts["ALREADY_SENT"] = len(already_sent)
         self.vault.audit("mask", chat_id, counts)
 
         span_out = [{k: s.get(k) for k in ("start", "end", "text", "type", "role", "placeholder", "kind", "source")} | {"in_context": s.get("in_context")}

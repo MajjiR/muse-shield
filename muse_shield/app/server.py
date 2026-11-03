@@ -228,7 +228,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             total = sum((m["meta"] or {}).get("cost_usd") or 0 for m in vault.messages(chat["chat_id"]))
             cost_by_chat[chat["chat_id"]] = round(total, 6)
         consents = vault.consents()
-        return {"masked_by_type": counts, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
+        already_sent = counts.pop("ALREADY_SENT", 0)  # seen unmasked on an earlier turn, so not masked
+        return {"masked_by_type": counts, "already_sent": already_sent, "asks": sum(1 for r in vault.audit_rows() if r["event"] == "ask"),
                 "consents": {"allow": sum(c["decision"] == "allow" for c in consents), "deny": sum(c["decision"] == "deny" for c in consents)},
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
 
