@@ -64,6 +64,8 @@ export interface Segment {
   text: string;
   label?: string;
   kind?: "entity" | "context" | "unknown";
+  /** Assistant replies only, context blocks: the real passage; `text` is then its one-line summary. */
+  full?: string;
 }
 
 export interface Message {

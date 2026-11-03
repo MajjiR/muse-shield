@@ -81,3 +81,37 @@ def test_master_key_file_is_private(tmp_path, monkeypatch):
     assert len(k) == 32 and oct((tmp_path / "home" / "master.key").stat().st_mode)[-3:] == "600"
     monkeypatch.setenv("MUSE_SHIELD_MASTER_KEY", "ab" * 32)
     assert load_master_key(tmp_path / "other") == b"\xab" * 32
+
+
+def test_concurrent_reads_never_see_an_empty_vault(tmp_path):
+    """FastAPI serves requests on many threads that share one connection: reads must not race writes."""
+    import threading
+
+    v = Vault(tmp_path / "v.db", b"\x12" * 32)
+    for i in range(3):
+        v.create_chat(f"chat {i}")
+    stop, bad = threading.Event(), []
+
+    def writer():
+        c = v.create_chat("w")
+        for n in range(150):
+            if stop.is_set():
+                return
+            v.entity_placeholder(c, "PERSON", f"Person {n}")
+            v.add_message(c, "user", f"<PERSON_{n}>", original=f"Person {n}")
+
+    def reader():
+        for _ in range(150):
+            if len(v.chats()) < 3:
+                bad.append("empty chats")
+            v.items(v.chats()[0]["chat_id"])
+
+    threads = [threading.Thread(target=writer) for _ in range(2)] + [threading.Thread(target=reader) for _ in range(3)]
+    for t in threads:
+        t.start()
+    for t in threads[2:]:
+        t.join()
+    stop.set()
+    for t in threads[:2]:
+        t.join()
+    assert bad == []

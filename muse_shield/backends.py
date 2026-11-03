@@ -31,8 +31,10 @@ entities: every span that identifies or describes a person or business.
   PERSON names · ORG companies and institutions · ADDRESS street addresses · LOCATION cities, regions, countries
   AMOUNT money · PROJECT internal codenames · ID account, customer, employee, medical, tax or government numbers
   CONTACT phone numbers, emails, URLs, usernames · DATE dates and times tied to a person (birth dates, appointments)
-  SECRET passwords, PINs, CVVs, API keys · SENSITIVE_ATTRIBUTE health, religion, ethnicity, sexuality,
-  political views, gender, age, occupation and other personal attributes
+  SECRET passwords, PINs, CVVs, API keys · SENSITIVE_ATTRIBUTE health conditions, religion, ethnicity, sexuality,
+  political views, criminal record, pregnancy and other special-category facts about a person
+- Not entities: job titles and roles (CTO, engineer, nurse, Advocate), weekdays and relative dates (Friday, tomorrow,
+  next quarter), generic nouns, and well-known public bodies (CERT-In, RBI). Leave them readable.
 - AMOUNT needs a role, one of {sorted(AMOUNT_ROLES)}.
 - Copy `text` EXACTLY as it appears, character for character. Never invent text. Never output offsets.
 contexts: sentences that state facts about a deal, decision, plan, negotiation, project or HR matter.

@@ -153,7 +153,10 @@ def test_chat_detail_segments_restored_values(tmp_path):
     msgs = c.get(f"/chats/{r['chat_id']}").json()["messages"]
     seg = msgs[1]["segments"]
     assert seg[0] == {"text": "Dear "} and seg[1] == {"label": "<PERSON_1>", "kind": "entity", "text": "Rohan"}
-    assert seg[3]["kind"] == "context" and seg[3]["text"].startswith("Tomorrow I'm planning")
+    # A hidden passage in a reply shows as its summary; the full text is there for the user to expand.
+    assert seg[3]["kind"] == "context" and seg[3]["text"] == "plans to buy land"
+    assert seg[3]["full"].startswith("Tomorrow I'm planning")
+    assert msgs[1]["text"] == "Dear Rohan, about plans to buy land: fine."
 
 
 def test_need_context_without_angle_brackets_still_asks(tmp_path):
