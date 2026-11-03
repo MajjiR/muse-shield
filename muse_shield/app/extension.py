@@ -223,6 +223,11 @@ def add_extension_routes(app: FastAPI, vault: Vault, masker: Masker | None, off_
         keep = allowed(chat_id)
         return find_leaks(outbound, {k: v for k, v in vault.mapping(chat_id).items() if k not in keep})
 
+    @app.get("/ext/health")
+    def ext_health():
+        """The extension looks for this route, so it never picks an engine without the /ext routes."""
+        return {"ok": True, "extension": 1, "analysis": bool(masker), "analysis_off_reason": off_reason}
+
     @app.post("/ext/bind")
     def bind(body: BindRequest):
         chat_id = bindings.get(body.site, body.conversation_id) if body.conversation_id else None

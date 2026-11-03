@@ -67,6 +67,11 @@ def test_full_reveal_is_allowed_only_after_consent_and_not_kept_in_clear(tmp_pat
     assert b"Kestrel" not in raw and b"Acme" not in raw
 
 
+def test_ext_health_marks_an_engine_with_extension_routes(tmp_path):
+    h = make(tmp_path).get("/ext/health").json()
+    assert h["ok"] and h["extension"] == 1 and h["analysis"]
+
+
 def test_mask_unavailable_without_analysis(tmp_path):
     c = TestClient(create_app(Vault(tmp_path / "v.db", b"\x66" * 32)))
     assert c.post("/ext/mask", json={"text": ACCEPT}).status_code == 503

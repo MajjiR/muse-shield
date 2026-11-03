@@ -5,13 +5,13 @@ const PORTS = [8765, 8766, 8767, 8768, 8769]; // python -m muse_shield.app uses 
 const LABEL = /<[A-Z][A-Z_]*_\d+>/g;
 let API = null;
 
-// The first local port whose /health answers like Muse Shield (other apps may hold 8765).
+// The first local port with the extension routes (other apps, or an older engine, may hold 8765).
 async function findEngine() {
   for (const port of PORTS) {
     try {
-      const r = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(800) });
+      const r = await fetch(`http://127.0.0.1:${port}/ext/health`, { signal: AbortSignal.timeout(800) });
       const h = await r.json();
-      if (h && h.ok && "analysis" in h) {
+      if (h && h.ok && h.extension) {
         API = `http://127.0.0.1:${port}`;
         return h;
       }
