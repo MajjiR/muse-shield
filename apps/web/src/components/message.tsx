@@ -59,8 +59,8 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
       )}
       <div className={cn("flex min-w-0 max-w-[min(42rem,85%)] flex-col gap-1.5", user && "items-end")}>
         {!user && <span className="text-[13px] font-semibold">Muse Spark</span>}
-        <div className={cn("text-[16px] leading-[1.7] whitespace-pre-wrap break-words",
-          user ? "rounded-md bg-muted px-4 py-2.5" : "pt-0.5")}>
+        <div className={cn("text-[16px] leading-[1.7] break-words",
+          user ? "rounded-md bg-muted px-4 py-2.5 whitespace-pre-wrap" : "pt-0.5")}>
           {user ? <OriginalText text={m.text} spans={m.meta.spans} /> : <RestoredText segments={m.segments} />}
         </div>
         <AnimatePresence initial={false}>

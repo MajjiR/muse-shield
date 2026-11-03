@@ -4,7 +4,12 @@ import { cn } from "@/lib/utils"
 import { toneForLabel, toneForType, toneVars } from "@/lib/tones"
 import { looksLikeContext, splitLabels, type Segment, type Span } from "@muse-shield/core"
 import { ChevronRight } from "lucide-react"
+import type { Element as HastElement, Root as HastRoot, RootContent as HastNode } from "hast"
 import type { CSSProperties, ReactNode } from "react"
+import ReactMarkdown, { type Components } from "react-markdown"
+import remarkGfm from "remark-gfm"
+
+type HastParent = HastRoot | HastElement
 
 function Tip({ tip, children }: { tip: ReactNode; children: React.ReactElement }) {
   return (
@@ -115,39 +120,94 @@ function TipBody({ kind, role, label }: { kind: string; role?: string | null; la
   )
 }
 
-/** A reply after rehydration on this device: restored values tinted by type, restored passages collapsible. */
-export function RestoredText({ segments = [] }: { segments?: Segment[] }) {
+/** One restored segment: a value tinted by type, a collapsible passage, or a placeholder the vault doesn't know. */
+function RestoredSegment({ s }: { s: Segment }) {
+  if (!s.label) return <>{s.text}</>
+  if (s.kind === "context") {
+    const v = toneVars("context")
+    return (
+      <Collapsible className="inline">
+        <CollapsibleTrigger className="group inline-flex cursor-pointer items-center gap-0.5 align-baseline">
+          <ChevronRight className="size-3 text-muted-foreground transition-transform group-data-[panel-open]:rotate-90" aria-hidden />
+          <Chip label={s.label} context tip="Restored from your vault. Click to read it." />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="my-2 block border-l-2 px-3 py-2 text-[14.5px] whitespace-pre-wrap" style={{ background: v.bg, borderColor: v.line }}>
+          {s.text}
+        </CollapsibleContent>
+      </Collapsible>
+    )
+  }
+  if (s.kind === "unknown") return <Chip label={s.label} tip="Not in your vault: the model made this placeholder up." />
+  const v = toneVars(toneForLabel(s.label, "entity"))
   return (
-    <>
-      {segments.map((s, i) => {
-        if (!s.label) return <span key={i}>{s.text}</span>
-        if (s.kind === "context") {
-          const v = toneVars("context")
-          return (
-            <Collapsible key={i} className="inline">
-              <CollapsibleTrigger className="group inline-flex cursor-pointer items-center gap-0.5 align-baseline">
-                <ChevronRight className="size-3 text-muted-foreground transition-transform group-data-[panel-open]:rotate-90" aria-hidden />
-                <Chip label={s.label} context tip="Restored from your vault. Click to read it." />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="my-2 block border-l-2 px-3 py-2 text-[14.5px]" style={{ background: v.bg, borderColor: v.line }}>
-                {s.text}
-              </CollapsibleContent>
-            </Collapsible>
-          )
-        }
-        if (s.kind === "unknown") {
-          return <Chip key={i} label={s.label} tip="Not in your vault: the model made this placeholder up." />
-        }
-        const v = toneVars(toneForLabel(s.label, "entity"))
-        return (
-          <Tip key={i} tip={<>Restored on this device from <span className="font-mono">{s.label}</span></>}>
-            <mark className="rounded-[3px] px-0.5 text-inherit underline decoration-dotted decoration-[1.5px] underline-offset-[3px]"
-              style={{ background: v.bg, textDecorationColor: v.line }}>
-              {s.text}
-            </mark>
-          </Tip>
-        )
-      })}
-    </>
+    <Tip tip={<>Restored on this device from <span className="font-mono">{s.label}</span></>}>
+      <mark className="rounded-[3px] px-0.5 text-inherit underline decoration-dotted decoration-[1.5px] underline-offset-[3px]"
+        style={{ background: v.bg, textDecorationColor: v.line }}>
+        {s.text}
+      </mark>
+    </Tip>
+  )
+}
+
+// Restored values stand in the markdown source as private-use sentinels, so a value's own text can never
+// be read as markdown; after parsing, each sentinel becomes a span the renderer swaps for its segment.
+const SENTINEL = /\uE000(\d+)\uE001/g
+
+function rehypeSegments() {
+  const split = (node: HastParent) => {
+    node.children = node.children.flatMap((child): HastNode[] => {
+      if (child.type !== "text") {
+        if ("children" in child) split(child)
+        return [child]
+      }
+      const parts: HastNode[] = []
+      let last = 0
+      for (const m of child.value.matchAll(SENTINEL)) {
+        if (m.index > last) parts.push({ type: "text", value: child.value.slice(last, m.index) })
+        parts.push({ type: "element", tagName: "span", properties: { dataSeg: m[1] }, children: [] })
+        last = m.index + m[0].length
+      }
+      if (!parts.length) return [child]
+      if (last < child.value.length) parts.push({ type: "text", value: child.value.slice(last) })
+      return parts
+    })
+  }
+  return (tree: HastRoot) => split(tree)
+}
+
+const md: Components = {
+  p: ({ children }) => <div className="my-3 first:mt-0 last:mb-0">{children}</div>,
+  h1: ({ children }) => <h3 className="mt-5 mb-2 text-[18px] font-semibold tracking-tight first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h3 className="mt-5 mb-2 text-[17px] font-semibold tracking-tight first:mt-0">{children}</h3>,
+  h3: ({ children }) => <h4 className="mt-4 mb-1.5 text-[16px] font-semibold first:mt-0">{children}</h4>,
+  h4: ({ children }) => <h4 className="mt-4 mb-1.5 font-semibold first:mt-0">{children}</h4>,
+  ul: ({ children }) => <ul className="my-3 list-disc space-y-1 pl-6 marker:text-muted-foreground">{children}</ul>,
+  ol: ({ children }) => <ol className="my-3 list-decimal space-y-1 pl-6 marker:text-muted-foreground">{children}</ol>,
+  li: ({ children }) => <li className="pl-1">{children}</li>,
+  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+  a: ({ children, href }) => <a href={href} target="_blank" rel="noreferrer noopener" className="underline underline-offset-2">{children}</a>,
+  blockquote: ({ children }) => <blockquote className="my-3 border-l-2 pl-4 text-muted-foreground">{children}</blockquote>,
+  hr: () => <hr className="my-5 border-border" />,
+  pre: ({ children }) => <pre className="my-3 overflow-x-auto rounded-md bg-muted px-4 py-3 font-mono text-[13px] leading-relaxed">{children}</pre>,
+  code: ({ children, className }) => <code className={cn(className, "font-mono text-[0.88em] [:not(pre)>&]:rounded-[3px] [:not(pre)>&]:bg-muted [:not(pre)>&]:px-1 [:not(pre)>&]:py-px")}>{children}</code>,
+  table: ({ children }) => <div className="my-3 overflow-x-auto"><table className="w-full border-collapse text-[14px]">{children}</table></div>,
+  th: ({ children }) => <th className="border-b px-3 py-1.5 text-left font-semibold">{children}</th>,
+  td: ({ children }) => <td className="border-b px-3 py-1.5 align-top">{children}</td>,
+}
+
+/** A reply after rehydration on this device, rendered as markdown, with restored values tinted by type. */
+export function RestoredText({ segments = [] }: { segments?: Segment[] }) {
+  const source = segments.map((s, i) => (s.label ? `\uE000${i}\uE001` : s.text.replace(/[\uE000\uE001]/g, ""))).join("")
+  const components: Components = {
+    ...md,
+    span: ({ node, children, ...props }) => {
+      const i = node?.properties?.dataSeg
+      return i != null ? <RestoredSegment s={segments[Number(i)]} /> : <span {...props}>{children}</span>
+    },
+  }
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSegments]} components={components}>
+      {source}
+    </ReactMarkdown>
   )
 }

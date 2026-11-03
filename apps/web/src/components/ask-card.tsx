@@ -14,7 +14,8 @@ const LEVELS: Record<Level, { label: string; risk: string; help: string; tone: s
 
 export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDecide: (decision: "allow" | "deny", level: Level) => void }) {
   const levels = (["shape", "summary", "full"] as Level[]).filter((l) => ask.previews?.[l] != null)
-  const [level, setLevel] = useState<Level>(ask.level)
+  // Start at the least exposure on offer, whatever Spark asked for; the user can step up.
+  const [level, setLevel] = useState<Level>(levels[0] ?? ask.level)
   const preview = ask.previews?.[level] ?? ask.preview
   const meta = LEVELS[level]
 
@@ -37,6 +38,7 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
           </p>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
             <span className="font-mono text-xs text-foreground">{ask.label}</span>
+            {" · "}asked for {LEVELS[ask.level].label.toLowerCase()}
             {" · "}“{ask.reason || "It says it needs this to answer."}”
           </p>
         </div>
