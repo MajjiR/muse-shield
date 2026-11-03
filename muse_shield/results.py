@@ -51,24 +51,25 @@ def sha256(path: Path) -> str | None:
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else None
 
 
-def new_run_id(tag: str, when: float | None = None) -> str:
+def new_run_id(tag: str, when: float | None = None, git: str | None = None) -> str:
     stamp = time.strftime("%Y%m%d-%H%M%S", time.localtime(when))
     safe = "".join(c if c.isalnum() or c in "-." else "-" for c in tag) or "run"
-    return f"{stamp}_v{__version__}+{git_version()}_{safe}"
+    return f"{stamp}_v{__version__}+{git or git_version()}_{safe}"
 
 
 def save_run(eval_name: str, tag: str, reports: list[dict], preds: dict[str, list[dict]], *,
              settings: dict, dataset: dict, compare_md: str, root: Path = RESULTS,
-             when: float | None = None, imported_from: str | None = None) -> Path:
-    run_id = new_run_id(tag, when)
-    if imported_from:  # the code version at run time is unknown; don't claim today's commit
-        run_id = run_id.replace(f"+{git_version()}", "+imported")
+             when: float | None = None, imported_from: str | None = None, git: str | None = None) -> Path:
+    """`git` and `when` should be captured when the run STARTS: the checkout can change while a
+    long run is going (another session switching branches), and the code that ran is what counts."""
+    git = "imported" if imported_from else (git or git_version())
+    run_id = new_run_id(tag, when, git)
     out = root / eval_name / run_id
     out.mkdir(parents=True, exist_ok=True)
     manifest = {
         "run_id": run_id, "eval": eval_name, "tag": tag,
         "created": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(when)),
-        "version": __version__, "git": "unknown (imported)" if imported_from else git_version(),
+        "version": __version__, "git": "unknown (imported)" if imported_from else git,
         "command": f"imported from {imported_from}" if imported_from else " ".join(sys.argv),
         "dataset": dataset, "settings": settings,
         "backends": [r["backend"] for r in reports],

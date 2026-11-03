@@ -196,6 +196,9 @@ def main(argv: list[str] | None = None) -> int:
     except BackendError as exc:
         print(f"cannot start backend: {exc}")
         return 2
+    from .results import git_version
+
+    started, git_at_start = time.time(), git_version()
     report = run(backend, generate(args.n, args.seed), workers=args.workers)
     print(render(report))
     args.out.mkdir(parents=True, exist_ok=True)
@@ -212,7 +215,8 @@ def main(argv: list[str] | None = None) -> int:
                    "recall_by_type": {t: m["recall"] for t, m in report["entities_by_type"].items()}}
         out = save_run("synthetic-contract", args.tag, [summary], {}, compare_md=render(report),
                        settings={report["backend"]: {"model": report["model"], "workers": args.workers}},
-                       dataset={"name": "muse_shield.evalset", "docs": report["n"], "seed": args.seed})
+                       dataset={"name": "muse_shield.evalset", "docs": report["n"], "seed": args.seed},
+                       when=started, git=git_at_start)
         print(f"recorded {out}")
     return 0
 

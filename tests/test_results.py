@@ -31,3 +31,10 @@ def test_report_html_has_legend_tooltips_table_and_dark_mode():
     assert 'class="legend"' in page and "data-tip=" in page and "<details><summary>Table view" in page
     assert "prefers-color-scheme:dark" in page and 'data-theme="dark"' in page
     assert "glimmer · Leak rate: 20.0%" in page and "Recall by PII type" in page
+
+
+def test_run_id_uses_version_captured_at_start(tmp_path):
+    out = results.save_run("nemotron-pii", "t", [report("glimmer", 0.2)], {}, settings={}, dataset={}, compare_md="",
+                           root=tmp_path, when=1_700_000_000, git="abc1234")
+    assert "+abc1234_t" in out.name
+    assert json.loads((out / "manifest.json").read_text())["git"] == "abc1234"

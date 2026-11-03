@@ -21,7 +21,7 @@ from pathlib import Path
 from ..analysis import Analysis
 from ..backends import Backend, BackendError, backend_from_env
 from ..costs import deployment_info, run_cost
-from ..results import save_run, sha256
+from ..results import git_version, save_run, sha256
 from .nemotron import DATASET, LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
 
 def analyze_doc(backend: Backend, doc: Doc) -> dict:
@@ -152,6 +152,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-record", action="store_true", help="don't write to results/")
     args = ap.parse_args(argv)
 
+    started, git_at_start = time.time(), git_version()  # the code that runs, even if the checkout changes later
     cache = args.cache / f"nemotron-test-{args.n}-s{args.seed}.jsonl"
     docs = load_or_sample(cache, args.n, args.seed)
     if args.limit:
@@ -185,7 +186,7 @@ def main(argv: list[str] | None = None) -> int:
         dataset = {"name": DATASET, "split": "test", "docs": len(docs), "sample_n": args.n, "seed": args.seed,
                    "limit": args.limit, "sample_file": cache.name, "sample_sha256": sha256(cache)}
         out = save_run("nemotron-pii", args.tag or ("smoke" if args.limit else "full"), reports, all_preds,
-                       settings=settings, dataset=dataset, compare_md=md)
+                       settings=settings, dataset=dataset, compare_md=md, when=started, git=git_at_start)
         print(f"recorded {out}")
     return 0
 
