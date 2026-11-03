@@ -2,12 +2,14 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$3.26** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$3.54** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261103-231444_v0.0.1+1e42677_realistic10-spark-minimal-v2](realistic-pii/20261103-231444_v0.0.1+1e42677_realistic10-spark-minimal-v2/report.html) | realistic-pii | realistic10-spark-minimal-v2 | muse_spark `muse-spark-1.3` | 30 | 0.0% | – | 100.0% | – | 100.0% | $0.13 |
+| [20261103-231130_v0.0.1+dee7bd2_realistic10-spark-minimal](realistic-pii/20261103-231130_v0.0.1+dee7bd2_realistic10-spark-minimal/report.html) | realistic-pii | realistic10-spark-minimal | muse_spark `muse-spark-1.3` | 30 | 1.3% | – | 98.7% | – | 100.0% | $0.14 |
 | [20261103-220750_v0.0.1+imported_full500-glimmer-base](nemotron-pii/20261103-220750_v0.0.1+imported_full500-glimmer-base/report.html) | nemotron-pii | full500-glimmer-base | glimmer `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj` | 500 | 21.1% | 17.5% | 77.6% | 89.1% | 97.3% | $0.79 GPU |
 | [20261103-220341_v0.0.1+imported_smoke5-reasoning-low](nemotron-pii/20261103-220341_v0.0.1+imported_smoke5-reasoning-low/report.html) | nemotron-pii | smoke5-reasoning-low | glimmer `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj` | 5 | 22.5% | 17.4% | 71.0% | 75.9% | 92.0% | $0.07 GPU |
 | [20261103-220341_v0.0.1+imported_smoke5-reasoning-low](nemotron-pii/20261103-220341_v0.0.1+imported_smoke5-reasoning-low/report.html) | nemotron-pii | smoke5-reasoning-low | muse_spark `muse-spark-1.3` | 5 | 9.9% | 7.6% | 85.5% | 89.6% | 100.0% | $0.22 |
