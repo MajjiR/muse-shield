@@ -299,7 +299,10 @@ def build_scale(out: Path, sectors: list[str], train_docs: int, test_docs: int, 
             return {"doc_id": doc_id, "error": str(exc)[:200]}
         if not doc:
             return {"doc_id": doc_id, "error": "generation returned no document"}
-        rows = label_doc(doc, low, med)
+        try:
+            rows = label_doc(doc, low, med)
+        except Exception as exc:  # noqa: BLE001 -- not marked done, so the next run retries this document
+            return {"doc_id": doc_id, "error": f"labelling failed: {str(exc)[:200]}"}
         kept = [r for r in rows if not r.get("dropped")]
         dropped = [r for r in rows if r.get("dropped")]
         with lock:

@@ -92,8 +92,16 @@ class ChatBackend(Backend):
     def _call(self, messages: list[dict]) -> tuple[str, dict]:
         try:
             attempt = waited = 0
+            transport_errors = 0
             while True:
-                r = self._post(messages)
+                try:
+                    r = self._post(messages)
+                except httpx.TransportError:  # timeouts, dropped connections: transient under load
+                    transport_errors += 1
+                    if transport_errors > 3:
+                        raise
+                    time.sleep(5 * transport_errors)
+                    continue
                 if r.status_code in (400, 422) and self.json_mode and "response_format" in r.text:
                     self.json_mode = False  # this server doesn't take JSON mode; the prompt still asks for JSON
                     continue
