@@ -68,16 +68,17 @@ class ChatBackend(Backend):
     """Shared implementation: one chat call per paragraph, one retry on contract violations."""
 
     def __init__(self, base_url: str, model: str, api_key: str, *, client: httpx.Client | None = None,
-                 timeout: float = 60.0, max_tokens: int = 1024, retries: int = 1):
+                 timeout: float = 60.0, max_tokens: int = 1024, retries: int = 1, extra: dict | None = None):
         if not api_key:
             raise BackendError(f"{self.name}: missing API key")
         self.base_url, self.model, self.api_key = base_url.rstrip("/"), model, api_key
         self.timeout, self.max_tokens, self.retries = timeout, max_tokens, retries
         self.json_mode = True  # turned off once if the server rejects response_format
+        self.extra = extra or {}  # provider-specific request fields, e.g. reasoning_effort
         self._client = client or httpx.Client()
 
     def _post(self, messages: list[dict]) -> httpx.Response:
-        payload = {"model": self.model, "messages": messages, "temperature": 0, "max_tokens": self.max_tokens}
+        payload = {"model": self.model, "messages": messages, "temperature": 0, "max_tokens": self.max_tokens, **self.extra}
         if self.json_mode:
             payload["response_format"] = {"type": "json_object"}
         return self._client.post(f"{self.base_url}/chat/completions", json=payload, timeout=self.timeout,
@@ -140,14 +141,21 @@ class GlimmerBackend(ChatBackend):
 
 
 class MetaModelBackend(ChatBackend):
-    """A Meta Model API model. Raw text reaches Meta, so only synthetic or public data is allowed."""
+    """A Meta Model API model. Raw text reaches Meta, so only synthetic or public data is allowed.
 
-    def __init__(self, *args, name: str = "meta", synthetic_only: bool = False, **kwargs):
+    Muse Spark and Muse Wonder are reasoning models: hidden reasoning tokens count against
+    max_tokens, and at 1,024 they used it all and returned empty content. So these get a
+    larger budget and an explicit reasoning_effort.
+    """
+
+    def __init__(self, *args, name: str = "meta", synthetic_only: bool = False, reasoning_effort: str = "low",
+                 max_tokens: int = 4096, **kwargs):
         self.name = name
         if not synthetic_only:
             raise BackendError(f"{name} analysis sends raw text to the Meta Model API: "
                                "only allowed on synthetic or public data (META_SYNTHETIC_ONLY=1)")
-        super().__init__(*args, **kwargs)
+        extra = {"reasoning_effort": reasoning_effort} if reasoning_effort else {}
+        super().__init__(*args, max_tokens=max_tokens, extra=extra, timeout=kwargs.pop("timeout", 180.0), **kwargs)
 
 
 MuseSparkBackend = MetaModelBackend  # backwards-compatible name
@@ -159,9 +167,15 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
     load_env()
     name = name or os.environ.get("ENGINE_BACKEND", "glimmer")
     if name == "glimmer":
+        # Glimmer is not serverless on Fireworks: it runs on an on-demand deployment, addressed as
+        # "<model>#<deployment>". GLIMMER_DEPLOYMENT=accounts/<you>/deployments/<id> fills that in.
+        model = os.environ.get("GLIMMER_MODEL", "accounts/fireworks/models/muse-glimmer-30b")
+        deployment = os.environ.get("GLIMMER_DEPLOYMENT", "")
+        if deployment and "#" not in model:
+            model = f"{model}#{deployment}"
         return GlimmerBackend(
             os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1"),
-            os.environ.get("GLIMMER_MODEL", "accounts/fireworks/models/muse-glimmer-30b"),
+            model,
             os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", ""),
             client=client,
         )
@@ -173,5 +187,6 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
             os.environ.get(env_var, default),
             os.environ.get("MODEL_API_KEY", ""),
             name=name, synthetic_only=synthetic, client=client,
+            reasoning_effort=os.environ.get("META_REASONING_EFFORT", "low"),
         )
     raise BackendError(f"unknown ENGINE_BACKEND {name!r} (expected glimmer, muse_spark or muse_wonder)")

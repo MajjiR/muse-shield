@@ -27,7 +27,9 @@ from .nemotron import LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraph
 PRICES = {"glimmer": (0.35, 1.50)}
 
 
-def price(name: str) -> tuple[float, float] | None:
+def price(name: str, model: str = "") -> tuple[float, float] | None:
+    if "#" in model:
+        return None  # a dedicated deployment bills per GPU-hour, not per token
     env_in, env_out = os.environ.get(f"PRICE_{name.upper()}_IN"), os.environ.get(f"PRICE_{name.upper()}_OUT")
     if env_in and env_out:
         return float(env_in), float(env_out)
@@ -81,7 +83,7 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dic
     gold_total = sum(v[1] for v in found_by_label.values())
     quasi_gold = total.gold_chars - total.core_gold_chars
     lat = sorted(latencies)
-    p = price(name)
+    p = price(name, model)
     return {
         "backend": name, "model": model, "docs": len(results), "seconds": round(seconds, 1),
         "leak_rate": rate(total.leaked_chars, total.gold_chars),
@@ -151,9 +153,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--limit", type=int, default=0, help="only run the first K docs of the sample (smoke test)")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--out", type=Path, default=Path("runs/benchmarks"))
+    ap.add_argument("--cache", type=Path, default=Path("runs/benchmarks"), help="where the sampled docs are cached")
     args = ap.parse_args(argv)
 
-    docs = load_or_sample(args.out / f"nemotron-test-{args.n}-s{args.seed}.jsonl", args.n, args.seed)
+    docs = load_or_sample(args.cache / f"nemotron-test-{args.n}-s{args.seed}.jsonl", args.n, args.seed)
     if args.limit:
         docs = docs[: args.limit]
     stamp = time.strftime("%Y%m%d-%H%M%S")

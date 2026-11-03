@@ -166,3 +166,25 @@ def test_rate_limit_is_retried(monkeypatch):
         return httpx.Response(429) if len(calls) < 3 else reply('{"entities": [], "contexts": []}')
 
     assert backend(handler).analyze(["Hi."])[0].valid and len(calls) == 3
+
+
+def test_glimmer_deployment_address(monkeypatch):
+    monkeypatch.setenv("FIREWORKS_API_KEY", "k")
+    monkeypatch.delenv("GLIMMER_MODEL", raising=False)
+    monkeypatch.setenv("GLIMMER_DEPLOYMENT", "accounts/me/deployments/abc123")
+    assert backend_from_env("glimmer").model == "accounts/fireworks/models/muse-glimmer-30b#accounts/me/deployments/abc123"
+
+
+def test_meta_requests_carry_reasoning_budget(monkeypatch):
+    from muse_shield.backends import MetaModelBackend
+
+    seen = {}
+
+    def handler(request):
+        seen.update(json.loads(request.content))
+        return reply('{"entities": [], "contexts": []}')
+
+    b = MetaModelBackend("https://api.meta.test/v1", "muse-spark-1.3", "k", name="muse_spark", synthetic_only=True,
+                         client=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert b.analyze(["Hi."])[0].valid
+    assert seen["reasoning_effort"] == "low" and seen["max_tokens"] == 4096

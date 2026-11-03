@@ -12,6 +12,7 @@ import ast
 import json
 import random
 import re
+import time
 import urllib.request
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -84,10 +85,17 @@ def parse_row(row: dict) -> Doc:
     return Doc(row["uid"], row["text"], gold, row.get("domain", ""), row.get("locale", ""), row.get("document_format", ""))
 
 
-def _fetch_page(offset: int, n: int = 100, split: str = "test") -> list[dict]:
+def _fetch_page(offset: int, n: int = 100, split: str = "test", tries: int = 5) -> list[dict]:
     url = ROWS_API.format(ds=DATASET, split=split, off=offset, n=n)
-    with urllib.request.urlopen(url, timeout=60) as r:
-        return [x["row"] for x in json.load(r)["rows"]]
+    for attempt in range(tries):
+        try:
+            with urllib.request.urlopen(url, timeout=60) as r:
+                return [x["row"] for x in json.load(r)["rows"]]
+        except OSError:  # HTTPError / URLError / timeouts from the public rows API
+            if attempt == tries - 1:
+                raise
+            time.sleep(2 ** attempt)
+    return []
 
 
 def sample(n: int = 500, seed: int = 7, pages: int = 30, fetch=_fetch_page) -> list[Doc]:
