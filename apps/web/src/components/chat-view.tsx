@@ -1,3 +1,4 @@
+import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
 import { MessageView } from "@/components/message"
 import { MaskedText, OriginalText } from "@/components/privacy-text"
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils"
 import type { Ask, Level, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
-  ArrowUp, Briefcase, FileText, FlaskConical, KeyRound, Lock, PanelRight, ReceiptText, ScanEye, ShieldCheck, Sparkles, X,
+  ArrowUp, Briefcase, FileText, FlaskConical, KeyRound, Lock, PanelRight, ReceiptText, ScanEye, ShieldCheck, Sparkles, Wrench, X,
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
@@ -21,13 +22,14 @@ const EXAMPLES = [
 ]
 const PREVIEW_MS = 1100 // how long Mask & send shows what will go out before sending
 
-type Phase = null | "masking" | "sending" | "revealing"
+type Phase = null | "masking" | "sending" | "revealing" | "acting"
 type Pending = { text: string; stage: "analysing" | "masked" | "sending"; masked?: MaskResult }
 
 const PHASE_TEXT: Record<Exclude<Phase, null>, string> = {
   masking: "Analysing for sensitive details…",
   sending: "Muse Spark is thinking…",
   revealing: "Continuing with your decision…",
+  acting: "Running it on your device…",
 }
 
 export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
@@ -47,7 +49,12 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const health = useQuery({ queryKey: ["health"], queryFn: engine.health })
   const chats = useQuery({ queryKey: ["chats"], queryFn: engine.chats })
   const vault = useQuery({ queryKey: ["vault", chatId], queryFn: () => engine.vault(chatId!), enabled: !!chatId })
+  const actions = useQuery({ queryKey: ["actions", chatId], queryFn: () => engine.actions(chatId!), enabled: !!chatId })
+  const actionById = useMemo(() => Object.fromEntries((actions.data ?? []).map((a) => [a.action_id, a])), [actions.data])
   const messages = useMemo(() => (chatId ? detail.data?.messages ?? [] : []), [chatId, detail.data])
+  // How each tool call ended, from the thread itself (used when the engine restarted and no longer has the action).
+  const endedAs = useMemo(() => Object.fromEntries(messages.filter((m) => m.role === "tool_result" && m.meta.action_id)
+    .map((m) => [m.meta.action_id!, m.meta.status ?? "finished"])), [messages])
   const title = chats.data?.find((c) => c.chat_id === chatId)?.title
   const maskedCount = (vault.data?.entities.length ?? 0) + (vault.data?.contexts.length ?? 0)
 
@@ -73,14 +80,16 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   }, [input])
 
   const refresh = (id: string) => {
-    for (const key of [["chat", id], ["vault", id], ["chats"], ["metrics"]]) qc.invalidateQueries({ queryKey: key })
+    for (const key of [["chat", id], ["vault", id], ["actions", id], ["outbox", id], ["chats"], ["metrics"], ["audit-chain"]]) {
+      qc.invalidateQueries({ queryKey: key })
+    }
   }
 
   const afterTurn = async (t: Turn) => {
     if (t.chat_id) {
       onChat(t.chat_id)
       refresh(t.chat_id)
-      await qc.refetchQueries({ queryKey: ["chat", t.chat_id] })
+      await Promise.all([qc.refetchQueries({ queryKey: ["chat", t.chat_id] }), qc.refetchQueries({ queryKey: ["actions", t.chat_id] })])
     }
     setPending(null)
     if (t.error) toast.error(t.error)
@@ -146,6 +155,13 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       await afterTurn(await engine.reveal(ask, decision, level))
     })
 
+  // Confirm runs the tool here with the real values; cancel drops it. Either way Muse Spark is told how it went.
+  const onAction = (actionId: string, decision: "confirm" | "deny") =>
+    run(async () => {
+      setPhase(decision === "confirm" ? "acting" : "revealing")
+      await afterTurn(await engine.decideAction(actionId, decision))
+    })
+
   const empty = messages.length === 0 && !ask && !pending
 
   return (
@@ -177,9 +193,21 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 py-8">
           {empty ? <Hero onPick={(t) => { setInput(t); inputRef.current?.focus() }} /> : (
             <>
-              {messages.map((m) => <MessageView key={m.message_id} m={m} kinds={kinds} />)}
+              {messages.map((m) => {
+                if (m.role === "tool_call") {
+                  const a = m.meta.action_id ? actionById[m.meta.action_id] : undefined
+                  return a
+                    ? <ActionCard key={m.message_id} action={a} busy={!!phase} onDecide={(d) => onAction(a.action_id, d)} />
+                    : <StepLine key={m.message_id} icon={Wrench} text={`${toolMeta(m.meta.tool ?? "").done}: ${endedAs[m.meta.action_id ?? ""] ?? "planned"}`} />
+                }
+                if (m.role === "tool_result") {
+                  return m.meta.action_id ? null // its tool call above already shows how it ended
+                    : <StepLine key={m.message_id} icon={Wrench} text={`${toolMeta(m.meta.tool ?? "").done}: ${m.meta.status ?? "finished"}`} />
+                }
+                return <MessageView key={m.message_id} m={m} kinds={kinds} />
+              })}
               {pending && <PendingMessage pending={pending} />}
-              {(phase === "sending" || phase === "revealing") && <Thinking label={PHASE_TEXT[phase]} />}
+              {(phase === "sending" || phase === "revealing" || phase === "acting") && <Thinking label={PHASE_TEXT[phase]} />}
               <AnimatePresence>{ask && !phase && <AskCard key={ask.ask_id} ask={ask} busy={!!phase} onDecide={onDecide} />}</AnimatePresence>
             </>
           )}
