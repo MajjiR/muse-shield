@@ -148,7 +148,6 @@ class ChatEngine:
     def __init__(self, vault: Vault, masker: Masker, model: ChatModel, max_ask_rounds: int = 2, inspector=None, executor=None):
         self.vault, self.masker, self.model, self.max_rounds = vault, masker, model, max_ask_rounds
         self.inspector, self.executor = inspector, executor
-        self.own_actions: set[str] = set()  # actions the chat model proposed; only these continue the chat
         self.pending: dict[str, Ask] = {}
         self.masks: dict[str, Masked] = {}  # mask previews, so Mask & send doesn't analyze twice
 
@@ -232,9 +231,8 @@ class ChatEngine:
 
         turn.tool_rounds += 1
         line = "TOOL_CALL: " + json.dumps(remask(call, mapping), ensure_ascii=False)  # never store a raw value in the clear column
-        self.vault.add_message(chat_id, "tool_call", line, meta={"tool": call["tool"]})
-        action = self.executor.propose(chat_id, call["tool"], call["args"])
-        self.own_actions.add(action.action_id)
+        action = self.executor.propose(chat_id, call["tool"], call["args"], origin="chat")
+        self.vault.add_message(chat_id, "tool_call", line, meta={"tool": call["tool"], "action_id": action.action_id})
         turn.action = action.for_user()
         if action.status == "pending":
             return  # the user confirms or cancels in the UI; confirm_action() continues
@@ -250,14 +248,16 @@ class ChatEngine:
             note = f"[{action.tool} was refused by the privacy policy: {'; '.join(action.violations)}. Explain or ask the user.]"
         else:
             note = f"[{action.tool} failed: {action.error}]"
-        self.vault.add_message(chat_id, "tool_result", note, meta={"tool": action.tool, "status": action.status})
+        self.vault.add_message(chat_id, "tool_result", note, meta={"tool": action.tool, "status": action.status, "action_id": action.action_id})
         if turn.tool_rounds >= self.MAX_TOOL_ROUNDS:
             turn.error = "stopped after several tool calls in a row"
             return
         self._send(chat_id, turn)
 
     def owns(self, action_id: str) -> bool:
-        return action_id in self.own_actions
+        """Proposed by the chat model (only these continue the chat); kept in the vault, so this holds after a restart."""
+        action = self.executor.actions.get(action_id) if self.executor else None
+        return action is not None and action.origin == "chat"
 
     def confirm_action(self, action_id: str) -> Turn:
         return self._decide(action_id, True)

@@ -1,8 +1,10 @@
+import { toolMeta } from "@/components/action-card"
 import { Chip } from "@/components/privacy-text"
 import { engine } from "@/lib/engine"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
-import { Eye, EyeOff, KeyRound, Link2, Lock, ShieldCheck, ShieldX } from "lucide-react"
+import type { OutboxItem } from "@muse-shield/core"
+import { Eye, EyeOff, Inbox, KeyRound, Link2, Lock, ShieldCheck, ShieldX } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
 
@@ -12,9 +14,11 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 export function PrivacyPanel({ chatId }: { chatId: string | null }) {
-  const [tab, setTab] = useState<"vault" | "consents">("vault")
+  const [tab, setTab] = useState<"vault" | "consents" | "outbox">("vault")
   const vault = useQuery({ queryKey: ["vault", chatId], queryFn: () => engine.vault(chatId!), enabled: !!chatId })
   const detail = useQuery({ queryKey: ["chat", chatId], queryFn: () => engine.chatDetail(chatId!), enabled: !!chatId })
+  const outbox = useQuery({ queryKey: ["outbox", chatId], queryFn: () => engine.outbox(chatId!), enabled: !!chatId })
+  const chain = useQuery({ queryKey: ["audit-chain"], queryFn: engine.auditChain })
   const entities = vault.data?.entities ?? []
   const contexts = vault.data?.contexts ?? []
   const consents = detail.data?.consents ?? []
@@ -35,12 +39,12 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
           <Stat label="Shared" value={consents.filter((c) => c.decision === "allow").length} />
         </div>
         <div className="mt-3 inline-flex w-full rounded-md bg-muted p-1" role="tablist">
-          {(["vault", "consents"] as const).map((t) => (
+          {(["vault", "consents", "outbox"] as const).map((t) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
               className={cn("relative flex-1 rounded-md py-1 text-[12.5px] font-medium transition-colors",
                 tab === t ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
               {tab === t && <motion.span layoutId="panel-tab" className="absolute inset-0 rounded-md bg-card shadow-soft" />}
-              <span className="relative">{t === "vault" ? "Masked items" : "Consent log"}</span>
+              <span className="relative">{t === "vault" ? "Masked" : t === "consents" ? "Consents" : "Outbox"}</span>
             </button>
           ))}
         </div>
@@ -87,6 +91,12 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
               ))}
             </div>
           )
+        ) : tab === "outbox" ? (
+          (outbox.data ?? []).length === 0 ? (
+            <Empty icon={<Inbox className="size-5" />} text="Emails, invites and notes you confirm show up here, with the real values, encrypted on this device." />
+          ) : (
+            <div className="space-y-1.5">{[...(outbox.data ?? [])].reverse().map((item) => <OutboxRow key={item.id} item={item} />)}</div>
+          )
         ) : consents.length === 0 ? (
           <Empty icon={<ShieldCheck className="size-5" />} text="Muse Spark hasn’t asked for anything hidden in this chat." />
         ) : (
@@ -106,7 +116,50 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
           </ol>
         )}
       </div>
+
+      {chain.data && (
+        <div className="flex items-center gap-1.5 border-t px-4 py-2.5 text-[11.5px] text-muted-foreground"
+          title={chain.data.head ? `Chain head ${chain.data.head}` : undefined}>
+          {chain.data.ok ? <ShieldCheck className="size-3.5 shrink-0 text-foreground" aria-hidden /> : <ShieldX className="size-3.5 shrink-0 text-destructive" aria-hidden />}
+          <span className="min-w-0">
+            {chain.data.ok
+              ? <>Audit log intact · <span className="tabular">{chain.data.entries}</span> entries, each chained to the last</>
+              : <>Audit log was altered at entry <span className="tabular">{chain.data.broken_at}</span></>}
+          </span>
+        </div>
+      )}
     </aside>
+  )
+}
+
+function OutboxRow({ item }: { item: OutboxItem }) {
+  const [open, setOpen] = useState(false)
+  const p = item.payload as { to?: string[]; attendees?: string[]; subject?: string; title?: string; body?: string; start?: string; delivered?: boolean }
+  const meta = toolMeta(item.tool)
+  const Icon = meta.icon
+  const who = (p.to ?? p.attendees ?? []).join(", ")
+  const state = item.tool === "send_email" ? (p.delivered ? "sent" : "kept here, SMTP off") : item.tool === "save_note" ? "on this device" : p.start ?? ""
+  return (
+    <div className="rounded-md border bg-card">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="w-full px-2.5 py-2 text-left">
+        <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
+          <Icon className="size-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0 truncate">{p.subject ?? p.title ?? meta.done}</span>
+        </div>
+        {who && <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">{who}</div>}
+        <div className="tabular mt-0.5 text-[11px] text-muted-foreground">
+          {state && <>{state} · </>}{new Date(item.created_at * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && p.body && (
+          <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden border-t px-2.5 py-2 text-[12.5px] whitespace-pre-wrap break-words">
+            {p.body}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 

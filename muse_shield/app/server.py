@@ -187,6 +187,12 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             raise HTTPException(404, "unknown or already handled action") from exc
         return {"chat_id": a.chat_id, "action": a.for_user()}
 
+    @app.get("/chats/{chat_id}/actions")
+    def chat_actions(chat_id: str):
+        """Tool calls in this chat, oldest first, so the UI can restore a pending confirmation after a reload."""
+        need_chat(chat_id)
+        return [a.for_user() for a in sorted(executor.actions.values(), key=lambda a: a.created_at) if a.chat_id == chat_id]
+
     @app.get("/chats/{chat_id}/outbox")
     def chat_outbox(chat_id: str):
         need_chat(chat_id)

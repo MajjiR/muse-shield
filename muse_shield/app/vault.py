@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS entity_links (
 CREATE TABLE IF NOT EXISTS outbox (
     id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, tool TEXT NOT NULL, nonce BLOB NOT NULL, payload_ct BLOB NOT NULL, created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS actions (
+    id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, nonce BLOB NOT NULL, record_ct BLOB NOT NULL, created_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit_chain (
     seq INTEGER PRIMARY KEY, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT, prev BLOB NOT NULL, mac BLOB NOT NULL
 );
@@ -364,6 +367,16 @@ class Vault:
         q = "SELECT id, chat_id, tool, nonce, payload_ct, created_at FROM outbox" + (" WHERE chat_id=?" if chat_id else "") + " ORDER BY created_at"
         return [{"id": i, "chat_id": c, "tool": t, "payload": json.loads(self._open(f"outbox:{i}", n, ct)), "created_at": ts}
                 for i, c, t, n, ct, ts in self._db.execute(q, (chat_id,) if chat_id else ())]
+
+    def save_action(self, action_id: str, chat_id: str, record: dict, created_at: float) -> None:
+        """A tool call and how it ended, encrypted (recipients and a pending preview hold real values)."""
+        nonce, ct = self._seal(f"action:{action_id}", json.dumps(record, ensure_ascii=False).encode())
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO actions VALUES (?,?,?,?,?)", (action_id, chat_id, nonce, ct, created_at))
+
+    def actions(self) -> list[dict]:
+        return [json.loads(self._open(f"action:{i}", n, ct))
+                for i, n, ct in self._db.execute("SELECT id, nonce, record_ct FROM actions ORDER BY created_at")]
 
     def members(self, chat_id: str, context_label: str) -> list[str]:
         """Entity placeholders inside a context block (mentioned_in edges)."""

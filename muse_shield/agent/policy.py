@@ -18,7 +18,7 @@ class Checked:
     masked: dict  # arguments as the model wrote them (placeholders)
     real: dict = field(default_factory=dict)  # arguments the tool will run with (local only)
     unmasked: list[str] = field(default_factory=list)  # labels this call reveals to the tool
-    recipients: list[dict] = field(default_factory=list)  # {label, person, address}
+    recipients: list[dict] = field(default_factory=list)  # {label, via, person, address}
     violations: list[str] = field(default_factory=list)
 
     @property
@@ -67,7 +67,7 @@ def _recipients(vault: Vault, chat_id: str, value, where: str, out: Checked) -> 
         if not labels or LABEL.sub("", item).strip():
             out.violations.append(f"{where}: '{item}' isn't a placeholder; recipients must be people or contacts from your vault")
             continue
-        label = labels[0]
+        label = written = labels[0]
         typ = _type_of(vault, chat_id, label)
         if typ == "CONTACT":
             address = vault.resolve(chat_id, label)
@@ -77,7 +77,7 @@ def _recipients(vault: Vault, chat_id: str, value, where: str, out: Checked) -> 
             if not emails:
                 out.violations.append(f"{where}: no email address is known for {label}")
                 continue
-            address, person = emails[0]["value"], label
+            address, person = emails[0]["value"], vault.resolve(chat_id, label)
             label = emails[0]["label"]
         else:
             out.violations.append(f"{where}: {label} is a {typ or 'unknown placeholder'}, not a person or contact")
@@ -86,7 +86,8 @@ def _recipients(vault: Vault, chat_id: str, value, where: str, out: Checked) -> 
             out.violations.append(f"{where}: {label} isn't an email address")
             continue
         out.unmasked.append(label)
-        out.recipients.append({"label": label, "person": person, "address": address})
+        # For the user's preview only (agents never get recipients): what the model wrote, the contact used, the real name.
+        out.recipients.append({"label": written, "via": label, "person": person, "address": address})
         addresses.append(address)
     return addresses
 

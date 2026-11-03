@@ -1,5 +1,5 @@
 // Engine API client: plain fetch, so it works in the browser, Electron and React Native.
-import type { Ask, ChatDetail, ChatSummary, Graph, Health, InspectorRecord, LeakAudit, Level, MaskResult, Metrics, Turn, VaultItems } from "./types";
+import type { AgentAction, Ask, AuditChain, ChatDetail, ChatSummary, Graph, Health, InspectorRecord, LeakAudit, Level, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
 
 export class EngineError extends Error {
   readonly status: number;
@@ -35,6 +35,11 @@ export function createEngine(baseUrl = "") {
     inspector: () => call<{ summary: Metrics["inspector"]; requests: InspectorRecord[] }>("/inspector"),
     audit: () => call<LeakAudit>("/inspector/audit"),
     metrics: () => call<Metrics>("/metrics"),
+    actions: (chatId: string) => call<AgentAction[]>(`/chats/${chatId}/actions`),
+    /** Runs the action on this device; for a call Muse Spark planned, the reply comes back as a Turn. */
+    decideAction: (actionId: string, decision: "confirm" | "deny") => call<Turn>(`/agent/actions/${actionId}/${decision}`, {}),
+    outbox: (chatId: string) => call<OutboxItem[]>(`/chats/${chatId}/outbox`),
+    auditChain: () => call<AuditChain>("/vault/audit/verify"),
   };
 }
 
