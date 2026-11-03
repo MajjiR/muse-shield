@@ -4,6 +4,8 @@ propose()  check the call against the tool's rules; side-effect tools become a p
            action with a preview of the real values for the user, others run at once
 confirm()  run a pending action
 deny()     drop it
+Every action is kept, encrypted, in the vault, so a pending confirmation and the history
+of what ran survive an engine restart.
 Whatever a tool returns is masked again (real vault values -> their placeholders) before
 it goes back to any agent.
 """
@@ -14,7 +16,7 @@ import json
 import re
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from ..app.vault import Vault
 from .policy import Checked, check
@@ -35,6 +37,7 @@ class Action:
     result: dict = field(default_factory=dict)  # masked, safe to return to an agent
     error: str = ""
     created_at: float = field(default_factory=time.time)
+    origin: str = "direct"  # "chat" when the chat model proposed it: deciding it continues that conversation
 
     def for_agent(self) -> dict:
         """What an agent may see: no real values."""
@@ -58,19 +61,23 @@ def remask(value, mapping: dict[str, str]):
 class Executor:
     def __init__(self, vault: Vault, runners: dict | None = None):
         self.vault, self.runners = vault, runners or RUNNERS
-        self.actions: dict[str, Action] = {}
+        self.actions: dict[str, Action] = {a["action_id"]: Action(**a) for a in vault.actions()}
 
-    def propose(self, chat_id: str, tool: str, args: dict) -> Action:
+    def _save(self, action: Action) -> Action:
+        self.vault.save_action(action.action_id, action.chat_id, asdict(action), action.created_at)
+        return action
+
+    def propose(self, chat_id: str, tool: str, args: dict, origin: str = "direct") -> Action:
         checked: Checked = check(self.vault, chat_id, tool, args)
         action = Action("x_" + uuid.uuid4().hex[:10], chat_id, tool, dict(args), "pending", checked.violations,
-                        checked.real, checked.recipients, checked.unmasked)
+                        checked.real, checked.recipients, checked.unmasked, origin=origin)
         self.actions[action.action_id] = action
         if not checked.ok:
             action.status, action.preview = "refused", {}
             self.vault.audit("tool_refused", chat_id, {"tool": 1})
-            return action
+            return self._save(action)
         self.vault.audit("tool_proposed", chat_id, {"tool": 1, "unmasked": len(checked.unmasked)})
-        return self._run(action) if not checked.tool.side_effect else action
+        return self._run(action) if not checked.tool.side_effect else self._save(action)
 
     def propose_with_capability(self, caps, token: str, agent: str, tool: str, args: dict) -> Action:
         """A remote agent uses a capability: it may only target the one placeholder it was granted, with that tool."""
@@ -92,7 +99,7 @@ class Executor:
         action = self._pending(action_id)
         action.status, action.preview = "denied", {}
         self.vault.consent(action.chat_id, action.tool, "execute", "deny", "")
-        return action
+        return self._save(action)
 
     def _pending(self, action_id: str) -> Action:
         action = self.actions.get(action_id)
@@ -109,4 +116,4 @@ class Executor:
             action.status, action.error = "failed", remask(str(exc), self.vault.mapping(action.chat_id))
             self.vault.audit("tool_failed", action.chat_id, {"tool": 1})
         action.preview = {} if action.status != "pending" else action.preview
-        return action
+        return self._save(action)

@@ -105,3 +105,24 @@ def test_chat_actions_restore_a_pending_confirmation(tmp_path):
     msgs = c.get(f"/chats/{chat_id}").json()["messages"]
     assert [m["role"] for m in msgs] == ["user", "assistant", "user", "tool_call", "tool_result", "assistant"]
     assert msgs[3]["meta"]["action_id"] == msgs[4]["meta"]["action_id"] == a["action_id"]
+
+
+def test_actions_survive_an_engine_restart(tmp_path):
+    c, _, vault = make(tmp_path, ["Noted.", CALL])
+    chat_id = c.post("/chat", json={"message": INTRO}).json()["chat_id"]
+    a = c.post("/chat", json={"message": ASK, "chat_id": chat_id}).json()["action"]
+    raw = (tmp_path / "v.db").read_bytes()
+    assert b"priya@kestrel.io" not in raw and b"Priya Shah" not in raw  # recipients and preview are encrypted
+
+    # A new engine on the same vault: the pending action is still there, and confirming it continues the chat.
+    scripted = ScriptedModel(["Sent it."])
+    model = ChatModel("https://api.meta.test/v1", "muse-spark-1.3", "k", client=httpx.Client(transport=scripted.transport()))
+    again = TestClient(create_app(Vault(tmp_path / "v.db", b"\x97" * 32), fake_spark(ANSWERS), model))
+    listed = again.get(f"/chats/{chat_id}/actions").json()
+    assert listed[0]["action_id"] == a["action_id"] and listed[0]["status"] == "pending"
+    assert listed[0]["preview"]["to"] == ["priya@kestrel.io"] and listed[0]["recipients"][0]["person"] == "Priya Shah"
+    done = again.post(f"/agent/actions/{a['action_id']}/confirm").json()
+    assert done["reply"] == "Sent it." and done["action"]["status"] == "done"
+    assert again.get(f"/chats/{chat_id}/actions").json()[0]["status"] == "done"
+    assert again.app.state.vault.outbox(chat_id)[0]["payload"]["to"] == ["priya@kestrel.io"]
+    assert again.post(f"/agent/actions/{a['action_id']}/confirm").status_code == 404  # can't run twice

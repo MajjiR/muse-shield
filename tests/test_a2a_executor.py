@@ -70,3 +70,16 @@ def test_outbox_is_encrypted_at_rest(vc, tmp_path):
     ex.confirm(ex.propose(chat, "send_email", {"to": "<PERSON_1>", "subject": "x", "body": "Dear <PERSON_1>"}).action_id)
     raw = (tmp_path / "v.db").read_bytes()
     assert b"priya@kestrel.io" not in raw and b"Priya Shah" not in raw
+
+
+def test_executor_reloads_saved_actions(tmp_path):
+    from muse_shield.agent.executor import Executor
+    from muse_shield.app.vault import Vault
+
+    v = Vault(tmp_path / "v.db", b"\x42" * 32)
+    chat = v.create_chat()
+    v.entity_placeholder(chat, "PERSON", "Asha Rao")
+    a = Executor(v).propose(chat, "save_note", {"title": "Call <PERSON_1>", "body": "about the lease"})
+    assert a.status == "done"
+    back = Executor(Vault(tmp_path / "v.db", b"\x42" * 32)).actions[a.action_id]
+    assert back.status == "done" and back.result == a.result and back.origin == "direct"
