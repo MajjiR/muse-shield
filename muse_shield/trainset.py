@@ -1,6 +1,7 @@
 """Fine-tuning data for Muse Glimmer: chat JSONL in exactly the runtime prompt format.
 
     .venv/bin/python -m muse_shield.trainset --n 600 --out runs/train
+    .venv/bin/python -m muse_shield.trainset --mix --out runs/train/mix-v1   # Nemotron train + synthetic
 
 Each row is the same messages GlimmerBackend sends (system prompt, the one
 worked example, the numbered paragraph) plus the gold JSON as the assistant
@@ -17,8 +18,9 @@ import json
 import random
 from pathlib import Path
 
-from .analysis import number_sentences, parse
+from .analysis import number_sentences, parse, split_sentences
 from .backends import EXAMPLE_ASSISTANT, EXAMPLE_USER, SYSTEM_PROMPT
+from .benchmarks.nemotron import LABEL_MAP, SPLIT_ROWS, Doc, _fetch_page, paragraphs, parse_row
 from .evalset import EVAL_POOLS, Case, Pools, generate
 
 TRAIN_POOLS = Pools(
@@ -68,14 +70,19 @@ def gold_json(case: Case) -> str:
     return json.dumps({"entities": entities, "contexts": contexts}, ensure_ascii=False)
 
 
-def row(case: Case) -> dict:
+def chat_row(sentences: list[str], answer: str) -> dict:
+    """One training row in exactly the message layout GlimmerBackend sends at runtime."""
     return {"messages": [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": EXAMPLE_USER},
         {"role": "assistant", "content": EXAMPLE_ASSISTANT},
-        {"role": "user", "content": f"Known contexts: none\n{number_sentences(case.sentences)}"},
-        {"role": "assistant", "content": gold_json(case)},
+        {"role": "user", "content": f"Known contexts: none\n{number_sentences(sentences)}"},
+        {"role": "assistant", "content": answer},
     ]}
+
+
+def row(case: Case) -> dict:
+    return chat_row(case.sentences, gold_json(case))
 
 
 def build(n: int = 600, seed: int = 101) -> list[dict]:
@@ -91,6 +98,101 @@ def build(n: int = 600, seed: int = 101) -> list[dict]:
         rows.append(r)
     random.Random(seed).shuffle(rows)
     return rows
+
+
+def _approx_tokens(r: dict) -> int:
+    return sum(len(m["content"]) for m in r["messages"]) // 3  # conservative chars-per-token
+
+
+def benchmark_paragraphs(test_sample: Path) -> set[str]:
+    """Every paragraph of the benchmark's test docs: training must never contain one."""
+    docs = [Doc.from_dict(json.loads(l)) for l in test_sample.read_text().splitlines() if l.strip()]
+    return {p for d in docs for _, p in paragraphs(d.text)}
+
+
+def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages: int = 30,
+                  max_tokens: int = 2048, empty_share: float = 0.15) -> list[dict]:
+    """Gold-labelled rows from the Nemotron-PII *train* split, one per paragraph.
+
+    Paragraphs are cut exactly as the benchmark cuts them, and gold labels are mapped onto
+    contract types with the benchmark's LABEL_MAP. Nemotron has no context labels, so
+    `contexts` is empty; the synthetic rows carry contexts. A gold span that crosses a
+    paragraph boundary is skipped rather than guessed.
+    """
+    rng = random.Random(seed)
+    docs = [parse_row(r) for off in rng.sample(range(0, SPLIT_ROWS - 100, 100), pages) for r in fetch(off, split="train")]
+    by_domain: dict[str, list[Doc]] = {}
+    for d in docs:
+        by_domain.setdefault(d.domain, []).append(d)
+    for ds in by_domain.values():
+        rng.shuffle(ds)
+    order = []  # round-robin across domains so no one document type dominates
+    while any(by_domain.values()):
+        for dom in sorted(by_domain):
+            if by_domain[dom]:
+                order.append(by_domain[dom].pop())
+
+    rows, empty, seen_paras = [], 0, set()
+    for d in order:
+        for off, para in paragraphs(d.text):
+            if para in exclude or para in seen_paras:  # boilerplate repeats across documents
+                continue
+            seen_paras.add(para)
+            end = off + len(para)
+            seen, entities = set(), []
+            for g in sorted(d.spans, key=lambda g: g.start):
+                text = d.text[g.start:g.end]
+                if off <= g.start and g.end <= end and text.strip() and (text, LABEL_MAP[g.label]) not in seen:
+                    seen.add((text, LABEL_MAP[g.label]))
+                    entities.append({"text": text, "type": LABEL_MAP[g.label]})
+            if not entities:
+                if empty >= empty_share * n:
+                    continue
+                empty += 1
+            sentences = split_sentences(para) or [para]
+            r = chat_row(sentences, json.dumps({"entities": entities, "contexts": []}, ensure_ascii=False))
+            if _approx_tokens(r) > max_tokens:
+                continue
+            a = parse(r["messages"][-1]["content"], para, sentences)
+            if a.dropped:  # gold text not findable verbatim: skip rather than teach a mismatch
+                continue
+            rows.append(r)
+            if len(rows) >= n:
+                return rows
+    return rows
+
+
+def build_mix(test_sample: Path, n_nemotron: int = 4000, n_synthetic: int = 1000, seed: int = 101, fetch=_fetch_page) -> list[dict]:
+    rows, seen = [], set()
+    for r in nemotron_rows(n_nemotron, seed, benchmark_paragraphs(test_sample), fetch=fetch) + build(n_synthetic, seed):
+        key = r["messages"][3]["content"]
+        if key not in seen:  # identical prompts would just over-weight one example
+            seen.add(key)
+            rows.append(r)
+    random.Random(seed).shuffle(rows)
+    return rows
+
+
+def _write(out: Path, rows: list[dict], val_fraction: float) -> dict:
+    k = max(1, int(len(rows) * val_fraction))
+    out.mkdir(parents=True, exist_ok=True)
+    for name, chunk in (("val", rows[:k]), ("train", rows[k:])):
+        with (out / f"{name}.jsonl").open("w") as f:
+            for r in chunk:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    types: dict[str, int] = {}
+    for r in rows:
+        for e in json.loads(r["messages"][-1]["content"])["entities"]:
+            types[e["type"]] = types.get(e["type"], 0) + 1
+    return {"train": len(rows) - k, "val": k, "dir": str(out),
+            "approx_longest_row_tokens": max(_approx_tokens(r) for r in rows),
+            "rows_with_contexts": sum(bool(json.loads(r["messages"][-1]["content"])["contexts"]) for r in rows),
+            "entities_by_type": dict(sorted(types.items()))}
+
+
+def export_mix(out: Path, test_sample: Path, n_nemotron: int = 4000, n_synthetic: int = 1000, seed: int = 101,
+               val_fraction: float = 0.05) -> dict:
+    return _write(out, build_mix(test_sample, n_nemotron, n_synthetic, seed), val_fraction)
 
 
 def export(out: Path, n: int = 600, seed: int = 101, val_fraction: float = 0.1) -> dict:
@@ -111,8 +213,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=101)
     ap.add_argument("--out", type=Path, default=Path("runs/train"))
+    ap.add_argument("--mix", action="store_true", help="Nemotron-PII train paragraphs + synthetic contract rows")
+    ap.add_argument("--nemotron", type=int, default=4000)
+    ap.add_argument("--synthetic", type=int, default=1000)
+    ap.add_argument("--test-sample", type=Path, default=Path("runs/benchmarks/nemotron-test-500-s7.jsonl"),
+                    help="benchmark docs whose paragraphs must never appear in training (required with --mix)")
     args = ap.parse_args(argv)
-    print(json.dumps(export(args.out, args.n, args.seed), indent=2))
+    if args.mix:
+        if not args.test_sample.exists():
+            ap.error(f"--test-sample {args.test_sample} not found: the leakage guard needs it")
+        print(json.dumps(export_mix(args.out, args.test_sample, args.nemotron, args.synthetic, args.seed), indent=2))
+    else:
+        print(json.dumps(export(args.out, args.n, args.seed), indent=2))
     return 0
 
 
