@@ -1,0 +1,54 @@
+{
+  "name": "glimmer-lora-v1c",
+  "model_id": "muse-shield-glimmer-lora-v1c",
+  "attempts": [
+    {
+      "n": 1,
+      "start": 1793743046.156079,
+      "resume_ref": null,
+      "end": 1793746871.262315,
+      "exit": 0,
+      "last_step": 298,
+      "outcome": "completed"
+    }
+  ],
+  "sessions": [
+    "accounts/rohan-majji/trainingSessions/ts-418b245af0ca4ce29934e88b04a14301"
+  ],
+  "runs": [
+    "run-0ee8b96ba7dc477e8d69369892598fe5"
+  ],
+  "outcome": "completed",
+  "params": {
+    "name": "glimmer-lora-v1c",
+    "output_model_id": "",
+    "lr": 0.0001,
+    "batch": 16,
+    "epochs": 1,
+    "rank": 8,
+    "max_seq_len": 2048,
+    "warmup_steps": 0,
+    "max_examples": null,
+    "checkpoint_every": 25,
+    "max_attempts": 5,
+    "plateau_window": 50,
+    "plateau_min_improve": 0.02,
+    "min_steps": 100,
+    "no_early_stop": false,
+    "simulate_crash_at": 0
+  },
+  "train": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v1/train.jsonl",
+  "eval": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v1/val.jsonl",
+  "started": 1793743046.155794,
+  "promotion": {
+    "model_id": "muse-shield-glimmer-lora-v1c",
+    "checkpoint": "step-298",
+    "job_id": "ts-418b245af0ca4ce29934e88b04a14301"
+  },
+  "session_cleanup": [
+    {
+      "deleted": "accounts/rohan-majji/trainingSessions/ts-418b245af0ca4ce29934e88b04a14301"
+    }
+  ],
+  "finished": 1793746872.765545
+}
