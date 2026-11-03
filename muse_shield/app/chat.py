@@ -33,7 +33,8 @@ NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
 Ask for the least you need: shape before summary before full. Ask for at most one label per reply."""
 
-NEED = re.compile(r"^\s*NEED_CONTEXT:\s*(<[A-Z][A-Z_]*_\d+>)\s+(shape|summary|full)\b\s*(.*)$", re.I | re.M)
+# Models sometimes drop the angle brackets ("NEED_CONTEXT: DEAL_1 summary ..."): accept both.
+NEED = re.compile(r"^\s*NEED_CONTEXT:\s*<?([A-Z][A-Z_]*_\d+)>?\s+(shape|summary|full)\b\s*(.*)$", re.I | re.M)
 LEVELS = ("shape", "summary", "full")
 
 
@@ -159,20 +160,22 @@ class ChatEngine:
 
         need = NEED.search(content)
         if need and turn.ask is None:
-            label, level, reason = need.group(1).upper(), need.group(2).lower(), need.group(3).strip()
-            known = mapping.keys()
-            if label in known:
-                target = self.vault._target(chat_id, label)
-                kind = "context" if target and target[0] == "context" else "entity"
-                if kind == "entity":
-                    level = "full"  # an entity has only its value
-                levels = LEVELS if kind == "context" else ("full",)
-                previews = {lv: self.vault.resolve(chat_id, label, lv) for lv in levels}
-                ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, kind, level, reason, previews[level], previews)
-                self.pending[ask.ask_id] = ask
-                turn.ask = ask
-                self.vault.audit("ask", chat_id, {"asks": 1})
+            label, level, reason = f"<{need.group(1).upper()}>", need.group(2).lower(), need.group(3).strip()
+            if label not in mapping:
+                # Don't show the request line as an answer, and don't store it in the conversation.
+                turn.error = f"Muse Spark asked for {label}, which isn't in this chat's vault. Try rephrasing."
                 return
+            target = self.vault._target(chat_id, label)
+            kind = "context" if target and target[0] == "context" else "entity"
+            if kind == "entity":
+                level = "full"  # an entity has only its value
+            levels = LEVELS if kind == "context" else ("full",)
+            previews = {lv: self.vault.resolve(chat_id, label, lv) for lv in levels}
+            ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, kind, level, reason, previews[level], previews)
+            self.pending[ask.ask_id] = ask
+            turn.ask = ask
+            self.vault.audit("ask", chat_id, {"asks": 1})
+            return
         # A normal answer (or an unusable NEED_CONTEXT line): store and rehydrate.
         turn.masked_reply = content
         turn.reply, turn.unknown_labels = rehydrate(content, mapping)

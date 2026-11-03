@@ -154,3 +154,18 @@ def test_chat_detail_segments_restored_values(tmp_path):
     seg = msgs[1]["segments"]
     assert seg[0] == {"text": "Dear "} and seg[1] == {"label": "<PERSON_1>", "kind": "entity", "text": "Rohan"}
     assert seg[3]["kind"] == "context" and seg[3]["text"].startswith("Tomorrow I'm planning")
+
+
+def test_need_context_without_angle_brackets_still_asks(tmp_path):
+    c, _ = make(tmp_path, ["Got it.", "NEED_CONTEXT: DEAL_1 summary need valuation to assess price"])
+    chat_id = c.post("/chat", json={"message": DEAL}).json()["chat_id"]
+    r = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id}).json()
+    assert r["ask"] and r["ask"]["label"] == "<DEAL_1>" and r["ask"]["level"] == "summary" and r["reply"] == ""
+
+
+def test_need_context_for_unknown_label_is_an_error_not_a_reply(tmp_path):
+    c, _ = make(tmp_path, ["Got it.", "NEED_CONTEXT: <DEAL_9> full need it"])
+    chat_id = c.post("/chat", json={"message": DEAL}).json()["chat_id"]
+    r = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id}).json()
+    assert r["ask"] is None and r["reply"] == "" and "<DEAL_9>" in r["error"]
+    assert all("NEED_CONTEXT" not in m["masked_text"] for m in c.get(f"/chats/{chat_id}").json()["messages"])
