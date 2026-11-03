@@ -52,6 +52,10 @@ CREATE TABLE IF NOT EXISTS edges (
     chat_id TEXT NOT NULL, src TEXT NOT NULL, dst TEXT NOT NULL, rel TEXT NOT NULL, weight INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (chat_id, src, dst, rel)
 );
+CREATE TABLE IF NOT EXISTS entity_links (
+    src TEXT NOT NULL, dst TEXT NOT NULL, rel TEXT NOT NULL, weight INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (src, dst, rel)
+);
 CREATE TABLE IF NOT EXISTS audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT
 );
@@ -263,6 +267,28 @@ class Vault:
             src, dst = dst, src
         with self._lock, self._db:
             self._db.execute("INSERT INTO edges VALUES (?,?,?,?,1) ON CONFLICT DO UPDATE SET weight = weight + 1", (chat_id, src, dst, rel))
+
+    def link_entities(self, src_entity: str, dst_entity: str, rel: str) -> None:
+        """Workspace-wide link between entities (e.g. a contact identifies a person), across chats."""
+        with self._lock, self._db:
+            self._db.execute("INSERT INTO entity_links VALUES (?,?,?,1) ON CONFLICT DO UPDATE SET weight = weight + 1",
+                             (src_entity, dst_entity, rel))
+
+    def contacts_for(self, chat_id: str, person_label: str) -> list[dict]:
+        """Contacts known to identify this person, from any chat, with a placeholder in this chat (local only)."""
+        target = self._target(chat_id, person_label)
+        if not target or target[0] != "entity":
+            return []
+        rows = self._db.execute(
+            "SELECT l.src FROM entity_links l JOIN entities e ON e.id = l.src WHERE l.dst=? AND l.rel='identifies' "
+            "ORDER BY l.weight DESC, e.created_at", (target[1],)).fetchall()
+        out = []
+        for (eid,) in rows:
+            value = self.entity_value(eid)
+            digits = sum(ch.isdigit() for ch in value)
+            kind = "email" if "@" in value and "." in value.split("@")[-1] else "phone" if digits >= 7 else "other"
+            out.append({"label": self._mint(chat_id, "CONTACT", "entity", eid), "kind": kind, "value": value})
+        return out
 
     def members(self, chat_id: str, context_label: str) -> list[str]:
         """Entity placeholders inside a context block (mentioned_in edges)."""

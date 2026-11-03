@@ -73,6 +73,9 @@ class Masked:
                 "cost_usd": self.cost_usd}
 
 
+LINK_WINDOW = 80  # a contact or ID this close to a name (same paragraph) identifies that person
+
+
 class Masker:
     def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4):
         self.vault, self.analyzer, self.workers = vault, analyzer, workers
@@ -82,6 +85,20 @@ class Masker:
             return []
         with ThreadPoolExecutor(max_workers=min(self.workers, len(paras))) as pool:
             return list(pool.map(lambda p: self.analyzer.analyze([p[1]])[0], paras))
+
+    def _link_contacts(self, text: str, chat_id: str, spans: list[dict]) -> None:
+        """Link each CONTACT/ID to the nearest PERSON within LINK_WINDOW characters, in the same paragraph."""
+        people = [s for s in spans if s["type"] == "PERSON"]
+        for c in (s for s in spans if s["type"] in ("CONTACT", "ID")):
+            best, best_gap = None, LINK_WINDOW + 1
+            for p in people:
+                lo, hi = (p["end"], c["start"]) if p["end"] <= c["start"] else (c["end"], p["start"])
+                gap = hi - lo
+                if gap <= LINK_WINDOW and "\n\n" not in text[lo:hi] and gap < best_gap:
+                    best, best_gap = p, gap
+            if best:
+                self.vault.add_edge(chat_id, c["placeholder"], best["placeholder"], "identifies")
+                self.vault.link_entities(c["entity_id"], best["entity_id"], "identifies")
 
     def mask(self, text: str, chat_id: str) -> Masked:
         t0 = time.perf_counter()
@@ -126,9 +143,10 @@ class Masker:
 
         spans: list[dict] = []
         for e in kept:
-            label, _ = self.vault.entity_placeholder(chat_id, e["type"], e["text"], placeholder_base(e["type"], e["role"]))
-            spans.append({**e, "placeholder": label, "kind": "entity",
+            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], e["text"], placeholder_base(e["type"], e["role"]))
+            spans.append({**e, "placeholder": label, "entity_id": entity_id, "kind": "entity",
                           "source": "policy" if e["type"] in ALWAYS_MASK else "model"})
+        self._link_contacts(text, chat_id, spans)
 
         contexts = []
         for b in sorted(blocks, key=lambda b: b["start"]):
