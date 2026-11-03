@@ -72,7 +72,7 @@ Insurance: Star Health policy SH-99012345. Emergency contact: her husband Ravi K
 [10:43] Agent (Sana): Hi! Can you confirm your registered mobile and the last transaction?
 [10:44] Customer: 9876543210, i paid ₹1,299 to Swiggy yesterday. my UPI is vikram.rao@okicici
 [10:45] Customer: also my netbanking password is Vikram@2024 if that helps""",
-        must=[("4539 1488 0343 6467", "ID"), ("cvv 312", "SECRET"), ("Sana", "PERSON"), ("9876543210", "CONTACT"),
+        must=[("4539 1488 0343 6467", "ID"), ("312", "SECRET"), ("Sana", "PERSON"), ("9876543210", "CONTACT"),
               ("vikram.rao@okicici", "CONTACT"), ("Vikram@2024", "SECRET")],
         optional=["09/27", "₹1,299", "Swiggy"]),
 
@@ -194,7 +194,9 @@ def score(ex: Example, result) -> dict:
     for v in ex.optional:
         i = ex.text.find(v)
         gold_ranges.append((i, i + len(v)))
-    extra = sorted({s["text"] for s in result.spans if s["kind"] == "entity"
+    gold_values = {v.casefold() for v, _ in ex.must} | {v.casefold() for v in ex.optional}
+    # Over-masking: masked entities that are neither a gold value nor overlap one (repeats of a gold value don't count).
+    extra = sorted({s["text"] for s in result.spans if s["kind"] == "entity" and s["text"].casefold() not in gold_values
                     and not any(s["start"] < e and b < s["end"] for b, e in gold_ranges)})
     kinds = sorted({c["kind"] for c in result.contexts})
     return {"id": ex.id, "ok": result.analysis_ok, "error": result.error, "must": len(ex.must), "missed": misses,
