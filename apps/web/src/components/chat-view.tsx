@@ -136,7 +136,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   return (
     <main className="flex min-h-0 min-w-0 flex-col bg-background">
       {health.data?.analysis && (
-        <div className="flex items-center justify-center gap-2 border-b border-warn-foreground/15 bg-warn px-4 py-1.5 text-[12px] text-warn-foreground">
+        <div className="flex items-center justify-center gap-2 border-b bg-muted px-4 py-1.5 text-[12px] text-muted-foreground">
           <FlaskConical className="size-3.5" aria-hidden />
           Prototype mode: finding sensitive details uses Muse Spark on your raw text. Use made-up data only.
         </div>
@@ -144,11 +144,11 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
       <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-5">
         <h1 className="min-w-0 truncate text-[14px] font-semibold tracking-tight">
-          {title ? <MaskedText text={title} size="xs" /> : "New chat"}
+          {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-1.5 rounded-full border bg-card px-2.5 py-1 text-[12px] text-muted-foreground sm:flex">
-            <ShieldCheck className="size-3.5 text-masked-line" aria-hidden />
+          <span className="hidden items-center gap-1.5 rounded-sm border bg-card px-2 py-0.5 text-[12px] text-muted-foreground sm:flex">
+            <ShieldCheck className="size-3.5 text-foreground" aria-hidden />
             {maskedCount > 0 ? <><span className="tabular font-medium text-foreground">{maskedCount}</span> items shielded</> : "Shield on"}
           </span>
           <Button variant="ghost" size="icon" aria-label={panelOpen ? "Hide privacy vault" : "Show privacy vault"} aria-pressed={panelOpen}
@@ -165,7 +165,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
               {messages.map((m) => <MessageView key={m.message_id} m={m} kinds={kinds} />)}
               {pending && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
-                  <div className="max-w-[min(42rem,85%)] rounded-2xl rounded-br-md bg-primary/[0.07] px-4 py-2.5 text-[14.5px] leading-[1.65] whitespace-pre-wrap ring-1 ring-primary/10 dark:bg-primary/15">
+                  <div className="max-w-[min(42rem,85%)] rounded-md bg-muted px-4 py-2.5 text-[14.5px] leading-[1.65] whitespace-pre-wrap">
                     <OriginalText text={pending.text} spans={pending.spans} />
                   </div>
                 </motion.div>
@@ -194,7 +194,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
         <form
           onSubmit={(e) => { e.preventDefault(); onSend() }}
-          className="relative rounded-2xl border bg-card shadow-float transition-shadow focus-within:border-ring/60 focus-within:ring-4 focus-within:ring-ring/10"
+          className="relative rounded-md border border-input bg-card shadow-soft transition-colors focus-within:border-foreground/50"
         >
           <textarea
             ref={inputRef}
@@ -237,13 +237,13 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
   }, {})
   const kinds = Object.fromEntries(preview.spans.map((s) => [s.placeholder, s.kind]))
   return (
-    <div className="mb-3 overflow-hidden rounded-2xl border bg-card shadow-soft">
+    <div className="mb-2 overflow-hidden rounded-md border bg-card">
       <div className="flex items-center gap-2 border-b px-4 py-2.5">
-        <ShieldCheck className="size-4 text-masked-line" aria-hidden />
+        <ShieldCheck className="size-4 text-foreground" aria-hidden />
         <strong className="text-[13px] font-semibold tracking-tight">What Muse Spark will receive</strong>
         <div className="ml-2 hidden flex-wrap gap-1 sm:flex">
           {Object.entries(counts).map(([k, n]) => (
-            <span key={k} className="tabular rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{n} {k}</span>
+            <span key={k} className="tabular rounded-sm border px-1.5 py-px text-[11px] text-muted-foreground">{n} {k}</span>
           ))}
         </div>
         <span className="tabular ml-auto text-[11.5px] text-muted-foreground">
@@ -266,7 +266,7 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
         </div>
       </div>
       {autoSend && (
-        <motion.div className="h-0.5 origin-left bg-primary" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+        <motion.div className="h-px origin-left bg-foreground" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
           transition={{ duration: PREVIEW_MS / 1000, ease: "linear" }} />
       )}
     </div>
@@ -277,12 +277,11 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="pt-[8vh] text-center">
       <span className="relative mx-auto grid size-14 place-items-center">
-        <span className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl" />
-        <span className="relative grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-primary to-[oklch(0.55_0.2_300)] text-primary-foreground shadow-float">
-          <ShieldCheck className="size-7" aria-hidden />
+        <span className="relative grid size-11 place-items-center rounded-md bg-foreground text-background">
+          <ShieldCheck className="size-5.5" aria-hidden />
         </span>
       </span>
-      <h2 className="mt-6 text-[26px] font-semibold tracking-[-0.02em] text-balance">Ask anything. Your secrets stay here.</h2>
+      <h2 className="mt-5 text-[28px] font-semibold tracking-[-0.025em] text-balance">Ask anything. Your secrets stay here.</h2>
       <p className="mx-auto mt-2 max-w-lg text-[14.5px] leading-relaxed text-pretty text-muted-foreground">
         Names, IDs, amounts and whole confidential passages are swapped for placeholders before Muse Spark sees them,
         then put back into the answer on your device.
@@ -301,10 +300,9 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 + i * 0.06 }}
-            whileHover={{ y: -2 }}
-            className="group rounded-xl border bg-card p-3.5 text-left shadow-soft transition-colors hover:border-primary/40"
+            className="group rounded-md border bg-card p-3.5 text-left transition-colors hover:bg-subtle"
           >
-            <span className="mb-2.5 grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground">
+            <span className="mb-2.5 grid size-7 place-items-center rounded-sm border text-foreground">
               <Icon className="size-4" aria-hidden />
             </span>
             <div className="text-[13px] font-semibold tracking-tight">{title}</div>
@@ -317,19 +315,19 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
 }
 
 function Trust({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
-  return <span className="flex items-center gap-1.5"><Icon className="size-3.5 text-primary" aria-hidden />{text}</span>
+  return <span className="flex items-center gap-1.5"><Icon className="size-3.5 text-foreground" aria-hidden />{text}</span>
 }
 
 function Thinking({ label }: { label: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
-      <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-primary to-[oklch(0.6_0.18_300)] text-primary-foreground shadow-soft">
+      <span className="grid size-6 place-items-center rounded-sm bg-foreground text-background">
         <Sparkles className="size-3.5" aria-hidden />
       </span>
       <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
         <span className="flex gap-1" aria-hidden>
           {[0, 1, 2].map((i) => (
-            <motion.span key={i} className="size-1.5 rounded-full bg-primary/70"
+            <motion.span key={i} className="size-1.5 rounded-full bg-foreground/60"
               animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }} transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }} />
           ))}
         </span>
@@ -342,7 +340,7 @@ function Thinking({ label }: { label: string }) {
 function ShieldPulse() {
   return (
     <motion.span animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.2, repeat: Infinity }}
-      className={cn("inline-flex text-primary")}>
+      className={cn("inline-flex text-foreground")}>
       <ShieldCheck className="size-3.5" aria-hidden />
     </motion.span>
   )

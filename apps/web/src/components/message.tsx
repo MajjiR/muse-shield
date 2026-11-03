@@ -18,7 +18,7 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
     return (
       <motion.div {...enter} className="flex items-center justify-center gap-2 py-1 text-xs text-muted-foreground">
         <span className="h-px w-10 bg-border" />
-        {allowed ? <ShieldCheck className="size-3.5 text-masked-line" aria-hidden /> : <ShieldX className="size-3.5" aria-hidden />}
+        {allowed ? <ShieldCheck className="size-3.5 text-foreground" aria-hidden /> : <ShieldX className="size-3.5" aria-hidden />}
         <span>
           {allowed ? "You shared" : "You declined to share"} <span className="font-mono text-[11px]">{label}</span>
           {allowed && <> · {level}</>}
@@ -53,14 +53,14 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
   return (
     <motion.div {...enter} className={cn("group flex w-full gap-3", user ? "justify-end" : "justify-start")}>
       {!user && (
-        <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-[oklch(0.6_0.18_300)] text-primary-foreground shadow-soft">
+        <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-sm bg-foreground text-background">
           <Sparkles className="size-3.5" aria-hidden />
         </span>
       )}
       <div className={cn("flex min-w-0 max-w-[min(42rem,85%)] flex-col gap-1.5", user && "items-end")}>
         {!user && <span className="text-[12.5px] font-semibold tracking-tight">Muse Spark</span>}
         <div className={cn("text-[14.5px] leading-[1.65] whitespace-pre-wrap break-words",
-          user ? "rounded-2xl rounded-br-md bg-primary/[0.07] px-4 py-2.5 ring-1 ring-primary/10 dark:bg-primary/15" : "pt-0.5")}>
+          user ? "rounded-md bg-muted px-4 py-2.5" : "pt-0.5")}>
           {user ? <OriginalText text={m.text} spans={m.meta.spans} /> : <RestoredText segments={m.segments} />}
         </div>
         <AnimatePresence initial={false}>
@@ -71,7 +71,7 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
               exit={{ opacity: 0, height: 0 }}
               className="w-full overflow-hidden"
             >
-              <div className="rounded-xl border border-dashed bg-subtle px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap">
+              <div className="rounded-md border border-dashed bg-subtle px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap">
                 <div className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                   {user ? "Sent to Muse Spark" : "Muse Spark wrote"}
                 </div>

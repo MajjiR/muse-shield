@@ -26,7 +26,7 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
     <aside className="flex min-h-0 flex-col border-l bg-sidebar max-xl:hidden" aria-label="Privacy panel">
       <div className="border-b px-4 pt-4 pb-3">
         <div className="flex items-center gap-2 text-[13px] font-semibold tracking-tight">
-          <Lock className="size-3.5 text-primary" aria-hidden /> Privacy vault
+          <Lock className="size-3.5" aria-hidden /> Privacy vault
         </div>
         <p className="mt-0.5 text-[12px] text-muted-foreground">Encrypted on this device. Only placeholders leave it.</p>
         <div className="mt-3 grid grid-cols-3 gap-2">
@@ -34,7 +34,7 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
           <Stat label="Passages" value={contexts.length} />
           <Stat label="Shared" value={consents.filter((c) => c.decision === "allow").length} />
         </div>
-        <div className="mt-3 inline-flex w-full rounded-lg bg-muted p-1" role="tablist">
+        <div className="mt-3 inline-flex w-full rounded-md bg-muted p-1" role="tablist">
           {(["vault", "consents"] as const).map((t) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
               className={cn("relative flex-1 rounded-md py-1 text-[12.5px] font-medium transition-colors",
@@ -57,7 +57,7 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
               {contexts.length > 0 && (
                 <Section title="Hidden passages">
                   {contexts.map((c) => (
-                    <div key={c.label} className="rounded-lg border bg-card p-2.5">
+                    <div key={c.label} className="rounded-md border bg-card p-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <Chip label={c.label} context size="xs" />
                         <span className="text-[11px] text-muted-foreground">{(c.subtype ?? c.kind).toLowerCase().replace(/_/g, " ")}</span>
@@ -71,7 +71,7 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
               {groups.map(([type, list]) => (
                 <Section key={type} title={TYPE_LABEL[type] ?? type} count={list.length}>
                   {list.map((e) => (
-                    <div key={e.label} className="rounded-lg border bg-card px-2.5 py-2">
+                    <div key={e.label} className="rounded-md border bg-card px-2.5 py-2">
                       <div className="flex items-center justify-between gap-2">
                         <Chip label={e.label} size="xs" />
                         {e.chats > 1 && (
@@ -94,9 +94,9 @@ export function PrivacyPanel({ chatId }: { chatId: string | null }) {
             {consents.map((c, i) => (
               <li key={i} className="relative">
                 <span className={cn("absolute top-1 -left-[21px] grid size-3 place-items-center rounded-full ring-4 ring-sidebar",
-                  c.decision === "allow" ? "bg-masked-line" : "bg-muted-foreground")} />
+                  c.decision === "allow" ? "bg-foreground" : "border border-foreground bg-sidebar")} />
                 <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
-                  {c.decision === "allow" ? <ShieldCheck className="size-3.5 text-masked-line" /> : <ShieldX className="size-3.5" />}
+                  {c.decision === "allow" ? <ShieldCheck className="size-3.5" /> : <ShieldX className="size-3.5" />}
                   {c.decision === "allow" ? "Shared" : "Declined"} <span className="font-mono text-[11px]">{c.label}</span> · {c.level}
                 </div>
                 {c.reason && <p className="mt-0.5 text-[12px] text-muted-foreground">“{c.reason}”</p>}
@@ -119,7 +119,7 @@ function Reveal({ chatId, label }: { chatId: string; label: string }) {
   return (
     <>
       <button type="button" onClick={toggle}
-        className="mt-1.5 flex items-center gap-1 text-[11.5px] font-medium text-primary hover:underline">
+        className="mt-1.5 flex items-center gap-1 text-[11.5px] font-medium text-foreground underline-offset-2 hover:underline">
         {value === null ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
         {value === null ? "Reveal on this device" : "Hide"}
       </button>
@@ -148,7 +148,7 @@ function Section({ title, count, children }: { title: string; count?: number; ch
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border bg-card px-2.5 py-1.5">
+    <div className="rounded-md border bg-card px-2.5 py-1.5">
       <div className="tabular text-[17px] font-semibold tracking-tight">{value}</div>
       <div className="text-[11px] text-muted-foreground">{label}</div>
     </div>
@@ -158,7 +158,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 function Empty({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-10 text-center text-[13px] text-muted-foreground">
-      <span className="grid size-10 place-items-center rounded-full bg-muted">{icon}</span>
+      <span className="grid size-9 place-items-center rounded-md border">{icon}</span>
       {text}
     </div>
   )

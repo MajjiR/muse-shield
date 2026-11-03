@@ -22,7 +22,7 @@ export function Chip({ label, context, tip, size = "sm" }: { label: string; cont
         className={cn(
           "inline-flex items-center rounded-md border font-mono font-medium whitespace-nowrap align-baseline",
           size === "xs" ? "px-1 py-px text-[10.5px]" : "px-1.5 py-px text-[11.5px]",
-          context ? "border-context-line/40 bg-context text-context-ink" : "border-masked-line/40 bg-masked text-masked-ink",
+          context ? "border-foreground bg-foreground text-background" : "border-foreground/25 bg-card text-foreground",
         )}
       >
         {label}
@@ -31,8 +31,17 @@ export function Chip({ label, context, tip, size = "sm" }: { label: string; cont
   )
 }
 
-/** Masked text with every placeholder rendered as a chip. */
-export function MaskedText({ text, kinds = {}, size }: { text: string; kinds?: Record<string, string>; size?: "xs" | "sm" }) {
+/** Masked text with every placeholder rendered as a chip (or, with plain, as quiet monospace text for titles). */
+export function MaskedText({ text, kinds = {}, size, plain }: { text: string; kinds?: Record<string, string>; size?: "xs" | "sm"; plain?: boolean }) {
+  if (plain) {
+    return (
+      <>
+        {splitLabels(text).map((p, i) =>
+          p.label ? <span key={i} className="font-mono text-[0.9em] text-muted-foreground">{p.label}</span> : <span key={i}>{p.text}</span>,
+        )}
+      </>
+    )
+  }
   return (
     <>
       {splitLabels(text).map((p, i) =>
@@ -47,8 +56,8 @@ export function MaskedText({ text, kinds = {}, size }: { text: string; kinds?: R
   )
 }
 
-const markEntity = "rounded-[4px] bg-masked/80 px-0.5 text-inherit underline decoration-masked-line/70 decoration-2 underline-offset-[3px]"
-const markContext = "rounded-md bg-context px-1 py-0.5 text-inherit box-decoration-clone shadow-[inset_2px_0_0_var(--context-line)]"
+const markEntity = "rounded-[2px] bg-masked px-0.5 text-inherit underline decoration-foreground/45 decoration-[1.5px] underline-offset-[3px]"
+const markContext = "rounded-[2px] bg-context px-1 py-0.5 text-inherit box-decoration-clone shadow-[inset_2px_0_0_var(--context-line)]"
 
 /** The user's own words: masked values underlined in green, context blocks shaded blue (entities nested inside). */
 export function OriginalText({ text, spans = [] }: { text: string; spans?: Span[] }) {
@@ -104,10 +113,10 @@ export function RestoredText({ segments = [] }: { segments?: Segment[] }) {
           return (
             <Collapsible key={i} className="inline">
               <CollapsibleTrigger className="group inline-flex cursor-pointer items-center gap-0.5 align-baseline">
-                <ChevronRight className="size-3 text-context-line transition-transform group-data-[panel-open]:rotate-90" aria-hidden />
+                <ChevronRight className="size-3 text-muted-foreground transition-transform group-data-[panel-open]:rotate-90" aria-hidden />
                 <Chip label={s.label} context tip="Restored from your vault. Click to read it." />
               </CollapsibleTrigger>
-              <CollapsibleContent className="my-2 block rounded-r-lg border-l-2 border-context-line bg-context/60 px-3 py-2 text-[13.5px]">
+              <CollapsibleContent className="my-2 block border-l-2 border-foreground bg-muted px-3 py-2 text-[13.5px]">
                 {s.text}
               </CollapsibleContent>
             </Collapsible>
@@ -118,7 +127,7 @@ export function RestoredText({ segments = [] }: { segments?: Segment[] }) {
         }
         return (
           <Tip key={i} tip={<>Restored on this device from <span className="font-mono">{s.label}</span></>}>
-            <mark className="rounded-[4px] bg-masked/70 px-0.5 text-inherit">{s.text}</mark>
+            <mark className="rounded-[2px] bg-masked px-0.5 text-inherit underline decoration-foreground/30 decoration-dotted underline-offset-[3px]">{s.text}</mark>
           </Tip>
         )
       })}
