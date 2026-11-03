@@ -255,10 +255,13 @@ class Vault:
         kind, tid = target
         return self.entity_value(tid) if kind == "entity" else self.context_payload(tid)[level]
 
-    def mapping(self, chat_id: str) -> dict[str, str]:
-        """label -> real value for every placeholder in the chat (for local rehydration)."""
+    def mapping(self, chat_id: str, contexts: str = "full") -> dict[str, str]:
+        """label -> real value for every placeholder in the chat (for local rehydration).
+
+        `contexts` picks what a context block resolves to: "full" for the user's own text, "summary" for
+        assistant replies, so a whole hidden passage is never pasted into a drafted document."""
         rows = self._db.execute("SELECT label, target_kind, target_id FROM placeholders WHERE chat_id=?", (chat_id,)).fetchall()
-        return {label: (self.entity_value(t) if k == "entity" else self.context_payload(t)["full"]) for label, k, t in rows}
+        return {label: (self.entity_value(t) if k == "entity" else self.context_payload(t)[contexts]) for label, k, t in rows}
 
     def items(self, chat_id: str) -> dict:
         """Labels and types for the vault panel; no values."""

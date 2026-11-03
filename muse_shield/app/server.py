@@ -126,7 +126,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     @app.get("/chats/{chat_id}")
     def chat_detail(chat_id: str):
         need_chat(chat_id)
-        mapping = vault.mapping(chat_id)
+        mapping = vault.mapping(chat_id, contexts="summary")  # assistant text: a hidden passage shows as its summary
         msgs = []
         for m in vault.messages(chat_id):
             shown = m["original"] if m["role"] == "user" else rehydrate(m["masked_text"], mapping)[0]
