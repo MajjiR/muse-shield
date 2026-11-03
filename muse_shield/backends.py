@@ -118,6 +118,10 @@ class ChatBackend(Backend):
             for k, v in u.items():
                 if isinstance(v, int):
                     usage[k] = usage.get(k, 0) + v
+                elif isinstance(v, dict):  # e.g. prompt_tokens_details.cached_tokens, completion_tokens_details.reasoning_tokens
+                    for kk, vv in v.items():
+                        if isinstance(vv, int):
+                            usage[f"{k}.{kk}"] = usage.get(f"{k}.{kk}", 0) + vv
             try:
                 result = parse(raw, paragraph, sentences)
                 result.attempts, result.usage = attempt, usage

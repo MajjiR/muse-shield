@@ -65,10 +65,15 @@ def test_oracle_backend_scores_zero_leak():
         para = json.loads(request.content)["messages"][-1]["content"].split("\n", 1)[1]
         ents = [{"text": g.text, "type": LABEL_MAP[g.label]} for g in doc.spans if g.text in para]
         return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps({"entities": ents, "contexts": []})}}],
-                                         "usage": {"prompt_tokens": 10, "completion_tokens": 5}})
+                                         "usage": {"prompt_tokens": 10, "completion_tokens": 5,
+                                                   "prompt_tokens_details": {"cached_tokens": 6},
+                                                   "completion_tokens_details": {"reasoning_tokens": 3}}})
 
-    b = GlimmerBackend("https://x.test/v1", "m", "k", client=httpx.Client(transport=httpx.MockTransport(oracle)))
+    b = GlimmerBackend("https://x.test/v1", "muse-spark-1.3-contributor", "k", client=httpx.Client(transport=httpx.MockTransport(oracle)))
     report, preds = run_backend(b, [doc], workers=1)
     assert report["leak_rate"] == 0 and report["span_recall"] == 1 and report["span_precision"] == 1
-    assert report["valid_rate"] == 1 and report["calls"] == 2 and report["cost_usd"] > 0
-    assert "| glimmer `m` | 0.0% |" in render([report], 1)
+    assert report["valid_rate"] == 1 and report["calls"] == 2
+    assert report["tokens"] == {"in": 20, "out": 10, "cached_in": 12, "reasoning_out": 6}
+    # 8 uncached in at $0.10, 12 cached at $0.002, 10 out at $0.20 (per 1M)
+    assert abs(report["cost_usd"] - (8 * 0.10 + 12 * 0.002 + 10 * 0.20) / 1e6) < 1e-12
+    assert "| glimmer `muse-spark-1.3-contributor` | 0.0% |" in render([report], 1)

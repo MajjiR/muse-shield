@@ -23,18 +23,22 @@ from ..backends import Backend, BackendError, backend_from_env
 from ..results import save_run, sha256
 from .nemotron import DATASET, LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
 
-# USD per 1M tokens (input, output). Glimmer: Fireworks serverless list price. Meta prices aren't
-# published in the docs we found; set PRICE_<BACKEND>_IN / PRICE_<BACKEND>_OUT to fill them in.
-PRICES = {"glimmer": (0.35, 1.50)}
+# USD per 1M tokens (input, cached input, output), from the providers' pricing pages (2026-11-03).
+# Meta bills reasoning tokens inside completion_tokens, so they are priced as output.
+PRICES = {
+    "muse-spark-1.3": (1.25, 0.15, 4.25),
+    "muse-spark-1.3-contributor": (0.10, 0.002, 0.20),
+    "muse-wonder-1.0": (4.00, 0.20, 20.00),
+}
 
 
-def price(name: str, model: str = "") -> tuple[float, float] | None:
+def price(name: str, model: str = "") -> tuple[float, float, float] | None:
     if "#" in model:
         return None  # a dedicated deployment bills per GPU-hour, not per token
-    env_in, env_out = os.environ.get(f"PRICE_{name.upper()}_IN"), os.environ.get(f"PRICE_{name.upper()}_OUT")
-    if env_in and env_out:
-        return float(env_in), float(env_out)
-    return PRICES.get(name)
+    env = [os.environ.get(f"PRICE_{name.upper()}_{k}") for k in ("IN", "CACHED", "OUT")]
+    if env[0] and env[2]:
+        return float(env[0]), float(env[1] or env[0]), float(env[2])
+    return PRICES.get(model)
 
 
 def analyze_doc(backend: Backend, doc: Doc) -> dict:
@@ -53,7 +57,7 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dic
     total = DocScore()
     found_by_label: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     calls = valid = first_try = dropped = errors = 0
-    tokens_in = tokens_out = 0
+    tokens_in = tokens_out = tokens_cached = tokens_reasoning = 0
     latencies = []
     for r in results:
         doc, analyses = r["doc"], r["analyses"]
@@ -66,6 +70,8 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dic
             dropped += len(a.dropped)
             tokens_in += a.usage.get("prompt_tokens", 0)
             tokens_out += a.usage.get("completion_tokens", 0)
+            tokens_cached += a.usage.get("prompt_tokens_details.cached_tokens", 0)
+            tokens_reasoning += a.usage.get("completion_tokens_details.reasoning_tokens", 0)
         s = score(doc, predictions(doc, analyses))
         for f in ("gold_chars", "leaked_chars", "core_gold_chars", "core_leaked_chars", "pred_total", "pred_on_gold", "type_ok", "type_checked"):
             setattr(total, f, getattr(total, f) + getattr(s, f))
@@ -99,8 +105,8 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float) -> dic
         "hallucinated_spans": dropped, "errors": errors,
         "latency_ms_per_doc": {"p50": lat[len(lat) // 2] if lat else None,
                                "p95": lat[min(len(lat) - 1, int(len(lat) * 0.95))] if lat else None},
-        "tokens": {"in": tokens_in, "out": tokens_out},
-        "cost_usd": (tokens_in / 1e6 * p[0] + tokens_out / 1e6 * p[1]) if p else None,
+        "tokens": {"in": tokens_in, "out": tokens_out, "cached_in": tokens_cached, "reasoning_out": tokens_reasoning},
+        "cost_usd": ((tokens_in - tokens_cached) / 1e6 * p[0] + tokens_cached / 1e6 * p[1] + tokens_out / 1e6 * p[2]) if p else None,
     }
 
 
