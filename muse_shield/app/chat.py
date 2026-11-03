@@ -232,8 +232,8 @@ class ChatEngine:
 
         turn.tool_rounds += 1
         line = "TOOL_CALL: " + json.dumps(remask(call, mapping), ensure_ascii=False)  # never store a raw value in the clear column
-        self.vault.add_message(chat_id, "tool_call", line, meta={"tool": call["tool"]})
         action = self.executor.propose(chat_id, call["tool"], call["args"])
+        self.vault.add_message(chat_id, "tool_call", line, meta={"tool": call["tool"], "action_id": action.action_id})
         self.own_actions.add(action.action_id)
         turn.action = action.for_user()
         if action.status == "pending":
@@ -250,7 +250,7 @@ class ChatEngine:
             note = f"[{action.tool} was refused by the privacy policy: {'; '.join(action.violations)}. Explain or ask the user.]"
         else:
             note = f"[{action.tool} failed: {action.error}]"
-        self.vault.add_message(chat_id, "tool_result", note, meta={"tool": action.tool, "status": action.status})
+        self.vault.add_message(chat_id, "tool_result", note, meta={"tool": action.tool, "status": action.status, "action_id": action.action_id})
         if turn.tool_rounds >= self.MAX_TOOL_ROUNDS:
             turn.error = "stopped after several tool calls in a row"
             return

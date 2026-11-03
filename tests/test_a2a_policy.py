@@ -23,7 +23,8 @@ def test_email_to_a_person_resolves_their_address_and_body_values(vc):
     v, chat = vc
     c = check(v, chat, "send_email", {"to": "<PERSON_1>", "subject": "Re <DEAL_1>", "body": "Hi <PERSON_1>, the price is <DEAL_VALUE_1>."})
     assert c.ok, c.violations
-    assert c.real["to"] == ["priya@kestrel.io"] and c.recipients[0]["person"] == "<PERSON_1>"
+    assert c.real["to"] == ["priya@kestrel.io"] and c.recipients[0] == {
+        "label": "<PERSON_1>", "via": "<CONTACT_1>", "person": "Priya Shah", "address": "priya@kestrel.io"}
     assert c.real["body"] == "Hi Priya Shah, the price is ₹120 crore." and c.real["subject"] == "Re Acme buys Kestrel for ₹120 crore."
     assert set(c.unmasked) == {"<PERSON_1>", "<CONTACT_1>", "<DEAL_VALUE_1>", "<DEAL_1>"}
 

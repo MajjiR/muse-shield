@@ -91,3 +91,17 @@ def test_direct_execute_endpoint(tmp_path):
     assert c.post(f"/agent/actions/{a['action_id']}/confirm").json()["action"]["status"] == "done"
     assert len(c.get(f"/chats/{chat_id}/outbox").json()) == 1
     assert {t["name"] for t in c.get("/agent/tools").json()} >= {"send_email", "web_search"}
+
+
+def test_chat_actions_restore_a_pending_confirmation(tmp_path):
+    c, _, _ = make(tmp_path, ["Noted.", CALL, "Done."])
+    chat_id = c.post("/chat", json={"message": INTRO}).json()["chat_id"]
+    a = c.post("/chat", json={"message": ASK, "chat_id": chat_id}).json()["action"]
+    listed = c.get(f"/chats/{chat_id}/actions").json()
+    assert [x["action_id"] for x in listed] == [a["action_id"]] and listed[0]["status"] == "pending"
+    assert listed[0]["preview"]["to"] == ["priya@kestrel.io"]
+    c.post(f"/agent/actions/{a['action_id']}/confirm")
+    assert c.get(f"/chats/{chat_id}/actions").json()[0]["status"] == "done"
+    msgs = c.get(f"/chats/{chat_id}").json()["messages"]
+    assert [m["role"] for m in msgs] == ["user", "assistant", "user", "tool_call", "tool_result", "assistant"]
+    assert msgs[3]["meta"]["action_id"] == msgs[4]["meta"]["action_id"] == a["action_id"]
