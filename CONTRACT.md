@@ -99,7 +99,7 @@ text that would be sent.
    comments, field codes, links, pictures, charts, embedded objects, alt text, properties, thumbnails;
    for PDFs also annotations, forms, attachments, bookmarks, XMP and text outside the page. Each
    removal is a warning `{code, count, where?}`.
-3. **Extract** every text node into one string, packed into analysis units of up to 1,500
+3. **Extract** every text node into one string, packed into analysis units of up to 800
    characters, and mask it with **one** `/mask`-style call (every occurrence of a found value is
    masked). Placeholders are shared with the chat.
 4. **Write back** in the same format: the placeholder goes into the first run of each value, with its

@@ -12,7 +12,7 @@ import bisect
 import re
 from dataclasses import dataclass, field
 
-MAX_UNIT_CHARS = 1500
+MAX_UNIT_CHARS = 800  # document eval: 800 missed fewer values than 1,500 in long files, for ~5% more cost
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 
 

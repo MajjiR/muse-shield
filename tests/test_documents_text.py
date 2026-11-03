@@ -27,7 +27,7 @@ def test_atoms_map_back_to_text():
 
 def test_packing_limits_calls():
     blocks = [_block(f"Line {i} of the contract with some words in it.") for i in range(600)]
-    assert len(build(blocks).units) < 30
+    assert len(build(blocks).units) < 40  # 28k characters in 800-character units
     assert len(build(blocks, max_chars=0).units) == 600
 
 

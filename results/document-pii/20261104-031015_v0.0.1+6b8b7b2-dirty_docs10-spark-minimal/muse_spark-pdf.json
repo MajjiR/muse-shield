@@ -1,0 +1,41 @@
+{
+  "backend": "muse_spark-pdf",
+  "model": "muse-spark-1.3",
+  "docs": 11,
+  "leak_rate": 0.01948051948051948,
+  "span_recall": 0.9805194805194806,
+  "valid_rate": 1.0,
+  "must_total": 154,
+  "missed_total": 3,
+  "leaked_total": 3,
+  "not_extracted": 0,
+  "missed_by_type": {
+    "PERSON": 3
+  },
+  "consistent_misses": [
+    {
+      "id": "long-10",
+      "value": "Kavya",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Sana",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Mrs. Fernandes",
+      "times": 1
+    }
+  ],
+  "units_per_doc": 1.2,
+  "long_doc_units": 3,
+  "warnings": {},
+  "cost_usd": 0.04987,
+  "cost": {
+    "usd": 0.04987,
+    "basis": "tokens"
+  },
+  "seconds": 46.1
+}
