@@ -121,3 +121,26 @@ def test_failed_analysis_is_not_sent(tmp_path):
 def test_contributor_chat_model_refused():
     with pytest.raises(ChatError, match="Standard"):
         ChatModel("https://x", "muse-spark-1.3-contributor", "k")
+
+
+def test_no_raw_values_on_disk_after_a_chat(tmp_path):
+    c, _ = make(tmp_path, ["Hi <PERSON_1>, noted <SALARY_1>."])
+    r = c.post("/chat", json={"message": ACCEPT}).json()
+    raw = (tmp_path / "v.db").read_bytes()
+    for value in (b"Rohan", b"10 lakh", b"MVP Colony", b"Visakhapatnam"):
+        assert value not in raw, value
+    # the UI can still rebuild highlights from the decrypted original + offsets
+    msg = c.get(f"/chats/{r['chat_id']}").json()["messages"][0]
+    spans = msg["meta"]["spans"]
+    assert all("text" not in s for s in spans)
+    assert {msg["text"][s["start"]:s["end"]] for s in spans} >= {"Rohan", "10 lakh rupees"}
+
+
+def test_full_reveal_note_is_encrypted_at_rest(tmp_path):
+    c, m = make(tmp_path, ["Got it.", "NEED_CONTEXT: <DEAL_1> full need exact terms", "High.", "Still high."])
+    chat_id = c.post("/chat", json={"message": DEAL}).json()["chat_id"]
+    ask = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id}).json()["ask"]
+    c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": "allow"})
+    assert b"Acme" not in (tmp_path / "v.db").read_bytes()
+    c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id})  # later turns still carry the allowed text
+    assert "Acme Corp will acquire" in json.dumps(m.payloads[-1])

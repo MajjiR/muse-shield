@@ -79,13 +79,13 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     @app.post("/mask")
     def mask(body: MaskRequest):
         if not masker:
-            chat_id = vault.ensure_chat(body.chat_id, title=body.text[:40] or "New chat")
+            chat_id = vault.ensure_chat(body.chat_id)
             return {"chat_id": chat_id, "masked_text": body.text, "spans": [], "contexts": [], "analysis_ok": False,
                     "error": off_reason, "latency_ms": 0, "cost_usd": None, "mask_id": None}
         if engine:
             mask_id, masked = engine.preview(body.text, body.chat_id)
             return {**masked.to_dict(), "mask_id": mask_id}
-        chat_id = vault.ensure_chat(body.chat_id, title=body.text[:40] or "New chat")
+        chat_id = vault.ensure_chat(body.chat_id)
         return {**masker.mask(body.text, chat_id).to_dict(), "mask_id": None}
 
     @app.post("/unmask")

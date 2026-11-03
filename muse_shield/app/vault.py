@@ -104,6 +104,7 @@ class Vault:
         self.path = str(path)
         self._lock = threading.RLock()
         self._db = sqlite3.connect(self.path, check_same_thread=False)
+        self._db.execute("PRAGMA secure_delete = ON")  # overwritten rows don't linger in free pages
         self._db.executescript(SCHEMA)
         if self.path != ":memory:":
             os.chmod(self.path, 0o600)
@@ -141,6 +142,12 @@ class Vault:
         if chat_id and self._db.execute("SELECT 1 FROM scopes WHERE id=? AND kind='chat'", (chat_id,)).fetchone():
             return chat_id
         return self.create_chat(title)
+
+    def title_from_masked(self, chat_id: str, masked_text: str) -> None:
+        """Name a new chat after its first masked message (titles are stored in the clear)."""
+        title = " ".join(masked_text.split())[:48] or "New chat"
+        with self._lock, self._db:
+            self._db.execute("UPDATE scopes SET title=? WHERE id=? AND title='New chat'", (title, chat_id))
 
     def set_title(self, chat_id: str, title: str) -> None:
         with self._lock, self._db:

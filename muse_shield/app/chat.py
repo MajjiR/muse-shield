@@ -128,7 +128,7 @@ class ChatEngine:
             if m["role"] in ("user", "assistant"):
                 msgs.append({"role": m["role"], "content": m["masked_text"]})
             elif m["role"] == "reveal":
-                msgs.append({"role": "user", "content": m["masked_text"]})
+                msgs.append({"role": "user", "content": m["original"] or m["masked_text"]})
         return msgs
 
     def _allowed(self, chat_id: str) -> set[str]:
@@ -178,7 +178,7 @@ class ChatEngine:
 
     # -- public ---------------------------------------------------------------
     def preview(self, text: str, chat_id: str | None) -> tuple[str, Masked]:
-        chat_id = self.vault.ensure_chat(chat_id, title=text[:40] or "New chat")
+        chat_id = self.vault.ensure_chat(chat_id)
         masked = self.masker.mask(text, chat_id)
         mask_id = "k_" + uuid.uuid4().hex[:10]
         self.masks[mask_id] = masked
@@ -189,14 +189,16 @@ class ChatEngine:
         if cached and cached.original == message:
             chat_id, masked = cached.chat_id, cached
         else:
-            chat_id = self.vault.ensure_chat(chat_id, title=message[:40] or "New chat")
+            chat_id = self.vault.ensure_chat(chat_id)
             masked = self.masker.mask(message, chat_id)
         turn = Turn(chat_id, masked=masked, cost_usd=masked.cost_usd or 0.0)
         if not masked.analysis_ok:
             turn.error = f"Not sent: {masked.error}"
             return turn
+        # Spans keep offsets and types only: their text is the real value, and meta is stored unencrypted.
+        spans = [{k: v for k, v in sp.items() if k != "text"} for sp in masked.spans]
         self.vault.add_message(chat_id, "user", masked.masked_text, original=message,
-                               meta={"spans": masked.spans, "cost_usd": masked.cost_usd})
+                               meta={"spans": spans, "cost_usd": masked.cost_usd})
         try:
             self._send(chat_id, turn)
         except ChatError as exc:
@@ -214,7 +216,12 @@ class ChatEngine:
             note = f"[The user allowed you to see {ask.label} ({ask.level})]: {ask.preview}"
         else:
             note = f"[The user declined to reveal {ask.label}. Answer as well as you can without it, keeping placeholders.]"
-        self.vault.add_message(ask.chat_id, "reveal", note, meta={"label": ask.label, "level": ask.level, "decision": decision})
+        meta = {"label": ask.label, "level": ask.level, "decision": decision}
+        if decision == "allow" and ask.level == "full":
+            # The note holds real text: keep it encrypted, store only a stub in the clear column.
+            self.vault.add_message(ask.chat_id, "reveal", f"[{ask.label} revealed in full]", original=note, meta=meta)
+        else:
+            self.vault.add_message(ask.chat_id, "reveal", note, meta=meta)
         turn = Turn(ask.chat_id)
         try:
             self._send(ask.chat_id, turn)

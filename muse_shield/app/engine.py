@@ -155,6 +155,7 @@ class Masker:
             cursor = end
         pieces.append(text[cursor:])
         masked_text = "".join(pieces)
+        self.vault.title_from_masked(chat_id, masked_text)
 
         labels = sorted({s["placeholder"] for s in spans})
         for a_, b_ in combinations(labels[:25], 2):
