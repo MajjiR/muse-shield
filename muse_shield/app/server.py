@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,14 +13,17 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
+from .chat import ChatEngine, ChatError, ChatModel
 from .engine import Masker, rehydrate
-from .schemas import MaskRequest, UnmaskRequest, VaultRevealRequest
+from .inspector import Inspector
+from .schemas import ChatRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
 
 WEB = Path(__file__).resolve().parents[2] / "web"
+META_URL = "https://api.meta.ai/v1"
 
 
-def analyzer_from_env() -> tuple[Backend | None, str]:
+def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
     """Call 1 analyzer: Muse Spark Standard. Returns (backend or None, reason it's off)."""
     load_env()
     model = os.environ.get("MUSE_SHIELD_MODEL", "muse-spark-1.3")
@@ -31,21 +35,36 @@ def analyzer_from_env() -> tuple[Backend | None, str]:
     try:
         # Analysis runs on every message, so default to minimal reasoning for chat-speed latency.
         effort = os.environ.get("MUSE_SHIELD_ANALYSIS_EFFORT", "minimal")
-        return MetaModelBackend(os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"), model,
-                                os.environ.get("MODEL_API_KEY", ""), name="muse_spark", synthetic_only=True,
-                                reasoning_effort=effort), ""
+        return MetaModelBackend(os.environ.get("META_BASE_URL", META_URL), model, os.environ.get("MODEL_API_KEY", ""),
+                                name="muse_spark", synthetic_only=True, reasoning_effort=effort, client=client), ""
     except BackendError as exc:
         return None, str(exc)
 
 
-def create_app(vault: Vault | None = None, analyzer: Backend | None = None, analyzer_off_reason: str = "") -> FastAPI:
-    if analyzer is None and not analyzer_off_reason:
-        analyzer, analyzer_off_reason = analyzer_from_env()
+def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel | None, str]:
+    load_env()
+    try:
+        return ChatModel(os.environ.get("META_BASE_URL", META_URL), os.environ.get("MUSE_SHIELD_CHAT_MODEL", "muse-spark-1.3"),
+                         os.environ.get("MODEL_API_KEY", ""), client=client,
+                         reasoning_effort=os.environ.get("MUSE_SHIELD_CHAT_EFFORT", "low")), ""
+    except ChatError as exc:
+        return None, str(exc)
+
+
+def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat_model: ChatModel | None = None,
+               inspector: Inspector | None = None) -> FastAPI:
+    inspector = inspector or Inspector()
+    off_reason = chat_off = ""
+    if analyzer is None:
+        analyzer, off_reason = analyzer_from_env(inspector.client("analysis"))
+    if chat_model is None:
+        chat_model, chat_off = chat_model_from_env(inspector.client("chat"))
     vault = vault or Vault.open()
     masker = Masker(vault, analyzer) if analyzer else None
+    engine = ChatEngine(vault, masker, chat_model, inspector=inspector) if masker and chat_model else None
 
     app = FastAPI(title="Muse Shield", version=__version__, docs_url="/docs")
-    app.state.vault, app.state.masker = vault, masker
+    app.state.vault, app.state.masker, app.state.engine, app.state.inspector = vault, masker, engine, inspector
 
     def need_chat(chat_id: str) -> None:
         if not any(c["chat_id"] == chat_id for c in vault.chats()):
@@ -53,22 +72,42 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, anal
 
     @app.get("/health")
     def health():
-        return {"ok": True, "version": __version__, "analysis": bool(masker),
-                "analysis_model": getattr(analyzer, "model", None), "analysis_off_reason": analyzer_off_reason}
+        return {"ok": True, "version": __version__, "analysis": bool(masker), "chat": bool(engine),
+                "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
+                "analysis_off_reason": off_reason, "chat_off_reason": chat_off}
 
     @app.post("/mask")
     def mask(body: MaskRequest):
-        chat_id = vault.ensure_chat(body.chat_id, title=body.text[:40] or "New chat")
         if not masker:
+            chat_id = vault.ensure_chat(body.chat_id, title=body.text[:40] or "New chat")
             return {"chat_id": chat_id, "masked_text": body.text, "spans": [], "contexts": [], "analysis_ok": False,
-                    "error": analyzer_off_reason, "latency_ms": 0, "cost_usd": None}
-        return masker.mask(body.text, chat_id).to_dict()
+                    "error": off_reason, "latency_ms": 0, "cost_usd": None, "mask_id": None}
+        if engine:
+            mask_id, masked = engine.preview(body.text, body.chat_id)
+            return {**masked.to_dict(), "mask_id": mask_id}
+        chat_id = vault.ensure_chat(body.chat_id, title=body.text[:40] or "New chat")
+        return {**masker.mask(body.text, chat_id).to_dict(), "mask_id": None}
 
     @app.post("/unmask")
     def unmask(body: UnmaskRequest):
         need_chat(body.chat_id)
         text, unknown = rehydrate(body.text, vault.mapping(body.chat_id))
         return {"text": text, "unknown": unknown}
+
+    @app.post("/chat")
+    def chat(body: ChatRequest):
+        if not engine:
+            raise HTTPException(503, off_reason or chat_off or "chat unavailable")
+        return engine.chat(body.message, body.chat_id, body.mask_id).to_dict()
+
+    @app.post("/reveal")
+    def reveal(body: RevealRequest):
+        if not engine:
+            raise HTTPException(503, "chat unavailable")
+        try:
+            return engine.reveal(body.ask_id, body.decision, body.level).to_dict()
+        except ChatError as exc:
+            raise HTTPException(404, str(exc)) from exc
 
     @app.get("/chats")
     def chats():
@@ -79,9 +118,14 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, anal
         return {"chat_id": vault.create_chat()}
 
     @app.get("/chats/{chat_id}")
-    def chat(chat_id: str):
+    def chat_detail(chat_id: str):
         need_chat(chat_id)
-        return {"chat_id": chat_id, "messages": vault.messages(chat_id)}
+        mapping = vault.mapping(chat_id)
+        msgs = []
+        for m in vault.messages(chat_id):
+            shown = m["original"] if m["role"] == "user" else rehydrate(m["masked_text"], mapping)[0]
+            msgs.append({**m, "text": shown})
+        return {"chat_id": chat_id, "messages": msgs, "consents": vault.consents(chat_id)}
 
     @app.get("/chats/{chat_id}/vault")
     def chat_vault(chat_id: str):

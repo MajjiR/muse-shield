@@ -257,6 +257,11 @@ class Vault:
         with self._lock, self._db:
             self._db.execute("INSERT INTO edges VALUES (?,?,?,?,1) ON CONFLICT DO UPDATE SET weight = weight + 1", (chat_id, src, dst, rel))
 
+    def members(self, chat_id: str, context_label: str) -> list[str]:
+        """Entity placeholders inside a context block (mentioned_in edges)."""
+        return [r[0] for r in self._db.execute(
+            "SELECT src FROM edges WHERE chat_id=? AND dst=? AND rel='mentioned_in'", (chat_id, context_label))]
+
     def graph(self, chat_id: str) -> dict:
         items = self.items(chat_id)
         nodes = [{"id": e["label"], "group": "entity", "type": e["type"], "chats": e["chats"]} for e in items["entities"]]

@@ -41,6 +41,7 @@ class MaskResponse(BaseModel):
     error: str = ""
     latency_ms: float = 0.0
     cost_usd: float | None = None
+    mask_id: str | None = None
 
 
 class UnmaskRequest(BaseModel):
@@ -65,6 +66,7 @@ class Ask(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     chat_id: str | None = None
+    mask_id: str | None = None  # from a /mask preview, so Mask & send doesn't analyze twice
 
 
 class ChatResponse(BaseModel):
