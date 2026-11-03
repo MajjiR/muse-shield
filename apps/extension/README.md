@@ -5,18 +5,23 @@ on your device, only placeholders go into meta.ai, and Meta AI's reply is restor
 side panel. meta.ai's page never holds a real value.
 
 ```
-side panel (your text) --127.0.0.1--> engine: Muse Spark analysis + vault --> masked text
-masked text --content.js--> meta.ai composer --> Send
-Meta AI reply (masked) --content.js--> side panel --> engine: restore / NEED_CONTEXT ask
+composer frame (your text) --127.0.0.1--> engine: Muse Spark analysis + vault --> masked text
+masked text --content.js--> meta.ai's real box (invisible, under the frame) --> Send
+Meta AI reply (masked) --content.js--> composer --> engine: restore / NEED_CONTEXT ask
+restored reply --chrome.storage.session--> reply frame inside the chat
 ```
 
 - **The first message of each chat** carries a short privacy note (`PREAMBLE` in
   `muse_shield/app/extension.py`). It tells Meta AI to keep `<TYPE_n>` placeholders verbatim, and
   to reply `NEED_CONTEXT: <LABEL> <shape|summary|full> <reason>` when it needs hidden content.
-- **A `NEED_CONTEXT` reply becomes a consent card** in the panel. Pick a level, see exactly what
+- **Underlines while you type, Grammarly-style** (`/ext/preview`, nothing stored). Click one to
+  keep it or mask it; select text to mask what the model missed. Names, IDs, contacts, secrets
+  and addresses are always masked.
+- **A `NEED_CONTEXT` reply becomes a consent card** in the chat. Pick a level, see exactly what
   would be sent, then Allow & send or Deny. The note goes to Meta AI as the next message.
-- **meta.ai's own composer is locked while the shield is on**: an overlay covers it, and typed
-  keys, paste, drop and dictation are blocked.
+- **meta.ai's own box is hidden under the Muse Shield composer** while the shield is on, and
+  typed keys, paste, drop and dictation into it are blocked. The toolbar icon turns the shield
+  on and off.
 - **One vault chat per meta.ai conversation** (`/prompt/<id>`), bound in `extension.db` next to
   the vault. A new chat is bound once meta.ai assigns its id.
 
@@ -29,16 +34,17 @@ Meta AI reply (masked) --content.js--> side panel --> engine: restore / NEED_CON
    The panel finds the engine on 127.0.0.1 ports 8765–8769.
 2. In `chrome://extensions`, turn on Developer mode, click **Load unpacked** and pick this
    folder.
-3. Open https://www.meta.ai/ (signed in) and click the Muse Shield toolbar icon to open the
-   side panel.
+3. Open https://www.meta.ai/ (signed in). The Muse Shield box replaces meta.ai's input.
 
 ## Files
 
 | file | does |
 |---|---|
-| `content.js` | runs on meta.ai: locks the composer, pastes masked text, presses Send, reads replies (`data-message-role`, `data-testid="assistant-message"`, `data-streaming-complete`) |
-| `panel.*` | side panel: your chat with real values, the masked text Meta AI saw, consent cards |
-| `background.js` | opens the side panel from the toolbar icon or the lock's button |
+| `content.js` | runs on meta.ai: places the frames, pastes masked text, presses Send, reads replies (`data-message-role`, `data-testid="assistant-message"`, `data-streaming-complete`) |
+| `composer.*` | the input frame: underlines, keep/mask choices, sending, reply handling, consent |
+| `reply.*` | one restored reply (or consent card) inside the chat; data from `chrome.storage.session` |
+| `shared.js`, `frames.css` | engine discovery, API calls, rendering helpers and styles for both frames |
+| `background.js` | tells frames their tab id; the toolbar icon toggles the shield |
 
-Content scripts can't reach 127.0.0.1 and never receive real values. Only the panel, which
-runs on the extension's own origin, talks to the engine.
+Content scripts can't reach 127.0.0.1 and never receive real values. Only the frames, which run
+on the extension's own origin, talk to the engine; meta.ai's scripts can't read inside them.
