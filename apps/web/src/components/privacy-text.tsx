@@ -125,14 +125,25 @@ function RestoredSegment({ s }: { s: Segment }) {
   if (!s.label) return <>{s.text}</>
   if (s.kind === "context") {
     const v = toneVars("context")
+    // Replies carry a passage as its summary (text) with the real passage in full; older replies only have text.
+    const full = s.full ?? s.text
+    const summary = s.full != null ? s.text : null
     return (
       <Collapsible className="inline">
-        <CollapsibleTrigger className="group inline-flex cursor-pointer items-center gap-0.5 align-baseline">
+        {summary && (
+          <Tip tip={<>Summary of the hidden passage <span className="font-mono">{s.label}</span>. Expand to read the real text.</>}>
+            <mark className="rounded-[3px] px-1 py-0.5 text-inherit box-decoration-clone" style={{ background: v.bg, boxShadow: `inset 2px 0 0 ${v.line}` }}>
+              {summary}
+            </mark>
+          </Tip>
+        )}
+        <CollapsibleTrigger aria-label={`Show the full passage ${s.label}`}
+          className={cn("group inline-flex cursor-pointer items-center gap-0.5 align-baseline", summary && "ml-1")}>
           <ChevronRight className="size-3 text-muted-foreground transition-transform group-data-[panel-open]:rotate-90" aria-hidden />
-          <Chip label={s.label} context tip="Restored from your vault. Click to read it." />
+          <Chip label={s.label} context size={summary ? "xs" : "sm"} tip="Restored from your vault. Click to read the full passage." />
         </CollapsibleTrigger>
         <CollapsibleContent className="my-2 block border-l-2 px-3 py-2 text-[14.5px] whitespace-pre-wrap" style={{ background: v.bg, borderColor: v.line }}>
-          {s.text}
+          {full}
         </CollapsibleContent>
       </Collapsible>
     )
