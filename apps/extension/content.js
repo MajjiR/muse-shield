@@ -60,15 +60,22 @@ function composerBox() {
   return box;
 }
 
+// The frame is hidden, never removed, while meta.ai re-renders its box (a new chat does that when
+// it gets its id): removing an iframe reloads it, and the composer would forget its vault chat.
 function place() {
   const box = composerBox();
-  if (!shieldOn || !box) {
+  if (!shieldOn) {
     frame.remove();
-    if (!shieldOn) document.documentElement.appendChild(offPill); else offPill.remove();
+    document.documentElement.appendChild(offPill);
     if (box) box.style.opacity = "";
     return;
   }
   offPill.remove();
+  if (!box) {
+    frame.style.visibility = "hidden";
+    return;
+  }
+  frame.style.visibility = "";
   box.style.opacity = "0"; // the frame takes its place (opacity, not visibility: the box must stay focusable for our paste)
   const r = box.getBoundingClientRect();
   const height = Math.max(composerHeight, r.height + 4);
@@ -111,11 +118,14 @@ function mountReply(id) {
     if (!c.classList.contains("muse-shield-reply") && (user || !c.querySelector(SEL.thinking))) c.setAttribute("data-muse-shield-hidden", "");
   }
   let f = msg.querySelector(":scope > iframe.muse-shield-reply");
+  const column = composerBox();
+  if (f && column) f.style.maxWidth = `${column.getBoundingClientRect().width}px`; // meta.ai's chat column
   if (!f) {
     f = document.createElement("iframe");
     f.className = "muse-shield-reply";
     f.title = "Restored by Muse Shield";
     f.src = chrome.runtime.getURL(`reply.html#${encodeURIComponent(id)}`);
+    if (column) f.style.maxWidth = `${column.getBoundingClientRect().width}px`;
     msg.appendChild(f);
   }
   const h = replies.get(id);

@@ -205,6 +205,7 @@ async function submit() {
     const r = await api("/ext/mask", { text, chat_id: state.chatId, keep: [...state.keep], extra: [...state.extra].map(([t, type]) => ({ text: t, type })) });
     if (!r.analysis_ok) throw new Error(`Not sent: ${r.error}`);
     state.chatId = r.chat_id;
+    if (!state.conversationId) chrome.storage.session.set({ [`pending:${state.tabId}`]: { chatId: r.chat_id, at: Date.now() } });
     state.askRounds = 0;
     state.sent = { state: "user", message_id: r.message_id, text, spans: r.spans, masked: r.outbound };
     setBusy(true, "Sending masked text…");
@@ -292,6 +293,13 @@ async function onConsent(msg) {
 
 async function openConversation(conversationId, keepChat = false) {
   state.conversationId = conversationId;
+  const pendingKey = `pending:${state.tabId}`;
+  if (conversationId && !keepChat) {
+    // A new chat's first message went out from a composer that has since reloaded: bind that vault chat.
+    const p = (await chrome.storage.session.get(pendingKey))[pendingKey];
+    if (p && Date.now() - p.at < 5 * 60 * 1000) { state.chatId = p.chatId; keepChat = true; }
+  }
+  if (conversationId) chrome.storage.session.remove(pendingKey);
   try {
     const b = await api("/ext/bind", { conversation_id: conversationId, chat_id: keepChat ? state.chatId : null });
     state.analysis = b.analysis;

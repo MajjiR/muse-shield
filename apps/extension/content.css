@@ -9,6 +9,8 @@
 .muse-shield-reply {
   display: block;
   width: 100%;
+  max-width: 768px; /* replaced with the measured width of meta.ai's chat column */
+  margin: 0 auto;
   flex: 1 1 100%;
   min-width: 0;
   height: 48px;
