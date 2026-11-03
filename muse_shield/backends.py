@@ -35,7 +35,9 @@ entities: every span that identifies or describes a person or business.
   political views, gender, age, occupation and other personal attributes
 - AMOUNT needs a role, one of {sorted(AMOUNT_ROLES)}.
 - Copy `text` EXACTLY as it appears, character for character. Never invent text. Never output offsets.
-contexts: sentences that describe a deal, decision, plan, negotiation, project or HR matter.
+contexts: sentences that state facts about a deal, decision, plan, negotiation, project or HR matter.
+- Never mark the user's own request, question or instruction to the assistant as a context
+  ("Draft an email to ...", "Summarize ...", "Is this a good offer?"). Mask only the entities inside it.
 - kind is one of {sorted(CONTEXT_KINDS)}. subtype is a short UPPER_CASE word (e.g. PURCHASE, HIRING).
 - refers_to is a known context label this continues, else null. summary is under 8 words, with no names or numbers.
 If nothing is sensitive return {{"entities": [], "contexts": []}}."""
