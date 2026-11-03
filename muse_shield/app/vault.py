@@ -68,6 +68,12 @@ CREATE TABLE IF NOT EXISTS audit_chain (
 CREATE TABLE IF NOT EXISTS audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT, event TEXT NOT NULL, counts TEXT
 );
+CREATE TABLE IF NOT EXISTS documents (
+    id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, n INTEGER NOT NULL, format TEXT NOT NULL, status TEXT NOT NULL,
+    file_mac BLOB NOT NULL, bytes INTEGER NOT NULL, pages INTEGER, counts TEXT, warnings TEXT,
+    nonce BLOB, record_ct BLOB, orig_nonce BLOB, orig_ct BLOB, masked_nonce BLOB, masked_ct BLOB,
+    created_at REAL NOT NULL, updated_at REAL
+);
 CREATE TABLE IF NOT EXISTS consents (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT NOT NULL, label TEXT NOT NULL,
     level TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT
@@ -157,6 +163,7 @@ class Vault:
         self._aead = AESGCM(sub(b"muse-shield/vault/enc"))
         self._mac = sub(b"muse-shield/vault/value-hash")
         self._chain_key = sub(b"muse-shield/vault/audit-chain")
+        self._file_mac = sub(b"muse-shield/vault/file-hash")
         self.path = str(path)
         self._lock = threading.RLock()
         self._db = _LockedDB(sqlite3.connect(self.path, check_same_thread=False), self._lock)
@@ -377,6 +384,78 @@ class Vault:
     def actions(self) -> list[dict]:
         return [json.loads(self._open(f"action:{i}", n, ct))
                 for i, n, ct in self._db.execute("SELECT id, nonce, record_ct FROM actions ORDER BY created_at")]
+
+    # -- documents -------------------------------------------------------------
+    # The original file, the masked copy and the record (file name, extracted text, spans) are sealed; only
+    # format, status, size, counts by type and warning codes are stored in the clear.
+    _DOC_COLS = "id, chat_id, n, format, status, bytes, pages, counts, warnings, created_at, updated_at"
+
+    def add_document(self, chat_id: str, fmt: str, data: bytes, keep_original: bool = True) -> tuple[str, int]:
+        doc_id = "d_" + uuid.uuid4().hex[:12]
+        mac = hmac.new(self._file_mac, data, hashlib.sha256).digest()
+        orig = self._seal(f"document:{doc_id}:original", data) if keep_original else (None, None)
+        with self._lock, self._db:
+            (count,) = self._db.execute("SELECT COUNT(*) FROM documents WHERE chat_id=?", (chat_id,)).fetchone()
+            self._db.execute(f"INSERT INTO documents ({self._DOC_COLS}, file_mac, orig_nonce, orig_ct) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                             (doc_id, chat_id, count + 1, fmt, "extracting", len(data), None, None, None, time.time(), None,
+                              mac, *orig))
+        return doc_id, count + 1
+
+    def update_document(self, doc_id: str, *, status: str | None = None, pages: int | None = None, counts: dict | None = None,
+                        warnings: list | None = None, record: dict | None = None, masked: bytes | None = None) -> None:
+        sets, vals = ["updated_at=?"], [time.time()]
+        for col, val in (("status", status), ("pages", pages)):
+            if val is not None:
+                sets.append(f"{col}=?")
+                vals.append(val)
+        for col, val in (("counts", counts), ("warnings", warnings)):
+            if val is not None:
+                sets.append(f"{col}=?")
+                vals.append(json.dumps(val))
+        if record is not None:
+            sets.append("nonce=?, record_ct=?")
+            vals += self._seal(f"document:{doc_id}:record", json.dumps(record, ensure_ascii=False).encode())
+        if masked is not None:
+            sets.append("masked_nonce=?, masked_ct=?")
+            vals += self._seal(f"document:{doc_id}:masked", masked)
+        with self._lock, self._db:
+            self._db.execute(f"UPDATE documents SET {', '.join(sets)} WHERE id=?", (*vals, doc_id))
+
+    def _doc_row(self, row, detail: bool) -> dict:
+        d = dict(zip(self._DOC_COLS.split(", "), row[:11]))
+        d["doc_id"] = d.pop("id")
+        d["counts"], d["warnings"] = json.loads(d["counts"] or "{}"), json.loads(d["warnings"] or "[]")
+        nonce, ct, masked_ct = row[11], row[12], row[13]
+        record = json.loads(self._open(f"document:{d['doc_id']}:record", nonce, ct)) if ct else {}
+        d["filename"] = record.get("filename", "")
+        d["safe_stem"] = record.get("safe_stem", "")
+        d["page_status"] = record.get("page_status", [])
+        d["verify"] = record.get("verify")
+        d["error"] = record.get("error")
+        d["has_masked_copy"] = masked_ct is not None
+        if detail:
+            d.update({k: record.get(k) for k in ("text", "masked_text", "spans", "units")})
+        return d
+
+    def document(self, doc_id: str, detail: bool = False) -> dict | None:
+        row = self._db.execute(f"SELECT {self._DOC_COLS}, nonce, record_ct, masked_ct FROM documents WHERE id=?", (doc_id,)).fetchone()
+        return self._doc_row(row, detail) if row else None
+
+    def documents(self, chat_id: str) -> list[dict]:
+        rows = self._db.execute(f"SELECT {self._DOC_COLS}, nonce, record_ct, masked_ct FROM documents WHERE chat_id=? ORDER BY n", (chat_id,))
+        return [self._doc_row(r, False) for r in rows]
+
+    def document_blob(self, doc_id: str, kind: str) -> bytes | None:
+        """kind: "original" or "masked"."""
+        col = "orig" if kind == "original" else "masked"
+        row = self._db.execute(f"SELECT {col}_nonce, {col}_ct FROM documents WHERE id=?", (doc_id,)).fetchone()
+        return self._open(f"document:{doc_id}:{kind}", *row) if row and row[1] else None
+
+    def delete_document(self, doc_id: str) -> bool:
+        with self._lock, self._db:
+            found = self._db.execute("SELECT 1 FROM documents WHERE id=?", (doc_id,)).fetchone() is not None
+            self._db.execute("DELETE FROM documents WHERE id=?", (doc_id,))
+        return found
 
     def members(self, chat_id: str, context_label: str) -> list[str]:
         """Entity placeholders inside a context block (mentioned_in edges)."""
