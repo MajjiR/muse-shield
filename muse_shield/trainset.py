@@ -14,13 +14,15 @@ Everything is synthetic.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
+import re
 from pathlib import Path
 
 from .analysis import number_sentences, parse, split_sentences
 from .backends import EXAMPLE_ASSISTANT, EXAMPLE_USER, SYSTEM_PROMPT
-from .benchmarks.nemotron import LABEL_MAP, SPLIT_ROWS, Doc, _fetch_page, paragraphs, parse_row
+from .benchmarks.nemotron import LABEL_MAP, QUASI, SPLIT_ROWS, Doc, _fetch_page, paragraphs, parse_row
 from .evalset import EVAL_POOLS, Case, Pools, generate
 
 TRAIN_POOLS = Pools(
@@ -111,8 +113,29 @@ def benchmark_paragraphs(test_sample: Path) -> set[str]:
     return {p for d in docs for _, p in paragraphs(d.text)}
 
 
+_SPELLED_TIME = re.compile(r"\b(?:quarter|half|twenty|ten|five)\b.*\b(?:past|to)\b|o'clock", re.I)
+_NOT_A_DATE = re.compile(r"(?i)(?:\b(?:date|time)\s*$|^\d+\s?ms$|to be determined|^[A-Z]{2,4}$)")
+
+
+def specific_date(text: str) -> bool:
+    """Policy (user decision 2026-11-04): mask specific calendar dates and clock times only.
+
+    Keeps '2024-03-15', '7:23 am', 'a quarter to four'; drops form field names ('Departure Date'),
+    durations ('120ms'), 'yet to be determined' and bare time zones ('PST').
+    """
+    t = text.strip()
+    if _NOT_A_DATE.search(t):
+        return False
+    return bool(re.search(r"\d", t) or _SPELLED_TIME.search(t))
+
+
+def para_key(paragraph: str) -> str:
+    return hashlib.sha1(paragraph.encode()).hexdigest()[:16]
+
+
 def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages: int = 30,
-                  max_tokens: int = 2048, empty_share: float = 0.15) -> list[dict]:
+                  max_tokens: int = 2048, empty_share: float = 0.15, date_policy: str = "all",
+                  quasi_map: dict[str, list[str]] | None = None) -> list[dict]:
     """Gold-labelled rows from the Nemotron-PII *train* split, one per paragraph.
 
     Paragraphs are cut exactly as the benchmark cuts them, and gold labels are mapped onto
@@ -143,9 +166,20 @@ def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages
             seen, entities = set(), []
             for g in sorted(d.spans, key=lambda g: g.start):
                 text = d.text[g.start:g.end]
-                if off <= g.start and g.end <= end and text.strip() and (text, LABEL_MAP[g.label]) not in seen:
-                    seen.add((text, LABEL_MAP[g.label]))
-                    entities.append({"text": text, "type": LABEL_MAP[g.label]})
+                etype = LABEL_MAP[g.label]
+                if etype == "DATE" and date_policy == "specific" and not specific_date(text):
+                    continue
+                if quasi_map is not None and g.label in QUASI:
+                    continue  # replaced by the consistent relabel below
+                if off <= g.start and g.end <= end and text.strip() and (text, etype) not in seen:
+                    seen.add((text, etype))
+                    entities.append({"text": text, "type": etype})
+            if quasi_map is not None:
+                for span in quasi_map.get(para_key(para), []):
+                    if span in para and (span, "SENSITIVE_ATTRIBUTE") not in seen and not any(span in e["text"] for e in entities):
+                        seen.add((span, "SENSITIVE_ATTRIBUTE"))
+                        entities.append({"text": span, "type": "SENSITIVE_ATTRIBUTE"})
+                entities.sort(key=lambda e: para.find(e["text"]))
             if not entities:
                 if empty >= empty_share * n:
                     continue
@@ -158,7 +192,7 @@ def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages
             if a.dropped:  # gold text not findable verbatim: skip rather than teach a mismatch
                 continue
             r["_meta"] = {"source": "nemotron", "domain": d.domain, "locale": d.locale, "format": d.format,
-                          "uid": d.uid, "approx_tokens": _approx_tokens(r)}
+                          "uid": d.uid, "approx_tokens": _approx_tokens(r), "para_key": para_key(para), "paragraph": para}
             rows.append(r)
             if len(rows) >= n:
                 return rows
