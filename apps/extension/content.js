@@ -24,9 +24,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const squash = (s) => (s || "").replace(/\s+/g, "");
 const post = (msg) => chrome.runtime.sendMessage(msg).catch(() => {}); // frames may not be listening yet
 
+// meta.ai's conversation id: from the URL (/prompt/<uuid> and similar), else from the message ids,
+// which start with it ("<conversation>_<n>_user").
+const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 function conversationId() {
-  const m = location.pathname.match(/^\/prompt\/([^/?#]+)/);
-  return m ? m[1] : null;
+  const fromUrl = location.pathname.match(UUID);
+  if (fromUrl) return fromUrl[0];
+  if (location.pathname === "/" || location.pathname === "") return null; // the new-chat page
+  const item = document.querySelector("[data-message-item][data-message-id]");
+  const fromItem = item && item.dataset.messageId.match(UUID);
+  return fromItem ? fromItem[0] : null;
 }
 
 async function waitFor(fn, ms, every = 100) {
