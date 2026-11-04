@@ -2,12 +2,13 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$14.48** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$14.71** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261104-225332_v0.0.1+11bcd6b_after-compute-fix](agent-scenarios/20261104-225332_v0.0.1+11bcd6b_after-compute-fix/report.html) | agent-scenarios | after-compute-fix | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.23 |
 | [20261104-224035_v0.0.1+1eb1c8f_after-main-merge](agent-scenarios/20261104-224035_v0.0.1+1eb1c8f_after-main-merge/report.html) | agent-scenarios | after-main-merge | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 88.2% | $0.24 |
 | [20261104-191323_v0.0.1+64d82a4_agent-scenarios-connectors](agent-scenarios/20261104-191323_v0.0.1+64d82a4_agent-scenarios-connectors/report.html) | agent-scenarios | agent-scenarios-connectors | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 100.0% | $0.21 |
 | [20261104-190405_v0.0.1+1e81bc8_agent-scenarios-connectors](agent-scenarios/20261104-190405_v0.0.1+1e81bc8_agent-scenarios-connectors/report.html) | agent-scenarios | agent-scenarios-connectors | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.21 |
