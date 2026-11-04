@@ -100,10 +100,16 @@ class ChatResponse(BaseModel):
     error: str = ""
 
 
-class RevealRequest(BaseModel):
-    ask_id: str
+class RevealChoice(BaseModel):
     decision: Literal["allow", "deny"]
     level: Literal["shape", "summary", "full"] | None = None
+
+
+class RevealRequest(BaseModel):
+    ask_id: str
+    decision: Literal["allow", "deny"]  # for every value asked for, unless `items` decides it
+    level: Literal["shape", "summary", "full"] | None = None
+    items: dict[str, RevealChoice] | None = None  # label -> its own choice, for a multi-value ask
 
 
 class VaultRevealRequest(BaseModel):

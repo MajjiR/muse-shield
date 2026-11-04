@@ -37,7 +37,9 @@ You'll then get the real value if the user allows it (use it only for this answe
 5. When the answer must be built from a hidden passage (an RCA about an incident, a summary of a deal, advice on an offer), ask for its shape rather than writing a generic template with blanks. To ask, reply with exactly one line and nothing else:
 NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
-Ask for the least you need: shape before summary before full. Ask for at most one label per reply.
+Ask for the least you need: shape before summary before full. If the answer needs several hidden values or passages
+(a tax comparison needs the salary, the deductions and the premiums), ask for all of them in the same reply, one
+NEED_CONTEXT line each and nothing else, so the user decides once. Never ask for one you don't need.
 6. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name.
 7. A message starting "[<IMAGE_n>, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered. If a good answer needs what the masking hides (who or what is in it, a covered card or plate), ask to see the original picture with exactly one line: NEED_CONTEXT: <IMAGE_n> full <short reason>. Otherwise answer from what you can see."""
 
@@ -94,9 +96,12 @@ class Ask:
     preview: str
     previews: dict = field(default_factory=dict)  # level -> exact text that level would send
     rounds: int = 1
+    items: list[dict] = field(default_factory=list)  # every value asked for at once; the fields above are items[0]
 
     def to_dict(self) -> dict:
-        return {k: getattr(self, k) for k in ("ask_id", "chat_id", "label", "kind", "level", "reason", "preview", "previews")}
+        out = {k: getattr(self, k) for k in ("ask_id", "chat_id", "label", "kind", "level", "reason", "preview", "previews")}
+        out["items"] = self.items or [{k: out[k] for k in ("label", "kind", "level", "reason", "preview", "previews")}]
+        return out
 
 
 @dataclass
@@ -251,32 +256,25 @@ class ChatEngine:
             self._handle_tool_call(chat_id, turn, call, mapping)
             return
 
-        need = NEED.search(content)
-        if need and turn.ask is None:
-            label, level, reason = f"<{need.group(1).upper()}>", need.group(2).lower(), need.group(3).strip()
-            image = self._image_for(chat_id, label)
-            if image:
-                ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, "image", "full", reason,
-                          f"The original picture <IMAGE_{image['n']}>, unmasked: faces and covered parts visible.",
-                          {"full": f"/images/{image['image_id']}/original"})
-                self.pending[ask.ask_id] = ask
-                turn.ask = ask
-                self.vault.audit("ask", chat_id, {"asks": 1})
+        needs = list(NEED.finditer(content)) if turn.ask is None else []
+        if needs:
+            items, unknown = [], []
+            for need in needs:
+                label, level, reason = f"<{need.group(1).upper()}>", need.group(2).lower(), need.group(3).strip()
+                if any(i["label"] == label for i in items):
+                    continue
+                item = self._ask_item(chat_id, label, level, reason, mapping)
+                (items.append(item) if item else unknown.append(label))
+            if not items:
+                # Don't show the request lines as an answer, and don't store them in the conversation.
+                turn.error = f"Muse Spark asked for {', '.join(unknown)}, which isn't in this chat's vault. Try rephrasing."
                 return
-            if label not in mapping:
-                # Don't show the request line as an answer, and don't store it in the conversation.
-                turn.error = f"Muse Spark asked for {label}, which isn't in this chat's vault. Try rephrasing."
-                return
-            target = self.vault._target(chat_id, label)
-            kind = "context" if target and target[0] == "context" else "entity"
-            if kind == "entity":
-                level = "full"  # an entity has only its value
-            levels = LEVELS if kind == "context" else ("full",)
-            previews = {lv: self.vault.resolve(chat_id, label, lv) for lv in levels}
-            ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, kind, level, reason, previews[level], previews)
+            first = items[0]
+            ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, first["label"], first["kind"], first["level"], first["reason"],
+                      first["preview"], first["previews"], items=items)
             self.pending[ask.ask_id] = ask
             turn.ask = ask
-            self.vault.audit("ask", chat_id, {"asks": 1})
+            self.vault.audit("ask", chat_id, {"asks": 1, "values": len(items)})
             return
         # A normal answer (or an unusable NEED_CONTEXT line): store and rehydrate.
         turn.masked_reply = content
@@ -437,33 +435,61 @@ class ChatEngine:
             turn.error = str(exc)
         return turn
 
-    def reveal(self, ask_id: str, decision: str, level: str | None = None) -> Turn:
+    def _ask_item(self, chat_id: str, label: str, level: str, reason: str, mapping: dict) -> dict | None:
+        """One value, passage or picture asked for, with exactly what each level would send; None if unknown."""
+        image = self._image_for(chat_id, label)
+        if image:
+            return {"label": label, "kind": "image", "level": "full", "reason": reason,
+                    "preview": f"The original picture <IMAGE_{image['n']}>, unmasked: faces and covered parts visible.",
+                    "previews": {"full": f"/images/{image['image_id']}/original"}}
+        if label not in mapping:
+            return None
+        target = self.vault._target(chat_id, label)
+        kind = "context" if target and target[0] == "context" else "entity"
+        if kind == "entity":
+            level = "full"  # an entity has only its value
+        previews = {lv: self.vault.resolve(chat_id, label, lv) for lv in (LEVELS if kind == "context" else ("full",))}
+        return {"label": label, "kind": kind, "level": level, "reason": reason, "preview": previews[level], "previews": previews}
+
+    def _reveal_one(self, chat_id: str, item: dict, decision: str, level: str | None) -> None:
+        """Log the consent for one value and tell the model: the value (at the chosen level), or that it was declined."""
+        label, kind = item["label"], item["kind"]
+        if decision not in ("allow", "deny"):
+            decision = "deny"
+        if level and level != item["level"] and kind == "context" and level in item["previews"]:
+            item = {**item, "level": level, "preview": item["previews"][level]}
+        self.vault.consent(chat_id, label, item["level"], decision, item["reason"])
+        if kind == "image":
+            image = self._image_for(chat_id, label)
+            meta = {"label": label, "level": "full", "decision": decision}
+            if decision == "allow" and image:
+                meta["image_id"] = image["image_id"]  # _history sends the original picture with this note
+                note = f"[The user allowed you to see the original picture {label}, unmasked]"
+            else:
+                note = f"[The user declined to show the original picture {label}. Answer from the masked one.]"
+            self.vault.add_message(chat_id, "reveal", note, meta=meta)
+            return
+        meta = {"label": label, "level": item["level"], "decision": decision}
+        if decision == "allow":
+            note = f"[The user allowed you to see {label} ({item['level']})]: {item['preview']}"
+            if item["level"] == "full":
+                # The note holds real text: keep it encrypted, store only a stub in the clear column.
+                self.vault.add_message(chat_id, "reveal", f"[{label} revealed in full]", original=note, meta=meta)
+                return
+        else:
+            note = f"[The user declined to reveal {label}. Answer as well as you can without it, keeping placeholders.]"
+        self.vault.add_message(chat_id, "reveal", note, meta=meta)
+
+    def reveal(self, ask_id: str, decision: str, level: str | None = None, items: dict | None = None) -> Turn:
+        """Answer an ask. `items` (label -> {"decision", "level"}) decides each value of a multi-value ask on its own;
+        without it, `decision` and `level` apply to every value asked for."""
         ask = self.pending.pop(ask_id, None)
         if ask is None:
             raise ChatError("unknown or already answered ask")
-        if level and level != ask.level and ask.kind == "context":
-            ask.level, ask.preview = level, self.vault.resolve(ask.chat_id, ask.label, level)
-        self.vault.consent(ask.chat_id, ask.label, ask.level, decision, ask.reason)
-        if ask.kind == "image":
-            image = self._image_for(ask.chat_id, ask.label)
-            meta = {"label": ask.label, "level": "full", "decision": decision}
-            if decision == "allow" and image:
-                meta["image_id"] = image["image_id"]  # _history sends the original picture with this note
-                note = f"[The user allowed you to see the original picture {ask.label}, unmasked]"
-            else:
-                note = f"[The user declined to show the original picture {ask.label}. Answer from the masked one.]"
-            self.vault.add_message(ask.chat_id, "reveal", note, meta=meta)
-        elif decision == "allow":
-            note = f"[The user allowed you to see {ask.label} ({ask.level})]: {ask.preview}"
-        else:
-            note = f"[The user declined to reveal {ask.label}. Answer as well as you can without it, keeping placeholders.]"
-        if ask.kind != "image":
-            meta = {"label": ask.label, "level": ask.level, "decision": decision}
-            if decision == "allow" and ask.level == "full":
-                # The note holds real text: keep it encrypted, store only a stub in the clear column.
-                self.vault.add_message(ask.chat_id, "reveal", f"[{ask.label} revealed in full]", original=note, meta=meta)
-            else:
-                self.vault.add_message(ask.chat_id, "reveal", note, meta=meta)
+        for item in ask.items or [{"label": ask.label, "kind": ask.kind, "level": ask.level, "reason": ask.reason,
+                                   "preview": ask.preview, "previews": ask.previews}]:
+            choice = (items or {}).get(item["label"]) or {"decision": decision, "level": level}
+            self._reveal_one(ask.chat_id, item, choice.get("decision", decision), choice.get("level"))
         turn = Turn(ask.chat_id)
         try:
             self._send(ask.chat_id, turn)
