@@ -225,7 +225,9 @@ class ChatEngine:
 
     def _send(self, chat_id: str, turn: Turn) -> None:
         messages = self._history(chat_id)
-        payload = json.dumps(messages, ensure_ascii=False)
+        # The system prompt is our own fixed text (rules and tool descriptions), like the leak audit we skip it: a value
+        # the user's message shares with it ("2026-10" in an example) isn't something we'd be leaking.
+        payload = json.dumps([m for m in messages if m["role"] != "system"], ensure_ascii=False)
         mapping = self.vault.mapping(chat_id)
         allowed = self._allowed(chat_id)
         secrets = {label: value for label, value in mapping.items() if label not in allowed}

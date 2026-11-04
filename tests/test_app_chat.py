@@ -180,3 +180,14 @@ def test_need_context_after_a_lead_in_sentence_still_asks(tmp_path):
     first = c.post("/chat", json={"message": ACCEPT}).json()
     r = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": first["chat_id"]}).json()
     assert r["ask"] and r["ask"]["label"] == "<SALARY_1>" and r["reply"] in ("", None)
+
+
+def test_guard_ignores_our_own_system_prompt(tmp_path):
+    """A masked value that also appears in the fixed system prompt (a tool example) isn't a leak, like the audit says."""
+    c, m = make(tmp_path, ["ok", "ok"])
+    chat_id = c.post("/chat", json={"message": ACCEPT}).json()["chat_id"]
+    vault = c.app.state.vault
+    word = next(w for w in c.app.state.engine._system().split() if len(w) >= 6 and w.isalpha())
+    vault.entity_placeholder(chat_id, "ORG", word)  # e.g. a masked word that the rules text happens to contain
+    r = c.post("/chat", json={"message": "Draft a note to Rohan about my salary.", "chat_id": chat_id}).json()
+    assert r["error"] == "" and len(m.payloads) == 2
