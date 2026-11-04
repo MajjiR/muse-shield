@@ -117,3 +117,18 @@ def test_value_already_sent_unmasked_is_not_masked_later(tmp_path):
     # a value that is already a placeholder is still masked the same way
     three = masker.mask(first, chat)
     assert three.masked_text == one.masked_text
+
+
+def test_glimmer_analyzer_needs_route_gate_and_key(monkeypatch):
+    from muse_shield.app.server import analyzer_from_env
+
+    monkeypatch.setenv("MUSE_SHIELD_ANALYZER", "glimmer")
+    assert analyzer_from_env()[0] is None and "MUSE_SHIELD_GLIMMER_MODEL" in analyzer_from_env()[1]
+    route = "accounts/a/models/muse-shield-glimmer-lora-v2-full#accounts/a/deployments/d"
+    monkeypatch.setenv("MUSE_SHIELD_GLIMMER_MODEL", route)
+    assert analyzer_from_env()[0] is None and "MUSE_SHIELD_DEV_RAW_ANALYSIS" in analyzer_from_env()[1]
+    monkeypatch.setenv("MUSE_SHIELD_DEV_RAW_ANALYSIS", "1")
+    assert analyzer_from_env()[0] is None and "FIREWORKS_API_KEY" in analyzer_from_env()[1]
+    monkeypatch.setenv("FIREWORKS_API_KEY", "k")
+    backend, why = analyzer_from_env()
+    assert why == "" and backend.name == "glimmer" and backend.model == route

@@ -1,6 +1,6 @@
 import { MaskedText } from "@/components/privacy-text"
 import { engine } from "@/lib/engine"
-import { cn } from "@/lib/utils"
+import { cn, modelLabel } from "@/lib/utils"
 import type { ChatSummary } from "@muse-shield/core"
 import { useQuery } from "@tanstack/react-query"
 import { PenSquare, Search, ShieldCheck } from "lucide-react"
@@ -85,7 +85,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
         {health.isError && <p className="font-medium">Engine unreachable</p>}
         {h && (
           <>
-            <Status ok={h.analysis} label="Masking" value={h.analysis_model ?? "off"} />
+            <Status ok={h.analysis} label="Masking" value={modelLabel(h.analysis_model)} />
             <Status ok={h.chat} label="Answers" value={h.chat_model ?? "off"} />
             {/* image_model is "<vision> + <segmentation>": Spark reads the picture, SAM outlines faces and plates */}
             <Status ok={!!h.images} label="Images" value={h.image_model?.split(" + ")[0] ?? "off"} />

@@ -7,7 +7,7 @@ import { MaskedText, OriginalText } from "@/components/privacy-text"
 import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
-import { cn } from "@/lib/utils"
+import { cn, isGlimmer } from "@/lib/utils"
 import type { Ask, DocumentInfo, ImageInfo, Level, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
@@ -260,7 +260,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       {health.data?.analysis && (
         <div className="flex items-center justify-center gap-2 border-b bg-muted px-4 py-1.5 text-[12px] text-muted-foreground">
           <FlaskConical className="size-3.5" aria-hidden />
-          Prototype mode: finding sensitive details uses Muse Spark on your raw text. Use made-up data only.
+          Prototype mode: finding sensitive details uses {isGlimmer(health.data.analysis_model) ? "your fine-tuned Muse Glimmer (own Fireworks deployment)" : "Muse Spark"} on your raw text. Use made-up data only.
         </div>
       )}
 
