@@ -1,0 +1,68 @@
+{
+  "backend": "glimmer-sampler",
+  "model": "rohan-majji/run-3ae33b189bfd44bbb59217963a11fcfe/step-150-008d387b",
+  "docs": 100,
+  "seconds": 72.4,
+  "leak_rate": 0.16258229700073154,
+  "core_leak_rate": 0.16258229700073154,
+  "quasi_leak_rate": null,
+  "span_recall": 0.8275316455696202,
+  "span_precision": 0.7144790257104194,
+  "type_accuracy": 0.9772727272727273,
+  "recall_by_type": {
+    "OTHER": 0.8275316455696202
+  },
+  "recall_by_label": {
+    "ADDRESS": {
+      "recall": 0.9473684210526315,
+      "n": 95
+    },
+    "CONTACT": {
+      "recall": 0.9423076923076923,
+      "n": 52
+    },
+    "DATE": {
+      "recall": 0.8034682080924855,
+      "n": 173
+    },
+    "ID": {
+      "recall": 0.6363636363636364,
+      "n": 55
+    },
+    "LOCATION": {
+      "recall": 1.0,
+      "n": 4
+    },
+    "ORG": {
+      "recall": 0.7555555555555555,
+      "n": 90
+    },
+    "PERSON": {
+      "recall": 0.8387096774193549,
+      "n": 155
+    },
+    "SECRET": {
+      "recall": 1.0,
+      "n": 8
+    }
+  },
+  "calls": 1068,
+  "valid_rate": 1.0,
+  "first_try_rate": 1.0,
+  "hallucinated_spans": 7,
+  "errors": 0,
+  "latency_ms_per_doc": {
+    "p50": 19153.810459014494,
+    "p95": 42048.00874995999
+  },
+  "tokens": {
+    "in": 551977,
+    "out": 21360,
+    "cached_in": 0,
+    "reasoning_out": 0
+  },
+  "cost_usd": null,
+  "cost": {
+    "basis": "training-api sampling (per token; rate not published here)"
+  }
+}

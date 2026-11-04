@@ -15,3 +15,6 @@ adapters/
 
 # Private project journal: plans, step log, full conversation transcripts. Never pushed.
 journal/
+
+# Gretel test predictions contain synthetic API keys and tokens that trip GitHub secret scanning; kept locally only
+results/pii-gretel-*/**/*.preds.jsonl

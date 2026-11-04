@@ -22,7 +22,7 @@ from ..analysis import Analysis
 from ..backends import Backend, BackendError, backend_from_env
 from ..costs import deployment_info, run_cost
 from ..results import git_version, save_run, sha256
-from .nemotron import DATASET, LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
+from .nemotron import DATASET, LABEL_MAP, OUR_TYPES, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
 
 def analyze_doc(backend: Backend, doc: Doc) -> dict:
     t0 = time.perf_counter()
@@ -67,8 +67,8 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float, gpu: d
 
     by_type: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     for label, (fd, tt) in found_by_label.items():
-        by_type[LABEL_MAP.get(label, "OTHER")][0] += fd
-        by_type[LABEL_MAP.get(label, "OTHER")][1] += tt
+        by_type[LABEL_MAP.get(label) or (label if label in OUR_TYPES else "OTHER")][0] += fd
+        by_type[LABEL_MAP.get(label) or (label if label in OUR_TYPES else "OTHER")][1] += tt
     gold_found = sum(v[0] for v in found_by_label.values())
     gold_total = sum(v[1] for v in found_by_label.values())
     quasi_gold = total.gold_chars - total.core_gold_chars
