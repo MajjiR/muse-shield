@@ -106,7 +106,7 @@ export interface Segment {
 
 export interface Message {
   message_id: string;
-  role: "user" | "assistant" | "reveal" | "tool_call" | "tool_result" | "document";
+  role: "user" | "assistant" | "reveal" | "tool_call" | "tool_result" | "document" | "image";
   masked_text: string;
   text: string;
   original: string | null;
@@ -114,6 +114,8 @@ export interface Message {
   segments?: Segment[];
   /** role "document": the attached document, shown as a card. */
   document?: DocumentInfo | null;
+  /** role "image": the attached masked image, shown as a card. */
+  image?: ImageInfo | null;
   created_at: number;
 }
 
@@ -140,6 +142,36 @@ export interface Health {
   analysis_off_reason: string;
   chat_off_reason: string;
   documents?: boolean;
+  images?: boolean;
+  images_off_reason?: string;
+}
+
+/** A covered part of an image: a value (kind "text", labelled with its vault placeholder) or a face, code, plate… */
+export interface ImageRegion {
+  kind: string;
+  type: string;
+  label: string;
+  box: [number, number, number, number];
+  source: string;
+}
+
+/** A masked image stored in a chat (POST /images). Only the masked picture is kept; values stay in the vault. */
+export interface ImageInfo {
+  image_id: string;
+  chat_id: string;
+  n: number;
+  verified: boolean;
+  counts: Record<string, number>;
+  /** The original name: shown on this device only, never sent to a model. */
+  filename: string;
+  width: number;
+  height: number;
+  regions: ImageRegion[];
+  masked_text: string;
+  verify: { ok: boolean; leaked?: string[]; faces_left?: number; new_finds?: unknown[]; error?: string } | null;
+  cost: { spark_usd?: number | null; sam_requests?: number };
+  timings_ms: Record<string, number>;
+  created_at: number;
 }
 
 export type DocumentFormat = "pdf" | "docx" | "pptx";

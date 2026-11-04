@@ -1,5 +1,5 @@
 // Engine API client: plain fetch, so it works in the browser, Electron and React Native.
-import type { AgentAction, Ask, AuditChain, ChatDetail, ChatSummary, DocumentDetail, DocumentInfo, Graph, Health, InspectorRecord, LeakAudit, Level, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
+import type { AgentAction, Ask, AuditChain, ChatDetail, ChatSummary, DocumentDetail, DocumentInfo, Graph, ImageInfo, Health, InspectorRecord, LeakAudit, Level, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
 
 export class EngineError extends Error {
   readonly status: number;
@@ -20,14 +20,23 @@ export function createEngine(baseUrl = "") {
     if (!r.ok) throw new EngineError((data as { detail?: string }).detail ?? r.statusText, r.status);
     return data as T;
   }
+  async function upload<T>(path: string, file: Blob & { name?: string }, chatId?: string | null): Promise<T> {
+    const headers: Record<string, string> = { "content-type": "application/octet-stream", "x-filename": encodeURIComponent(file.name ?? "file") };
+    if (chatId) headers["x-chat-id"] = chatId;
+    const r = await fetch(baseUrl + path, { method: "POST", headers, body: file });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new EngineError((data as { detail?: string }).detail ?? r.statusText, r.status);
+    return data as T;
+  }
   return {
     health: () => call<Health>("/health"),
     mask: (text: string, chatId?: string | null) => call<MaskResult>("/mask", { text, chat_id: chatId ?? null }),
     unmask: (text: string, chatId: string) => call<{ text: string; unknown: string[] }>("/unmask", { text, chat_id: chatId }),
-    chat: (message: string, chatId?: string | null, maskId?: string | null, documentIds: string[] = []) =>
-      call<Turn>("/chat", { message, chat_id: chatId ?? null, mask_id: maskId ?? null, document_ids: documentIds }),
+    chat: (message: string, chatId?: string | null, maskId?: string | null, documentIds: string[] = [], imageIds: string[] = []) =>
+      call<Turn>("/chat", { message, chat_id: chatId ?? null, mask_id: maskId ?? null, document_ids: documentIds, image_ids: imageIds }),
     reveal: (ask: Ask, decision: "allow" | "deny", level?: Level) => call<Turn>("/reveal", { ask_id: ask.ask_id, decision, level }),
     chats: () => call<ChatSummary[]>("/chats"),
+    newChat: () => call<{ chat_id: string }>("/chats", {}),
     chatDetail: (chatId: string) => call<ChatDetail>(`/chats/${chatId}`),
     vault: (chatId: string) => call<VaultItems>(`/chats/${chatId}/vault`),
     vaultReveal: (chatId: string, label: string) => call<{ label: string; value: string }>("/vault/reveal", { chat_id: chatId, label }),
@@ -41,14 +50,12 @@ export function createEngine(baseUrl = "") {
     outbox: (chatId: string) => call<OutboxItem[]>(`/chats/${chatId}/outbox`),
     auditChain: () => call<AuditChain>("/vault/audit/verify"),
     /** Upload a PDF, .docx or .pptx into a chat (a new one if chatId is empty). The raw bytes go to the local engine only. */
-    uploadDocument: async (file: Blob & { name?: string }, chatId?: string | null) => {
-      const headers: Record<string, string> = { "content-type": "application/octet-stream", "x-filename": encodeURIComponent(file.name ?? "document") };
-      if (chatId) headers["x-chat-id"] = chatId;
-      const r = await fetch(baseUrl + "/documents", { method: "POST", headers, body: file });
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new EngineError((data as { detail?: string }).detail ?? r.statusText, r.status);
-      return data as DocumentInfo;
-    },
+    uploadDocument: (file: Blob & { name?: string }, chatId?: string | null) => upload<DocumentInfo>("/documents", file, chatId),
+    /** Mask an image (faces blurred, values covered) and keep the masked copy in the chat. Takes ~20-30 s. */
+    uploadImage: (file: Blob & { name?: string }, chatId?: string | null) => upload<ImageInfo>("/images", file, chatId),
+    image: (imageId: string) => call<ImageInfo>(`/images/${imageId}`),
+    /** URL of the masked PNG (served by the local engine). */
+    maskedImageUrl: (imageId: string, download = false) => `${baseUrl}/images/${imageId}/masked${download ? "?download=true" : ""}`,
     document: (docId: string) => call<DocumentInfo>(`/documents/${docId}`),
     documentDetail: (docId: string) => call<DocumentDetail>(`/documents/${docId}?detail=true`),
     chatDocuments: (chatId: string) => call<DocumentInfo[]>(`/chats/${chatId}/documents`),

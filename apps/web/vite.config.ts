@@ -6,7 +6,7 @@ import { defineConfig } from "vite";
 // The engine runs on 127.0.0.1:8765. In dev, Vite proxies engine routes so the app uses
 // relative URLs; Electron later points VITE_ENGINE_URL at the bundled engine instead.
 const ENGINE = process.env.ENGINE_URL ?? "http://127.0.0.1:8765";
-const engineRoutes = ["/health", "/mask", "/unmask", "/chat", "/reveal", "/chats", "/vault", "/inspector", "/metrics", "/agent", "/openapi.json"];
+const engineRoutes = ["/health", "/mask", "/unmask", "/chat", "/reveal", "/chats", "/vault", "/inspector", "/metrics", "/agent", "/documents", "/images", "/openapi.json"];
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
