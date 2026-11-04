@@ -83,3 +83,10 @@ def test_executor_reloads_saved_actions(tmp_path):
     assert a.status == "done"
     back = Executor(Vault(tmp_path / "v.db", b"\x42" * 32)).actions[a.action_id]
     assert back.status == "done" and back.result == a.result and back.origin == "direct"
+
+
+def test_remask_hides_every_copy_whatever_its_case():
+    from muse_shield.agent.executor import remask
+
+    out = remask({"name": "hdfc 2026 10", "row": "Home loan EMI HDFC"}, {"<ORG_1>": "HDFC"})
+    assert out == {"name": "<ORG_1> 2026 10", "row": "Home loan EMI <ORG_1>"}

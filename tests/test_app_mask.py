@@ -133,3 +133,13 @@ def test_glimmer_analyzer_needs_route_gate_and_key(monkeypatch):
     monkeypatch.setenv("FIREWORKS_API_KEY", "k")
     backend, why = analyzer_from_env()
     assert why == "" and backend.name == "glimmer" and backend.model == route
+
+
+def test_already_sent_ignores_case(tmp_path):
+    """A listing sent 'hdfc 2026 09' plain; finding 'HDFC' in a row later must not hide it (the guard ignores case)."""
+    first, second = "Files: hdfc 2026 09.", "Home loan EMI HDFC."
+    answers = {first: {"entities": [], "contexts": []}, second: {"entities": [{"text": "HDFC", "type": "ORG"}], "contexts": []}}
+    vault = Vault(tmp_path / "v.db", b"\x34" * 32)
+    masker, chat = Masker(vault, fake_spark(answers)), vault.create_chat()
+    vault.add_message(chat, "tool_result", masker.mask(first, chat).masked_text)
+    assert masker.mask(second, chat).masked_text == second

@@ -76,11 +76,27 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
         Param("start", "datetime", description="new start, ISO 8601 or a <DATE_n>", resolve=frozenset({"DATE"})),
         Param("end", "datetime", required=False, resolve=frozenset({"DATE"})),
     ), side_effect=True),
-    Tool("search_files", "Search the user's documents folder. Each file has an id for read_file.", (
+    Tool("list_folder", "List what's in the user's documents folder, or in one of its subfolders. Every file and folder "
+                        "has an id for read_file, query_table or list_folder.", (
+        Param("folder_id", "string", required=False, description="a folder id from list_folder; leave out for the top"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("search_files", "Search every file in the user's documents folder (text, CSV, PDF, Word, PowerPoint).", (
         Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="optional words to filter by"),
     ), side_effect=False, external=False, reads_private=True),
-    Tool("read_file", "Read one document from the user's folder.", (
-        Param("file_id", "string", description="the id from search_files"),
+    Tool("read_file", "Read one file. For a table you get its columns and a few sample rows; use query_table to "
+                      "calculate over all of it.", (
+        Param("file_id", "string", description="an id from list_folder or search_files"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("query_table", "Calculate over a CSV file, or every CSV in a folder (e.g. all monthly statements), on the "
+                        "user's device. Totals come back as placeholders.", (
+        Param("source_id", "string", description="a table or folder id from list_folder"),
+        Param("operation", "string", description="sum, average, count, min or max"),
+        Param("column", "string", required=False, description="the column to add up (not needed for count)"),
+        Param("contains", "text", required=False, resolve=frozenset(CONTENT_TYPES),
+              description="keep only rows containing these words, e.g. 'debit' or a placeholder like <ORG_1>"),
+        Param("contains_column", "string", required=False, description="look for `contains` only in this column"),
+        Param("month", "string", required=False, description="keep only rows dated in this month, e.g. 2026-10"),
+        Param("group_by", "string", required=False, description="a column to total separately for each value, e.g. description"),
     ), side_effect=False, external=False, reads_private=True),
     Tool("read_transactions", "Read the user's latest bank statement (date, description, amount, balance).", (
         Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="e.g. a merchant, 'debit' or '2026-10'"),

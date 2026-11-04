@@ -15,7 +15,7 @@ from email.message import EmailMessage
 
 from ..app.vault import Vault
 from ..connectors import SAMPLES, data_path
-from ..connectors import personal
+from ..connectors import folder, personal
 from ..connectors.compute import compute
 
 
@@ -84,6 +84,7 @@ def read_inbox(vault: Vault, chat_id: str, args: dict) -> dict:
 
 RUNNERS = {"send_email": send_email, "create_calendar_event": create_calendar_event, "save_note": save_note,
            "read_inbox": read_inbox, "web_search": web_search, "compute": compute,
-           **{name: getattr(personal, name) for name in ("search_contacts", "list_events", "reschedule_event", "search_files",
-                                                         "read_file", "read_transactions", "read_health_records",
-                                                         "read_channel", "post_message")}}
+           **{name: getattr(personal, name) for name in ("search_contacts", "list_events", "reschedule_event",
+                                                         "read_transactions", "read_health_records", "read_channel",
+                                                         "post_message")},
+           **{name: getattr(folder, name) for name in ("list_folder", "search_files", "read_file", "query_table")}}

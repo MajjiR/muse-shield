@@ -5,12 +5,12 @@ def test_scenarios_are_well_formed():
     from muse_shield.agent.runners import personal
     from muse_shield.connectors import SAMPLES
 
-    samples = "\n".join(p.read_text() for p in SAMPLES.rglob("*") if p.is_file())
+    samples = "\n".join(p.read_text() for p in SAMPLES.rglob("*") if p.is_file() and p.suffix != ".pdf")
     samples += "\n".join(r["entry"] for r in personal.read_transactions(None, "", {})["transactions"])  # amounts as shown
-    assert len(SCENARIOS) == 18 and len({s.id for s in SCENARIOS}) == 18
+    assert len(SCENARIOS) == 20 and len({s.id for s in SCENARIOS}) == 20
     for s in SCENARIOS:
         assert s.outcome in ("done", "refused", "none", "any") and s.request
-        computed = s.never_seen if s.tool == "compute" else []  # a total worked out on the device isn't in any file
+        computed = s.never_seen if s.tool in ("compute", "query_table") else []  # totals worked out on the device
         for value in s.recipients + s.must_not_send + [v for v in s.never_seen if v not in computed]:
             assert any(value in m for m in s.setup) or value in samples, (s.id, value)
 

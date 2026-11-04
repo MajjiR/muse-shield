@@ -4,7 +4,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from muse_shield.app.chat import ChatModel, parse_tool_call
+from muse_shield.app.chat import ChatEngine, ChatModel, parse_tool_call
 from muse_shield.app.server import create_app
 from muse_shield.app.vault import Vault
 from test_app_chat import ScriptedModel
@@ -76,10 +76,21 @@ def test_injected_address_is_refused_and_model_is_told(tmp_path):
 
 def test_tool_loop_is_capped(tmp_path):
     note = 'TOOL_CALL: {"tool": "save_note", "args": {"title": "t", "body": "b"}}'
-    c, m, _ = make(tmp_path, ["Noted.", note, note, note, note])
+    rounds = ChatEngine.MAX_TOOL_ROUNDS
+    c, m, _ = make(tmp_path, ["Noted."] + [note] * (rounds + 1))
     chat_id = c.post("/chat", json={"message": INTRO}).json()["chat_id"]
     r = c.post("/chat", json={"message": ASK, "chat_id": chat_id}).json()
-    assert "stopped after several tool calls" in r["error"] and len(m.payloads) == 4  # 1 + 3 tool rounds
+    assert "stopped after several tool calls" in r["error"] and len(m.payloads) == 2 + rounds  # intro, rounds, last ask
+    assert "That was the last tool call" in m.payloads[-1]["messages"][-1]["content"]
+
+
+def test_at_the_tool_limit_the_model_still_answers(tmp_path):
+    note = 'TOOL_CALL: {"tool": "save_note", "args": {"title": "t", "body": "b"}}'
+    rounds = ChatEngine.MAX_TOOL_ROUNDS
+    c, _, _ = make(tmp_path, ["Noted."] + [note] * rounds + ["Saved all of them."])
+    chat_id = c.post("/chat", json={"message": INTRO}).json()["chat_id"]
+    r = c.post("/chat", json={"message": ASK, "chat_id": chat_id}).json()
+    assert r["error"] == "" and r["reply"] == "Saved all of them."
 
 
 def test_direct_execute_endpoint(tmp_path):

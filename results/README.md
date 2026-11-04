@@ -2,12 +2,15 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$14.94** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$15.40** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261105-015726_v0.0.1+34c3c17_agent-scenarios-glimmer-er-v2b](agent-scenarios/20261105-015726_v0.0.1+34c3c17_agent-scenarios-glimmer-er-v2b/report.html) | agent-scenarios | agent-scenarios-glimmer-er-v2b | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 100.0% | $0.13 |
+| [20261105-014722_v0.0.1+938a6cf_agent-scenarios-glimmer-er-v2b](agent-scenarios/20261105-014722_v0.0.1+938a6cf_agent-scenarios-glimmer-er-v2b/report.html) | agent-scenarios | agent-scenarios-glimmer-er-v2b | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 90.0% | $0.18 |
+| [20261105-013655_v0.0.1+6f50610-dirty_agent-scenarios-glimmer-er-v2b](agent-scenarios/20261105-013655_v0.0.1+6f50610-dirty_agent-scenarios-glimmer-er-v2b/report.html) | agent-scenarios | agent-scenarios-glimmer-er-v2b | muse_spark `muse-spark-1.3` | 20 | – | – | – | – | 80.0% | $0.15 |
 | [20261104-231445_v0.0.1+0835ef1-dirty_web-search-consent](agent-scenarios/20261104-231445_v0.0.1+0835ef1-dirty_web-search-consent/report.html) | agent-scenarios | web-search-consent | muse_spark `muse-spark-1.3` | 18 | 0.0% | – | – | – | 100.0% | $0.23 |
 | [20261104-225332_v0.0.1+11bcd6b_after-compute-fix](agent-scenarios/20261104-225332_v0.0.1+11bcd6b_after-compute-fix/report.html) | agent-scenarios | after-compute-fix | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.23 |
 | [20261104-224035_v0.0.1+1eb1c8f_after-main-merge](agent-scenarios/20261104-224035_v0.0.1+1eb1c8f_after-main-merge/report.html) | agent-scenarios | after-main-merge | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 88.2% | $0.24 |

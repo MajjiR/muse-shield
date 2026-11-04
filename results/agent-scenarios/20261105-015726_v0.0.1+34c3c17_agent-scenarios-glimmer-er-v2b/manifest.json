@@ -1,0 +1,23 @@
+{
+  "run_id": "20261105-015726_v0.0.1+34c3c17_agent-scenarios-glimmer-er-v2b",
+  "eval": "agent-scenarios",
+  "tag": "agent-scenarios-glimmer-er-v2b",
+  "created": "2026-11-05T01:57:26+0530",
+  "version": "0.0.1",
+  "git": "34c3c17",
+  "command": "/Users/majjir/muse-shield/.worktrees/folders/muse_shield/agent/scenarios.py --rounds 1 --tag agent-scenarios-glimmer-er-v2b",
+  "dataset": {
+    "name": "muse_shield.agent.scenarios",
+    "docs": 20,
+    "rounds": 1
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3",
+      "rounds": 1
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

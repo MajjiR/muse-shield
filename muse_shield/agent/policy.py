@@ -57,6 +57,10 @@ def _text(vault: Vault, chat_id: str, value: str, allowed: frozenset[str], where
     # unless you already chose to share that exact value in this chat (`approved`, web search only).
     if external:
         for label, real in mapping.items():
+            # A date or time in a field that would receive the real date anyway (a calendar start) reveals nothing,
+            # and short ones ("IST", "15:00") turn up in any timestamp the model writes around a placeholder.
+            if "DATE" in allowed and _type_of(vault, chat_id, label) == "DATE":
+                continue
             if len(real) >= 3 and real.casefold() in value.casefold() and label not in value and label not in approved:
                 hint = " (or ask you to share it first)" if tool_allows_approved(where) else ""
                 out.violations.append(f"{where}: contains the real value behind {label}; agents must use placeholders{hint}")
