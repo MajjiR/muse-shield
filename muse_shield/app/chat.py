@@ -9,6 +9,7 @@ deny. A guard refuses to send any raw vault value the user hasn't explicitly all
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 import uuid
@@ -32,7 +33,8 @@ Rules:
 4. When the answer must be built from a hidden passage (an RCA about an incident, a summary of a deal, advice on an offer), ask for its shape rather than writing a generic template with blanks. To ask, reply with exactly one line and nothing else:
 NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
-Ask for the least you need: shape before summary before full. Ask for at most one label per reply."""
+Ask for the least you need: shape before summary before full. Ask for at most one label per reply.
+5. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name."""
 
 # Models sometimes drop the angle brackets ("NEED_CONTEXT: DEAL_1 summary ..."): accept both.
 AGENT_PROMPT = """
@@ -164,6 +166,8 @@ class ChatEngine:
         for m in self.vault.messages(chat_id):
             if m["role"] in ("user", "assistant"):
                 msgs.append({"role": m["role"], "content": m["masked_text"]})
+            elif m["role"] == "document":
+                msgs.append({"role": "user", "content": m["masked_text"]})
             elif m["role"] == "reveal":
                 msgs.append({"role": "user", "content": m["original"] or m["masked_text"]})
             elif m["role"] == "tool_call":
@@ -287,7 +291,46 @@ class ChatEngine:
         self.masks[mask_id] = masked
         return mask_id, masked
 
-    def chat(self, message: str, chat_id: str | None = None, mask_id: str | None = None) -> Turn:
+    def attach_documents(self, chat_id: str, document_ids: list[str]) -> None:
+        """Add masked documents to the chat as their own messages (each one once), within the size budget."""
+        budget = int(os.environ.get("MUSE_SHIELD_DOC_CHAR_BUDGET", 200_000))
+        docs = [m for m in self.vault.messages(chat_id) if m["role"] == "document"]
+        attached = {m["meta"].get("doc_id") for m in docs}
+        used = sum(len(m["masked_text"]) for m in docs)
+        for doc_id in document_ids:
+            if doc_id in attached:
+                continue
+            d = self.vault.document(doc_id, detail=True)
+            if not d or d["chat_id"] != chat_id:
+                raise ChatError("unknown document for this chat")
+            if d["status"] not in ("ready", "blocked") or not d.get("masked_text"):
+                raise ChatError("that document isn't ready yet")
+            unit = "slide" if d["format"] == "pptx" else "page"
+            pages = f"{d['pages']} {unit}{'' if d['pages'] == 1 else 's'}" if d["format"] != "docx" else "Word"
+            text = f"[Document {d['n']} · {d['format']} · {pages}, masked like the rest of this chat]\n{d['masked_text']}"
+            if used + len(text) > budget:
+                raise ChatError(f"documents in one chat are limited to {budget:,} characters")
+            used += len(text)
+            attached.add(doc_id)
+            self.vault.add_message(chat_id, "document", text, meta={"doc_id": doc_id, "n": d["n"], "format": d["format"],
+                                                                     "pages": d["pages"], "counts": d["counts"]})
+
+    def chat(self, message: str, chat_id: str | None = None, mask_id: str | None = None,
+             document_ids: list[str] | None = None) -> Turn:
+        if document_ids:
+            if not chat_id:
+                return Turn("", error="Not sent: documents belong to a chat; pass its chat_id")
+            try:
+                self.attach_documents(chat_id, document_ids)
+            except ChatError as exc:
+                return Turn(chat_id, error=f"Not sent: {exc}")
+            if not message.strip():
+                turn = Turn(chat_id)
+                try:
+                    self._send(chat_id, turn)
+                except ChatError as exc:
+                    turn.error = str(exc)
+                return turn
         cached = self.masks.pop(mask_id, None) if mask_id else None
         if cached and cached.original == message:
             chat_id, masked = cached.chat_id, cached

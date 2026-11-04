@@ -68,6 +68,7 @@ class ChatRequest(BaseModel):
     message: str
     chat_id: str | None = None
     mask_id: str | None = None  # from a /mask preview, so Mask & send doesn't analyze twice
+    document_ids: list[str] = Field(default_factory=list)  # documents to attach to this turn (message may be "")
 
 
 class ChatResponse(BaseModel):

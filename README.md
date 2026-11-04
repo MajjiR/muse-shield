@@ -76,6 +76,7 @@ The full protocol is in [`CONTRACT.md`](CONTRACT.md).
 | **Encrypted vault** | SQLite + AES-256-GCM (row identity as associated data), HMAC value hashes for cross-chat linking, `secure_delete`, consent log, per-chat entity graph | `vault.py` |
 | **Context blocks** | Whole confidential passages (deals, plans, decisions, incidents) collapse to one placeholder; replies show the passage as its summary, with the full text on expand | `engine.py` |
 | **Web app** | React 19 + Vite + Tailwind + shadcn/ui: live "being analysed" animation, pastel colour per data type, a "Muse Spark receives" preview, consent cards, markdown replies, vault panel | [`apps/web/`](apps/web/) |
+| **Documents (PDF, Word, PowerPoint)** | Attach a file to a chat or download a masked copy in the same format. Tracked changes, comments, links, images, charts and metadata are stripped first; PDFs are truly redacted (text under each box removed, the placeholder written back as selectable text); a verifier reopens every copy and refuses it if any masked value is left anywhere in the file | [`muse_shield/documents/`](muse_shield/documents/) |
 | **Chrome extension for meta.ai** | Replaces meta.ai's box with a Muse Shield composer the page can't read; Grammarly-style underlines; restored replies and consent cards inside the meta.ai chat | [`apps/extension/`](apps/extension/) |
 | **Agents over placeholders** | Muse Spark plans tool calls (`TOOL_CALL`) with placeholders; a confirm card shows the real values before anything runs; a local executor fills them in only for a call you confirmed; encrypted outbox, signed envelopes, sealed grants and an HMAC-chained audit log | [`muse_shield/agent/`](muse_shield/agent/) |
 | **Inspector and leak audit** | Every outbound request recorded (analysis vs answer), audited for leaked values, with tokens, latency and cost | `inspector.py`, `/inspector/audit` |
@@ -119,6 +120,19 @@ Recorded eval spend so far: **$6.05**.
 | Realistic conversations | 6 multi-turn chats across sectors, 18 turns | **0.0% leak**, 100% recall | $0.06 |
 | Agent scenarios | 16 tool-use scenarios (emails, invites, notes) through the executor | **16 of 16**, leak audit clean (15 of 16 before the fix for a false leak flag) | $0.19 |
 
+**Documents** (the same 10 messages, rendered as Word, PowerPoint and PDF with the hard cases on purpose: values
+split across runs, text in headers, tables and speaker notes, names wrapped across PDF lines; plus one 10-page
+file of all ten):
+
+| Format | Files | Must-mask values | Masked | Left in the masked copy | Copies verified | Cost |
+|---|---|---|---|---|---|---|
+| Word (.docx) | 11 | 154 | 99.4% | 1 | 100% | $0.07 |
+| PowerPoint (.pptx) | 11 | 154 | 99.4% | 1 | 100% | $0.08 |
+| PDF | 11 | 154 | 99.4% | 1 | 100% | $0.05 |
+
+The misses were an IP address and one first name, each once. Text is analysed in units of up to 800 characters
+(1,500 missed 5 instead of 3 values, mostly in the 10-page file), so a 10-page file takes 5–7 Muse Spark calls.
+
 A masked message costs about **$0.004** and takes **about 4.6 s** at p50, analysis included.
 
 ## Quick start
@@ -155,9 +169,10 @@ Offline agent demo, with no API key needed:
 ## Testing and evals
 
 ```bash
-.venv/bin/pytest                                            # 128 tests, offline
+.venv/bin/pytest                                            # 179 tests, offline
 .venv/bin/python -m muse_shield.realistic --rounds 3 --tag my-run
 .venv/bin/python -m muse_shield.agent.scenarios --rounds 2
+.venv/bin/python -m muse_shield.document_eval --rounds 1     # the realistic set as PDF, Word and PowerPoint
 .venv/bin/python -m muse_shield.benchmarks.run --help       # Nemotron-PII, any backend
 ```
 
@@ -224,11 +239,12 @@ against both the base model and Muse Spark.
 
 ```
 muse_shield/
-  app/            engine: server, vault, masking, chat and consent, inspector, extension API
+  app/            engine: server, vault, masking, chat and consent, inspector, extension and document API
+  documents/      PDF, .docx and .pptx: sanitize, extract, mask, write back, verify
   agent/          placeholder-only agents: protocol, tools, executor, grants, scenarios
   benchmarks/     Nemotron-PII sampling, label mapping, scoring, runner
   backends.py     Muse Spark, Muse Wonder and Muse Glimmer analysis backends (one JSON contract)
-  realistic.py    realistic PII loop      conversations.py   multi-turn eval
+  realistic.py    realistic PII loop      conversations.py   multi-turn eval      document_eval.py   documents
   trainset.py     fine-tuning data        results.py, costs.py   versioned runs and spend
 apps/web/         React web app (Electron later)
 apps/extension/   Chrome extension for meta.ai
@@ -245,3 +261,11 @@ CONTRACT.md       the protocol every client codes against
 | **Muse Spark 1.3** | Meta Model API | Call 1 analysis (for now) and call 2 answers; agent planning |
 | **Muse Glimmer 30B** | Fireworks on-demand deployment | Benchmarked baseline; the model we fine-tune for on-device or self-hosted analysis |
 | Muse Wonder 1.0 | Meta Model API | Smoke-tested on 5 docs; dropped (a coding and agentic model, at 3–5× Spark's price) |
+
+## Licence
+
+Muse Shield is licensed under the [GNU AGPL-3.0-or-later](LICENSE). PDF masking uses
+[PyMuPDF](https://pymupdf.readthedocs.io/), which is AGPL-3.0, so anyone distributing a build
+with document support (for example the planned desktop app) must publish its source under the
+AGPL or buy a commercial PyMuPDF licence from Artifex. The other dependencies (cryptography,
+FastAPI, lxml, python-docx, python-pptx, React and the web libraries) are permissively licensed.

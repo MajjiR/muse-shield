@@ -1,0 +1,31 @@
+{
+  "run_id": "20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal",
+  "eval": "document-pii",
+  "tag": "docs10-spark-minimal",
+  "created": "2026-11-04T03:10:15+0530",
+  "version": "0.0.1",
+  "git": "6b8b7b2-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/documents/muse_shield/document_eval.py --rounds 1 --tag docs10-spark-minimal",
+  "dataset": {
+    "name": "muse_shield.realistic rendered by muse_shield.documents.samples",
+    "examples": 10,
+    "long_doc": true,
+    "formats": [
+      "docx",
+      "pptx",
+      "pdf"
+    ]
+  },
+  "settings": {
+    "model": "muse-spark-1.3",
+    "reasoning_effort": "minimal",
+    "rounds": 1,
+    "unit_chars": 1500,
+    "contexts": false
+  },
+  "backends": [
+    "muse_spark-docx",
+    "muse_spark-pptx",
+    "muse_spark-pdf"
+  ]
+}

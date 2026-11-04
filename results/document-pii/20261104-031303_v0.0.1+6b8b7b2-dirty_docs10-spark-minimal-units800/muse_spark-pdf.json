@@ -1,0 +1,31 @@
+{
+  "backend": "muse_spark-pdf",
+  "model": "muse-spark-1.3",
+  "docs": 11,
+  "leak_rate": 0.006493506493506494,
+  "span_recall": 0.9935064935064936,
+  "valid_rate": 1.0,
+  "must_total": 154,
+  "missed_total": 1,
+  "leaked_total": 1,
+  "not_extracted": 0,
+  "missed_by_type": {
+    "PERSON": 1
+  },
+  "consistent_misses": [
+    {
+      "id": "long-10",
+      "value": "Kavya",
+      "times": 1
+    }
+  ],
+  "units_per_doc": 1.4,
+  "long_doc_units": 5,
+  "warnings": {},
+  "cost_usd": 0.05063,
+  "cost": {
+    "usd": 0.05063,
+    "basis": "tokens"
+  },
+  "seconds": 57.1
+}
