@@ -156,3 +156,59 @@ def test_samples_have_gold_inside_the_image_and_score_perfect_masks():
                    + [{"kind": "photo_id", "label": "<P_1>", "box": p.as_list()} for p in s.photos], "verify": {"ok": True}}
         sc = score(s, perfect)
         assert all(g["masked"] and not g["leaked"] for g in sc["gold"]) and all(p["blurred"] for p in sc["photos"])
+
+
+def test_sam_alone_finds_and_covers_without_any_reader(vault):
+    calls = []
+    _, sam, _ = fake_meta(sam_faces=(FACE_BOX,), calls=calls)
+    masker = ImageMasker(vault, None, sam)  # SAM 3.1 only: the default now
+    out = masker.mask(picture(), verify=True)
+    assert all(path.endswith("/responses") for path, _ in calls)  # no chat model ever saw the raw picture
+    asked = {body["input"][0]["content"][1]["text"] for _, body in calls}
+    assert {"face", "license plate", "id card", "document"} <= asked
+    faces = [r for r in out.regions if r["kind"] == "face"]
+    assert len(faces) == 1 and faces[0]["source"] == "sam-3.1" and out.text == ""
+    assert out.verify["ok"] is None and "no reader" in out.verify["skipped"]
+    before, after = Image.open(io.BytesIO(picture())), Image.open(io.BytesIO(out.image))
+    face_px = (FACE_BOX[0] + 5, FACE_BOX[1] + 5)
+    assert before.getpixel(face_px) != after.getpixel(face_px)  # the face is blurred
+
+
+def test_sam_alone_fails_closed_when_sam_errors(vault):
+    def handler(request):
+        return httpx.Response(500, json={"error": "down"})
+    sam = Sam("https://meta.test/v1", "k", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    with pytest.raises(Exception):
+        ImageMasker(vault, None, sam).mask(picture())  # never "nothing found" when the only finder failed
+
+
+def test_image_masking_needs_a_finder(vault):
+    with pytest.raises(ValueError):
+        ImageMasker(vault, None, None)
+
+
+def test_private_text_in_an_image_is_refused_not_sent(vault):
+    from muse_shield.images import ImageRefused
+    _, sam, calls = fake_meta()
+    seen = []
+    masker = ImageMasker(vault, None, sam, text_check=lambda img, mime: (seen.append(mime), (True, "an ID card"))[1])
+    with pytest.raises(ImageRefused, match="private text \\(an ID card\\)"):
+        masker.mask(picture())
+    assert seen == ["image/png"]
+
+
+def test_a_photo_without_private_text_is_masked(vault):
+    _, sam, _ = fake_meta(sam_faces=(FACE_BOX,))
+    out = ImageMasker(vault, None, sam, text_check=lambda img, mime: (False, "a street photo")).mask(picture())
+    assert [r["kind"] for r in out.regions] == ["face"]
+
+
+def test_a_failed_text_check_refuses(vault):
+    from muse_shield.backends import BackendError
+    from muse_shield.images import ImageRefused
+    _, sam, _ = fake_meta()
+
+    def broken(img, mime):
+        raise BackendError("deployment down")
+    with pytest.raises(ImageRefused, match="couldn't check"):
+        ImageMasker(vault, None, sam, text_check=broken).mask(picture())

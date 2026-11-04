@@ -72,16 +72,17 @@ def test_failed_analysis_blocks(tmp_path):
     assert not r["analysis_ok"] and "invalid" in r["error"] and r["masked_text"] == ACCEPT
 
 
-def test_analysis_off_by_default_and_contributor_refused(tmp_path, monkeypatch):
-    from muse_shield.app.server import analyzer_from_env
+def test_muse_spark_never_masks(tmp_path, monkeypatch):
+    """Masking runs only on the fine-tuned Glimmer; with no Glimmer configured it's off, even with a Meta key."""
+    from muse_shield.app.server import analyzer_from_env, modes_from_env
 
     monkeypatch.setenv("MODEL_API_KEY", "k")
-    assert analyzer_from_env()[0] is None and "MUSE_SHIELD_DEV_RAW_ANALYSIS" in analyzer_from_env()[1]
     monkeypatch.setenv("MUSE_SHIELD_DEV_RAW_ANALYSIS", "1")
-    monkeypatch.setenv("MUSE_SHIELD_MODEL", "muse-spark-1.3-contributor")
-    assert analyzer_from_env()[0] is None and "Standard" in analyzer_from_env()[1]
     monkeypatch.setenv("MUSE_SHIELD_MODEL", "muse-spark-1.3")
-    assert analyzer_from_env()[0].model == "muse-spark-1.3"
+    backend, why = analyzer_from_env()
+    assert backend is None and "Glimmer" in why
+    modes, default, off = modes_from_env()
+    assert modes == {} and "Glimmer" in off
 
 
 def test_vault_graph_and_reveal_endpoints(client):

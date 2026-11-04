@@ -17,19 +17,17 @@ to share: the passage's shape, a one-line summary, or the full text.
 
 ### Which models run where
 
-- **We are building our own analysis model:** a LoRA fine-tune of **Muse Glimmer 30B**,
-  trained on Fireworks. Four adapters are trained so far (held-out loss 0.085 → 0.012 for v1c),
-  on branch [`feature/glimmer-lora`](https://github.com/MajjiR/muse-shield/tree/feature/glimmer-lora), with every run in `results/training/`.
-  It is the model meant to run the steps that see raw input, self-hosted.
-- **Cloud Muse Spark and SAM 3.1 are development stand-ins.** While the fine-tune is benchmarked
-  and hosted, the raw-input steps use Muse Spark and SAM 3.1 on the Meta Model API, on made-up
-  data only. Those steps are text and document analysis (call 1) and finding things in images.
-  The app keeps them off unless `MUSE_SHIELD_DEV_RAW_ANALYSIS=1`, and refuses Contributor
-  models.
-- **Muse Spark stays the answering model (call 2).** It only ever sees masked text and masked
+- **Masking (call 1) runs on our own fine-tuned Muse Glimmer 30B:** the entity-resolution LoRA
+  `muse-shield-glimmer-er-v2b`, trained on Fireworks (results in `results/entity-resolution/`). Every
+  start of the app brings up its own deployment of it and deletes it when the app stops. Cloud Muse
+  Spark no longer finds what to mask.
+- **Images are masked by SAM 3.1** on the Meta Model API: it finds faces, plates, ID and bank cards,
+  documents, signatures and codes, and they're blurred or pixelated before any chat model sees the
+  picture. `MUSE_SHIELD_SAM_URL` switches to SAM 3 on this machine (`muse_shield/images/sam_local.py`).
+- **Muse Spark answers (call 2)** and plans agent tool calls. It only ever sees masked text and masked
   images.
-- **Switching is configuration:** the analysis and image clients take a base URL and model
-  name.
+- Raw text goes to your own Glimmer deployment and raw images to SAM 3.1, so the app keeps masking off
+  unless `MUSE_SHIELD_DEV_RAW_ANALYSIS=1`: use made-up data while prototyping.
 
 ---
 
@@ -164,39 +162,31 @@ A masked message costs about **$0.004** and takes **about 4.6 s** at p50, analys
 
 ## Quick start
 
-> **Use made-up data only.** Until analysis runs on a self-hosted model, call 1 sends raw
-> text to the Meta Model API.
+> **Use made-up data only** while prototyping: raw text goes to your own Fireworks deployment of the
+> fine-tuned Glimmer, and raw images to SAM 3.1 on the Meta Model API.
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
-cp .env.example .env               # add MODEL_API_KEY (Meta Model API)
+cp .env.example .env               # add MODEL_API_KEY (Meta Model API) and FIREWORKS_API_KEY
 ```
 
 ```bash
 MUSE_SHIELD_DEV_RAW_ANALYSIS=1 .venv/bin/python -m muse_shield.app    # http://127.0.0.1:8765
 ```
 
-To detect with the fine-tuned Muse Glimmer instead of Muse Spark, point the app at your own
-Fireworks deployment. A LoRA is served only from an on-demand deployment; a live-merge deployment
-needs both full paths in the route. Replies still come from Muse Spark.
+Each start creates a live-merge deployment of `muse-shield-glimmer-er-v2b` on one H200 (a few
+minutes, billed per hour while it's up), waits until it answers, and points masking at it. **Ctrl-C
+deletes it.** A deployment a crashed run left behind is reused, not duplicated. To use a deployment you
+already run, set `MUSE_SHIELD_GLIMMER_ER_MODEL=<model>#<deployment>`; `MUSE_SHIELD_GLIMMER_LORA` picks
+another LoRA. New chats offer **Entity resolution** and **Entity resolution + classify** (the same
+model, plus the document's category and its extra private details); each chat stays in the mode it
+started with.
 
-```bash
-# .env
-MUSE_SHIELD_GLIMMER_MODEL=accounts/<you>/models/muse-shield-glimmer-lora-v2-full#accounts/<you>/deployments/<id>
-```
-
-```bash
-MUSE_SHIELD_DEV_RAW_ANALYSIS=1 MUSE_SHIELD_ANALYZER=glimmer PORT=8771 .venv/bin/python -m muse_shield.app
-```
-
-A deployment that has scaled to zero takes a few minutes to wake up on the first message.
-
-For an entity-resolution LoRA (`muse-shield-glimmer-er-*`), add `MUSE_SHIELD_GLIMMER_TASK=resolution`. Each message
-or document then goes to the model in one call. Every mention of a person ("Rohan Majji", "Rohan", "Mr. Majji") shares
-one placeholder, also on later turns. Pronouns and descriptions ("his", "the employee") stay readable. Owners
-(whose salary, whose phone) and relations (MANAGES, PARENT_OF, …) become vault links. This mode has no context
-blocks, because the resolution model wasn't trained on them. The contract is in `muse_shield/resolution.py`.
+Each message or document goes to the model in one call. Every mention of a person ("Rohan Majji",
+"Rohan", "Mr. Majji") shares one placeholder, also on later turns. Pronouns and descriptions ("his",
+"the employee") stay readable. Owners (whose salary, whose phone) and relations (MANAGES, PARENT_OF, …)
+become vault links. The contract is in `muse_shield/resolution.py`.
 
 The engine serves the built web app at `/`. To work on the UI with hot reload:
 

@@ -385,7 +385,7 @@ MODES = {
                    "text, owners and relations, in one call"},
     "resolution_classify": {"label": "Entity resolution + classify", "detail": "Entity resolution plus a second prompt on the "
                             "same model: the document's category and its extra private details"},
-    "spark": {"label": "Muse Spark", "detail": "Cloud Muse Spark analysis (dev stand-in for the fine-tuned Glimmer)"},
+    "custom": {"label": "Custom analyzer", "detail": "An analyzer passed to create_app directly (tests, embedders)"},
 }
 
 
