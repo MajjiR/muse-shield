@@ -1,0 +1,288 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ljrd6tyj",
+  "n": 60,
+  "seconds": 341.82,
+  "contract": {
+    "valid_rate": 1.0,
+    "first_try_rate": 1.0,
+    "errors": 0
+  },
+  "entities": {
+    "precision": 0.9012345679012346,
+    "recall": 0.9733333333333334,
+    "f1": 0.935897435897436,
+    "tp": 146,
+    "fp": 16,
+    "fn": 4
+  },
+  "entities_by_type": {
+    "ADDRESS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 8,
+      "fp": 0,
+      "fn": 0
+    },
+    "AMOUNT": {
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666,
+      "f1": 0.9166666666666666,
+      "tp": 44,
+      "fp": 4,
+      "fn": 4
+    },
+    "DATE": {
+      "precision": 0.0,
+      "recall": 1.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 12,
+      "fn": 0
+    },
+    "LOCATION": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 13,
+      "fp": 0,
+      "fn": 0
+    },
+    "ORG": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 33,
+      "fp": 0,
+      "fn": 0
+    },
+    "PERSON": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 41,
+      "fp": 0,
+      "fn": 0
+    },
+    "PROJECT": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 7,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "role_accuracy": 0.9772727272727273,
+  "contexts": {
+    "precision": 0.7619047619047619,
+    "recall": 0.7619047619047619,
+    "f1": 0.7619047619047619,
+    "tp": 32,
+    "fp": 10,
+    "fn": 10
+  },
+  "context_kind_accuracy": 0.8,
+  "hallucinated_spans": 0,
+  "f1_by_template": {
+    "acceptance": 1.0,
+    "deal": 1.0,
+    "hr": 1.0,
+    "loan": 1.0,
+    "negative": 1.0,
+    "negotiation": 0.8571428571428571,
+    "plan": 0.8,
+    "price": 1.0,
+    "project": 0.8775510204081632,
+    "salary_decision": 0.9523809523809523
+  },
+  "latency_ms": {
+    "p50": 2978.989458992146,
+    "p95": 299001.66979199275
+  },
+  "tokens": {
+    "in": 45232,
+    "out": 5147,
+    "cached_in": 40832
+  },
+  "cost_usd": 0.7596061302777121,
+  "cost": {
+    "usd": 0.7596061302777121,
+    "basis": "gpu_time",
+    "detail": {
+      "seconds": 341.8,
+      "gpus": 1,
+      "accelerator": "NVIDIA_H200_141GB",
+      "usd_per_gpu_hour": 8.0,
+      "note": "deployment idle time between runs is billed but not attributed"
+    }
+  },
+  "failures": [
+    {
+      "id": "c005",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c008",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c014",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c017",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c023",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c026",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c030",
+      "template": "negotiation",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c032",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c035",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c037",
+      "template": "salary_decision",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c044",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c048",
+      "template": "negotiation",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c050",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c053",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c057",
+      "template": "negotiation",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c059",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    }
+  ],
+  "span_recall": 0.9733333333333334,
+  "span_precision": 0.9012345679012346,
+  "valid_rate": 1.0,
+  "docs": 60,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 0.9166666666666666,
+    "DATE": 1.0,
+    "LOCATION": 1.0,
+    "ORG": 1.0,
+    "PERSON": 1.0,
+    "PROJECT": 1.0
+  }
+}

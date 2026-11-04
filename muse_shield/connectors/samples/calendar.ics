@@ -1,0 +1,33 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Muse Shield samples//EN
+BEGIN:VEVENT
+UID:evt-banyan-review
+SUMMARY:Project Banyan budget review
+DTSTART:20261105T093000Z
+DTEND:20261105T103000Z
+ATTENDEE;CN=Ananya Iyer:mailto:ananya@northwind.in
+ATTENDEE;CN=Meera Pillai:mailto:meera@northwind.in
+LOCATION:Northwind office, 4th floor, MG Road, Bengaluru
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-kestrel-diligence
+SUMMARY:Kestrel Labs diligence call
+DTSTART:20261106T063000Z
+DTEND:20261106T071500Z
+ATTENDEE;CN=Priya Shah:mailto:priya@kestrel.io
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-clinic-followup
+SUMMARY:Thyroid follow-up with Dr. Kavita Rao
+DTSTART:20261107T050000Z
+DTEND:20261107T053000Z
+LOCATION:Lotus Clinic, 12 CMH Road, Indiranagar, Bengaluru
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-rent
+SUMMARY:Pay rent to Mr. Suresh Kulkarni
+DTSTART:20261101T043000Z
+DTEND:20261101T044500Z
+END:VEVENT
+END:VCALENDAR

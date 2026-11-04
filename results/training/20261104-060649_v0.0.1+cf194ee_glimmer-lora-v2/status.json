@@ -1,0 +1,1 @@
+{"code":1,"message":"Training run cancelled","details":[{"@type":"type.googleapis.com/gateway.JobProgress","percent":77},{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"CANCELLED","domain":"training.fireworks.ai","metadata":{"version":"1","source":"managed","category":"signal"}}]}

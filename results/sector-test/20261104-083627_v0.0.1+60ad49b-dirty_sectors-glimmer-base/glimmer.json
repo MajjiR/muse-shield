@@ -1,0 +1,362 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/skpptmp8",
+  "n": 951,
+  "seconds": 115.91,
+  "contract": {
+    "valid_rate": 0.953732912723449,
+    "first_try_rate": 0.9526813880126183,
+    "errors": 0
+  },
+  "entities": {
+    "precision": 0.9100657212037357,
+    "recall": 0.9423352435530086,
+    "f1": 0.9259194087629773,
+    "tp": 2631,
+    "fp": 260,
+    "fn": 161
+  },
+  "entities_by_type": {
+    "ADDRESS": {
+      "precision": 1.0,
+      "recall": 0.9959183673469387,
+      "f1": 0.9979550102249488,
+      "tp": 244,
+      "fp": 0,
+      "fn": 1
+    },
+    "AMOUNT": {
+      "precision": 0.9821428571428571,
+      "recall": 0.9821428571428571,
+      "f1": 0.9821428571428571,
+      "tp": 165,
+      "fp": 3,
+      "fn": 3
+    },
+    "CONTACT": {
+      "precision": 0.9948805460750854,
+      "recall": 0.9965811965811966,
+      "f1": 0.9957301451750641,
+      "tp": 583,
+      "fp": 3,
+      "fn": 2
+    },
+    "DATE": {
+      "precision": 0.667910447761194,
+      "recall": 0.9675675675675676,
+      "f1": 0.7902869757174393,
+      "tp": 179,
+      "fp": 89,
+      "fn": 6
+    },
+    "ID": {
+      "precision": 0.8616352201257862,
+      "recall": 0.8616352201257862,
+      "f1": 0.8616352201257862,
+      "tp": 137,
+      "fp": 22,
+      "fn": 22
+    },
+    "LOCATION": {
+      "precision": 0.75,
+      "recall": 0.8181818181818182,
+      "f1": 0.7826086956521738,
+      "tp": 9,
+      "fp": 3,
+      "fn": 2
+    },
+    "ORG": {
+      "precision": 0.8271276595744681,
+      "recall": 0.9841772151898734,
+      "f1": 0.8988439306358381,
+      "tp": 311,
+      "fp": 65,
+      "fn": 5
+    },
+    "PERSON": {
+      "precision": 0.9367924528301886,
+      "recall": 0.9376770538243626,
+      "f1": 0.9372345445965079,
+      "tp": 993,
+      "fp": 67,
+      "fn": 66
+    },
+    "PROJECT": {
+      "precision": 0.0,
+      "recall": 1.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 5,
+      "fn": 0
+    },
+    "SENSITIVE_ATTRIBUTE": {
+      "precision": 0.7692307692307693,
+      "recall": 0.15625,
+      "f1": 0.2597402597402597,
+      "tp": 10,
+      "fp": 3,
+      "fn": 54
+    }
+  },
+  "role_accuracy": 0.7272727272727273,
+  "contexts": {
+    "precision": 0.6099290780141844,
+    "recall": 0.38222222222222224,
+    "f1": 0.4699453551912568,
+    "tp": 172,
+    "fp": 110,
+    "fn": 278
+  },
+  "context_kind_accuracy": 0.7413793103448276,
+  "hallucinated_spans": 2,
+  "f1_by_template": {
+    "admin": 0.9543134199134199,
+    "ecommerce": 0.9573785409992307,
+    "healthcare": 0.853118822415139,
+    "ma_legal": 0.9261201805040667
+  },
+  "latency_ms": {
+    "p50": 904.0342919761315,
+    "p95": 7127.68304097699
+  },
+  "tokens": {
+    "in": 794609,
+    "out": 169069,
+    "cached_in": 707648
+  },
+  "cost_usd": 0.2575870650934262,
+  "cost": {
+    "usd": 0.2575870650934262,
+    "basis": "gpu_time",
+    "detail": {
+      "seconds": 115.9,
+      "gpus": 1,
+      "accelerator": "NVIDIA_H200_141GB",
+      "usd_per_gpu_hour": 8.0,
+      "note": "deployment idle time between runs is billed but not attributed"
+    }
+  },
+  "failures": [
+    {
+      "id": "t00000",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "20 July 2027"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00003",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00006",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "22 March 2026"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00011",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "8 March 2026"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00012",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00014",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00015",
+      "template": "ma_legal",
+      "missed": [
+        "PJMPQ7981T",
+        "3156 1093 1034"
+      ],
+      "extra": [
+        "Aadhaar 3156 1093 1034",
+        "PAN PJMPQ7981T"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00017",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "7 July 2025"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00018",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00021",
+      "template": "ma_legal",
+      "missed": [
+        "$784,937"
+      ],
+      "extra": [],
+      "hallucinated": []
+    },
+    {
+      "id": "t00027",
+      "template": "ma_legal",
+      "missed": [
+        "Maple Pharma"
+      ],
+      "extra": [],
+      "hallucinated": []
+    },
+    {
+      "id": "t00029",
+      "template": "ma_legal",
+      "missed": [
+        "MTAPZ5461W",
+        "5453 5457 3578"
+      ],
+      "extra": [
+        "Aadhaar 5453 5457 3578",
+        "PAN MTAPZ5461W"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00031",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "19 May 2025",
+        "Investment Committee",
+        "Senior Manager"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00035",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00039",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00040",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [],
+      "hallucinated": [
+        "Northstar"
+      ]
+    },
+    {
+      "id": "t00041",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "15 March 2027"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00044",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "20 November 2025"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00047",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "5 November 2025",
+        "Chief Financial Officer"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00051",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "19 July 2026"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00054",
+      "template": "ma_legal",
+      "missed": [
+        "Lumina Motors"
+      ],
+      "extra": [
+        "16 September 2025",
+        "Lumina Motors Finance Committee",
+        "Senior Manager Legal",
+        "confidential restructuring note"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00057",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00058",
+      "template": "ma_legal",
+      "missed": [
+        "5706 5503 5282",
+        "TNRPU5477E"
+      ],
+      "extra": [
+        "Aadhaar 5706 5503 5282",
+        "PAN TNRPU5477E"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "t00061",
+      "error": "invalid JSON: Expecting value"
+    },
+    {
+      "id": "t00063",
+      "template": "ma_legal",
+      "missed": [],
+      "extra": [
+        "7 January 2026"
+      ],
+      "hallucinated": []
+    }
+  ],
+  "span_recall": 0.9423352435530086,
+  "span_precision": 0.9100657212037357,
+  "valid_rate": 0.953732912723449,
+  "docs": 951,
+  "recall_by_type": {
+    "ADDRESS": 0.9959183673469387,
+    "AMOUNT": 0.9821428571428571,
+    "CONTACT": 0.9965811965811966,
+    "DATE": 0.9675675675675676,
+    "ID": 0.8616352201257862,
+    "LOCATION": 0.8181818181818182,
+    "ORG": 0.9841772151898734,
+    "PERSON": 0.9376770538243626,
+    "PROJECT": 1.0,
+    "SENSITIVE_ATTRIBUTE": 0.15625
+  }
+}

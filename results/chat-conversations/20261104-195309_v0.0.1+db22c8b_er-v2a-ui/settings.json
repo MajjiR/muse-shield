@@ -1,0 +1,14 @@
+{
+ "app": "feature/entity-resolution-chat @ db22c8b + NEED_CONTEXT fix",
+ "analysis_model": "Glimmer 30B + muse-shield-glimmer-er-v2a (live-merge H200)",
+ "chat_model": "muse-spark-1.3 (cloud, dev stand-in)",
+ "driver": "Claude in Chrome, real UI",
+ "chats": [
+  "c_76adef853b",
+  "c_19fd1554c7",
+  "c_840dff2861",
+  "c_2953ada40e",
+  "c_41b2930ff9",
+  "c_6b7a878e24"
+ ]
+}

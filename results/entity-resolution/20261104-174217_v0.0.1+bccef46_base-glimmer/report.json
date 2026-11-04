@@ -1,0 +1,100 @@
+{
+ "backend": "sampler",
+ "model": "accounts/fireworks/models/muse-glimmer-30b",
+ "tag": "base-glimmer",
+ "git": "bccef46",
+ "sets": {
+  "test": {
+   "docs": 150,
+   "valid": 0.7333333333333333,
+   "leak": 0.3173138128580522,
+   "core_leak": 0.3210452636490901,
+   "person_leak": 0.3243933588761175,
+   "mention": {
+    "precision": 0.8516934046345811,
+    "recall": 0.5696232713400096,
+    "f1": 0.6826689527075297,
+    "tp": 2389,
+    "fp": 416,
+    "fn": 1805
+   },
+   "coref": {
+    "precision": 0.9625267665952891,
+    "recall": 0.34973740517409063,
+    "f1": 0.5130546440291055,
+    "tp": 3596,
+    "fp": 140,
+    "fn": 6686
+   },
+   "owner_acc": 0.6677165354330709,
+   "unknown_acc": null,
+   "type_acc": 0.7009132420091324,
+   "amount_role_acc": 0.6491228070175439,
+   "relations": {
+    "precision": 0.43205574912891986,
+    "recall": 0.41333333333333333,
+    "f1": 0.42248722316865417,
+    "tp": 124,
+    "fp": 163,
+    "fn": 176
+   },
+   "persons_resolved": 0.5243362831858407,
+   "dropped_mentions": 0,
+   "seconds": 427.4,
+   "tokens": {
+    "prompt_tokens": 299576,
+    "completion_tokens": 296804
+   }
+  },
+  "challenge": {
+   "docs": 80,
+   "valid": 0.875,
+   "leak": 0.14464099895941726,
+   "core_leak": 0.15091678420310295,
+   "person_leak": 0.14751426242868787,
+   "mention": {
+    "precision": 0.8664192949907236,
+    "recall": 0.7181853133410226,
+    "f1": 0.7853689299978978,
+    "tp": 1868,
+    "fp": 288,
+    "fn": 733
+   },
+   "coref": {
+    "precision": 0.9652520649387639,
+    "recall": 0.4664831383344804,
+    "f1": 0.6289903489235338,
+    "tp": 3389,
+    "fp": 122,
+    "fn": 3876
+   },
+   "owner_acc": 0.848780487804878,
+   "unknown_acc": 0.0,
+   "type_acc": 0.877892030848329,
+   "amount_role_acc": 0.6463414634146342,
+   "relations": {
+    "precision": 0.7175925925925926,
+    "recall": 0.7451923076923077,
+    "f1": 0.7311320754716981,
+    "tp": 155,
+    "fp": 61,
+    "fn": 53
+   },
+   "persons_resolved": 0.6085526315789473,
+   "dropped_mentions": 0,
+   "seconds": 114.4,
+   "tokens": {
+    "prompt_tokens": 139019,
+    "completion_tokens": 101729
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 3000,
+  "workers": 24,
+  "data": "/Users/majjir/muse-shield/.worktrees/entity-engine/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)"
+ },
+ "rescored": "scripts/er_rescore.py (current scorer)"
+}

@@ -1,0 +1,1 @@
+{"label": "base", "exact_match": 0.475, "unterminated": 1, "prompt_tokens": 31159, "sampled_tokens": 5783, "field_accuracy": {"entities": 0.55, "contexts": 0.875}, "observed_utc": "2026-11-03T21:02:41Z"}

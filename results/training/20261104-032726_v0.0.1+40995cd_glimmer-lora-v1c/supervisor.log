@@ -1,0 +1,19 @@
+03:27:26 attempt 1 starting, fresh start
+03:27:46 session accounts/rohan-majji/trainingSessions/ts-418b245af0ca4ce29934e88b04a14301
+03:27:46 run run-0ee8b96ba7dc477e8d69369892598fe5
+03:30:06 eval loss at step 0: 0.0845
+03:32:56 step 25 loss 0.0212 ema 0.0392
+03:37:16 step 50 loss 0.0373 ema 0.0209
+03:41:36 step 75 loss 0.0240 ema 0.0213
+03:45:47 step 100 loss 0.0058 ema 0.0156
+03:48:07 step 125 loss 0.0177 ema 0.0116
+03:52:37 step 150 loss 0.0075 ema 0.0154
+03:58:18 step 175 loss 0.0268 ema 0.0178
+04:04:48 step 200 loss 0.0040 ema 0.0124
+04:11:09 step 225 loss 0.0207 ema 0.0152
+04:16:39 step 250 loss 0.0056 ema 0.0145
+04:22:30 step 275 loss 0.0234 ema 0.0100
+04:29:41 eval loss at step 298: 0.0122
+04:31:11 attempt 1 completed; model {'model_id': 'muse-shield-glimmer-lora-v1c', 'checkpoint': 'step-298', 'job_id': 'ts-418b245af0ca4ce29934e88b04a14301'}
+wrote /Users/majjir/muse-shield/.worktrees/tuning/results/training/20261104-032726_v0.0.1+40995cd_glimmer-lora-v1c/loss.html
+04:31:12 DONE: completed

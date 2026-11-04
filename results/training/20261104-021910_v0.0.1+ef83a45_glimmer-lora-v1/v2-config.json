@@ -1,0 +1,10 @@
+{
+  "run": "glimmer-lora-v2",
+  "based_on": "analysis.md of glimmer-lora-v1 at step 30",
+  "base_model": "accounts/fireworks/models/muse-glimmer-30b",
+  "surface": "serverless (cookbook muse_glimmer_starter)",
+  "params": {"epochs": 1, "lora_rank": 8, "learning_rate": 5e-5, "batch_size": 32, "max_seq_len": 2048, "n_eval": 40},
+  "changed_from_v1": {"learning_rate": "1e-4 -> 5e-5", "batch_size": "16 -> 32"},
+  "data_changes_pending_decision": ["DATE policy shared by synthetic and Nemotron rows", "quasi-identifier labels: relabel or drop", "synthetic share <= 10%"],
+  "status": "proposed, not launched"
+}

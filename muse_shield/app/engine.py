@@ -69,6 +69,10 @@ class Masked:
     # Values the model already saw unmasked earlier in this chat. Chat text keeps them (hiding them now would
     # only trip the pre-send guard), but a masked file copy must still hide them.
     already_sent: list[dict] = field(default_factory=list)
+    # Classify mode: the document's categories (prompt and entity rules combined), a one-line summary.
+    mode: str = "normal"
+    categories: list[str] = field(default_factory=list)
+    summary: str = ""
 
     def replacements(self) -> list[tuple[int, int, str]]:
         """(start, end, label) for every piece of `original` the masked text replaces, in order.
@@ -80,15 +84,17 @@ class Masked:
     def to_dict(self) -> dict:
         return {"chat_id": self.chat_id, "masked_text": self.masked_text, "spans": self.spans, "contexts": self.contexts,
                 "analysis_ok": self.analysis_ok, "error": self.error, "latency_ms": round(self.latency_ms, 1),
-                "cost_usd": self.cost_usd}
+                "cost_usd": self.cost_usd, "mode": self.mode, "categories": self.categories, "summary": self.summary}
 
 
+_TITLES = {"mr", "mrs", "ms", "mx", "dr", "prof", "shri", "smt", "sir", "madam", "adv"}
 LINK_WINDOW = 80  # a contact or ID this close to a name (same paragraph) identifies that person
 
 
 class Masker:
-    def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4):
-        self.vault, self.analyzer, self.workers = vault, analyzer, workers
+    def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4, public=None):
+        """public: returns names that are structure, not personal data (your chat channels), so they're never masked."""
+        self.vault, self.analyzer, self.workers, self.public = vault, analyzer, workers, public
 
     def _analyze(self, paras: list[tuple[int, str]], on_progress=None) -> list[Analysis]:
         if not paras:
@@ -115,7 +121,8 @@ class Masker:
             pattern = r"\s+".join(re.escape(w) for w in value.split())
             for m in re.finditer(rf"(?<!\w){pattern}(?!\w)", text, re.IGNORECASE):
                 if "\n\n" not in m.group(0):
-                    out.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": e["type"], "role": e["role"]})
+                    out.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": e["type"], "role": e["role"],
+                                "canonical": e.get("canonical"), "owner": e.get("owner")})
         return out
 
     def _link_contacts(self, text: str, chat_id: str, spans: list[dict]) -> None:
@@ -132,26 +139,81 @@ class Masker:
                 self.vault.add_edge(chat_id, c["placeholder"], best["placeholder"], "identifies")
                 self.vault.link_entities(c["entity_id"], best["entity_id"], "identifies")
 
+    def _known_people(self, chat_id: str) -> dict[str, str]:
+        """PERSON values already in this chat: label -> value (to keep "Rohan" on turn 2 as Rohan Majji's label)."""
+        return {label: value for label, value in self.vault.mapping(chat_id).items() if label.strip("<>").startswith("PERSON_")}
+
+    @staticmethod
+    def _same_person(e: dict, known: dict[str, str]) -> str:
+        """The value to store this mention under: its resolved identity, or an earlier person in the chat whose
+        full name contains it ("Rohan" or "Mr. Majji" after "Rohan Majji"), if exactly one matches."""
+        value = e.get("canonical") or e["text"]
+        if e["type"] != "PERSON":
+            return value
+        words = {w for w in re.findall(r"[\w']+", value.lower()) if w not in _TITLES}
+        if not words or value in known.values():
+            return value
+        matches = {v for v in known.values() if words < set(re.findall(r"[\w']+", v.lower()))}
+        return matches.pop() if len(matches) == 1 else value
+
+    def _link_resolved(self, chat_id: str, spans: list[dict], relations: list, known: dict[str, str]) -> None:
+        """Owners and relations from an entity-resolution model, as vault edges (instead of the distance heuristic)."""
+        by_identity = {}
+        for s in spans:
+            by_identity.setdefault((s["type"], s.get("canonical") or s["text"]), s)
+        for s in spans:
+            owner = by_identity.get(tuple(s["owner"])) if s.get("owner") else None
+            if not owner:
+                continue
+            rel = "identifies" if s["type"] in ("CONTACT", "ID") else "belongs_to"
+            self.vault.add_edge(chat_id, s["placeholder"], owner["placeholder"], rel)
+            if rel == "identifies":
+                self.vault.link_entities(s["entity_id"], owner["entity_id"], "identifies")
+        for a, rel, b in relations:
+            sa, sb = by_identity.get(tuple(a)), by_identity.get(tuple(b))
+            if sa and sb:
+                self.vault.add_edge(chat_id, sa["placeholder"], sb["placeholder"], rel.lower())
+
     def mask(self, text: str, chat_id: str, *, propagate: bool = False, contexts: bool = True, on_progress=None,
-             title: bool = True, origin: str = "user") -> Masked:
+             title: bool = True, origin: str = "user", mode: str = "normal") -> Masked:
         """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
         contexts=False (a passage block would swallow most of a page), on_progress(done, total) per analysed
         unit, and title=False (a document shouldn't name the chat).
         origin: "user" (you typed it: every value in it is yours), "tool" (a tool result: values seen here
-        first are marked as coming from a tool) or "document" (neither)."""
+        first are marked as coming from a tool) or "document" (neither).
+
+        mode="classify" (entity-resolution analyzers only): a second call to the same model, run alongside the
+        fill, classifies the document (medical, legal, hr, ...) and lists category-specific private details the
+        fill doesn't cover (medications, case numbers, codenames, ratings). Those become <SENSITIVE_n>; the
+        fill's own entities always win on overlap."""
         t0 = time.perf_counter()
         paras = paragraphs(text)
+        classify = mode == "classify" and hasattr(self.analyzer, "classify_document")
+        cls = None
         try:
-            analyses = self._analyze(paras, on_progress)
+            if hasattr(self.analyzer, "analyze_document"):  # entity resolution: one call sees the whole text
+                if on_progress:
+                    on_progress(0, 1)
+                if classify and paras:
+                    with ThreadPoolExecutor(max_workers=1) as pool:
+                        pending = pool.submit(self.analyzer.classify_document, text)
+                        analyses = self.analyzer.analyze_document(text, paras)
+                        cls = pending.result()
+                else:
+                    analyses = self.analyzer.analyze_document(text, paras) if paras else []
+                if on_progress:
+                    on_progress(1, 1)
+            else:
+                analyses = self._analyze(paras, on_progress)
         except BackendError as exc:
             return Masked(chat_id, text, text, analysis_ok=False, error=f"analysis failed: {exc}",
                           latency_ms=(time.perf_counter() - t0) * 1000)
         bad = [a for a in analyses if not a.valid]
         tokens = {"in": 0, "out": 0, "cached_in": 0}
-        for a in analyses:
-            tokens["in"] += a.usage.get("prompt_tokens", 0)
-            tokens["out"] += a.usage.get("completion_tokens", 0)
-            tokens["cached_in"] += a.usage.get("prompt_tokens_details.cached_tokens", 0)
+        for u in [a.usage for a in analyses] + ([cls["usage"]] if cls else []):
+            tokens["in"] += u.get("prompt_tokens", 0)
+            tokens["out"] += u.get("completion_tokens", 0)
+            tokens["cached_in"] += u.get("prompt_tokens_details.cached_tokens", 0)
         elapsed = time.perf_counter() - t0
         cost = run_cost(getattr(self.analyzer, "model", ""), tokens, elapsed)["usd"]
         if bad:
@@ -170,13 +232,28 @@ class Masker:
                     continue  # overlapping blocks: keep the first
                 blocks.append({"start": start, "end": end, "kind": c.kind, "subtype": c.subtype, "summary": c.summary})
             for s in a.entities:
-                entities.append({"start": off + s.start, "end": off + s.end, "text": s.text, "type": s.type, "role": s.role})
+                entities.append({"start": off + s.start, "end": off + s.end, "text": s.text, "type": s.type, "role": s.role,
+                                 "canonical": getattr(s, "canonical", None), "owner": getattr(s, "owner", None)})
+        relations = [r for a in analyses for r in getattr(a, "relations", [])]
         if propagate:
             entities += self._propagate(text, entities)
+        categories, summary = [], ""
+        if cls is not None:
+            rule_cats = set(getattr(analyses[0], "categories", []) or []) if analyses else set()
+            categories = sorted(set(cls["categories"]) | rule_cats) or ["general"]
+            summary = cls["summary"]
+            for x in cls["extras"]:
+                for m in re.finditer(rf"(?<!\w){re.escape(x['text'])}(?!\w)", text):
+                    entities.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": "SENSITIVE_ATTRIBUTE",
+                                     "role": None, "canonical": None, "owner": None, "fallback": x["category"] or "sensitive"})
 
-        # Longest entity wins on overlap.
+        if self.public:
+            public = {t.casefold() for t in self.public()}
+            entities = [e for e in entities if e["text"].strip().casefold() not in public]
+
+        # The fill's entities first, longest first; classify-mode fallbacks only where nothing else is.
         kept: list[dict] = []
-        for e in sorted(entities, key=lambda e: e["end"] - e["start"], reverse=True):
+        for e in sorted(entities, key=lambda e: (bool(e.get("fallback")), -(e["end"] - e["start"]))):
             if not any(e["start"] < k["end"] and k["start"] < e["end"] for k in kept):
                 kept.append(e)
         kept.sort(key=lambda e: e["start"])
@@ -190,18 +267,25 @@ class Masker:
 
         spans: list[dict] = []
         first_seen: list[str] = []
+        resolved = any(e.get("canonical") for e in kept)
+        people = self._known_people(chat_id) if resolved else {}
         for e in kept:
-            known = origin != "tool" or self.vault.find_entity(e["type"], e["text"]) is not None
-            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], e["text"], placeholder_base(e["type"], e["role"]))
+            value = self._same_person(e, people) if resolved else e["text"]
+            known = origin != "tool" or self.vault.find_entity(e["type"], value) is not None
+            base = "SENSITIVE" if e.get("fallback") else placeholder_base(e["type"], e["role"])
+            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], value, base)
             spans.append({**e, "placeholder": label, "entity_id": entity_id, "kind": "entity",
-                          "source": "policy" if e["type"] in ALWAYS_MASK else "model"})
+                          "source": "fallback" if e.get("fallback") else "policy" if e["type"] in ALWAYS_MASK else "model"})
             if not known:
                 first_seen.append(entity_id)
         if origin == "tool":
             self.vault.mark_from_tool(first_seen)
         elif origin == "user":
             self.vault.trust_entities([s["entity_id"] for s in spans])
-        self._link_contacts(text, chat_id, spans)
+        if resolved:
+            self._link_resolved(chat_id, spans, relations, people)
+        else:
+            self._link_contacts(text, chat_id, spans)
 
         contexts = []
         for b in sorted(blocks, key=lambda b: b["start"]):
@@ -220,7 +304,8 @@ class Masker:
                              "summary": b["summary"]})
 
         result = Masked(chat_id, text, "", spans=spans, contexts=contexts, cost_usd=cost, tokens=tokens,
-                        already_sent=[{k: e[k] for k in ("start", "end", "text", "type", "role")} for e in already_sent])
+                        already_sent=[{k: e[k] for k in ("start", "end", "text", "type", "role")} for e in already_sent],
+                        mode="classify" if cls is not None else "normal", categories=categories, summary=summary)
         pieces, cursor = [], 0
         for start, end, label in result.replacements():
             pieces += [text[cursor:start], label]
@@ -243,6 +328,7 @@ class Masker:
         self.vault.audit("mask", chat_id, counts)
 
         span_out = [{k: s.get(k) for k in ("start", "end", "text", "type", "role", "placeholder", "kind", "source")} | {"in_context": s.get("in_context")}
+                    | ({"fallback": s["fallback"]} if s.get("fallback") else {})
                     for s in spans]
         span_out += [{"start": c["start"], "end": c["end"], "text": text[c["start"]:c["end"]], "type": c["kind"], "role": None,
                       "placeholder": c["label"], "kind": "context", "source": "model", "in_context": None} for c in contexts]
@@ -288,3 +374,69 @@ def segments(text: str, chat_id: str, vault: Vault) -> list[dict]:
     if cursor < len(text):
         out.append({"text": text[cursor:]})
     return out
+
+
+# -- masking modes: each chat is locked to one ------------------------------------------------
+
+MODES = {
+    "pii_context": {"label": "PII + context", "detail": "Fine-tuned Glimmer (v2-full): names, values and whole confidential "
+                    "passages, paragraph by paragraph"},
+    "resolution": {"label": "Entity resolution", "detail": "Fine-tuned Glimmer (er-v2b): one identity per person across the "
+                   "text, owners and relations, in one call"},
+    "resolution_classify": {"label": "Entity resolution + classify", "detail": "Entity resolution plus a second prompt on the "
+                            "same model: the document's category and its extra private details"},
+    "spark": {"label": "Muse Spark", "detail": "Cloud Muse Spark analysis (dev stand-in for the fine-tuned Glimmer)"},
+}
+
+
+class ModeError(ValueError):
+    """A request asked for a different masking mode than the chat is locked to."""
+
+
+class ModeMasker:
+    """Routes each chat to its own masking mode. A chat's mode is fixed when it's first used: its placeholders,
+    identities and edges come from one analyzer only, so switching means starting a new chat.
+
+    `masker_for` maps a mode to (Masker, classify flag). Looks like a Masker to the chat, document and extension
+    code (analyzer, workers and _analyze are the default mode's)."""
+
+    def __init__(self, vault: Vault, masker_for: dict[str, tuple[Masker, bool]], default: str):
+        self.vault, self.masker_for, self.default = vault, masker_for, default
+        self.workers = masker_for[default][0].workers
+
+    @property
+    def analyzer(self):
+        return self.masker_for[self.default][0].analyzer
+
+    @analyzer.setter
+    def analyzer(self, value) -> None:  # swaps the default mode's analyzer (tests, hot reload)
+        self.masker_for[self.default][0].analyzer = value
+
+    @property
+    def modes(self) -> list[str]:
+        return list(self.masker_for)
+
+    def _analyze(self, paras, on_progress=None):
+        return self.masker_for[self.default][0]._analyze(paras, on_progress)
+
+    def check(self, mode: str | None) -> str:
+        mode = mode or self.default
+        if mode not in self.masker_for:
+            raise ModeError(f"masking mode {mode!r} isn't available here (available: {', '.join(self.masker_for)})")
+        return mode
+
+    def mode_of(self, chat_id: str, requested: str | None = None) -> str:
+        """The chat's mode, locking it to `requested` (or the default) on first use. Raises ModeError on a mismatch."""
+        current = self.vault.chat_mode(chat_id)
+        if current and current not in self.masker_for:
+            raise ModeError(f"this chat uses the {MODES.get(current, {}).get('label', current)!r} mode, which this server "
+                            "isn't running; start a new chat")
+        if current and requested and requested != current:
+            raise ModeError(f"this chat is locked to {MODES[current]['label']!r}; start a new chat to use "
+                            f"{MODES.get(requested, {}).get('label', requested)!r}")
+        return current or self.vault.lock_chat_mode(chat_id, self.check(requested))
+
+    def mask(self, text: str, chat_id: str, *, mode: str | None = None, **kw) -> Masked:
+        chat_mode = self.mode_of(chat_id, mode)
+        masker, classify = self.masker_for[chat_mode]
+        return masker.mask(text, chat_id, mode="classify" if classify else "normal", **kw)

@@ -1,0 +1,15 @@
+{
+ "run": "dedicated-batch",
+ "shape": "accounts/fireworks/trainingShapes/muse-glimmer-30b-131k-lora (1x B200), one trainer per run, all launched together",
+ "data": "first 960 rows of runs/train/pii-v1/train.jsonl; full 197-row val before and after; LoRA rank 16; lr scaled by sqrt(batch/16)",
+ "results": {
+  "b16": {"lr": 1e-4, "steps": 60, "seconds_per_step": 2.30, "tokens_per_step": 9552, "tokens_per_sec": 4162, "eval_loss_before": 0.0840, "eval_loss_after": 0.0360, "trainer_lifetime_s": 454},
+  "b32": {"lr": 1.41e-4, "steps": 30, "seconds_per_step": 3.95, "tokens_per_step": 19105, "tokens_per_sec": 4837, "eval_loss_before": 0.0840, "eval_loss_after": 0.0366, "trainer_lifetime_s": 343},
+  "b64": {"lr": 2e-4, "steps": 15, "seconds_per_step": 7.59, "tokens_per_step": 38210, "tokens_per_sec": 5042, "eval_loss_before": 0.0840, "eval_loss_after": 0.0371, "trainer_lifetime_s": 316}
+ },
+ "step_time_fit": "t = 0.54 s + 1.85e-4 s/token: about 77% of a batch-16 step is GPU work, 0.54 s is fixed overhead",
+ "shared_trainer_test": "second LoRA model attached to the same dedicated trainer unloaded the first ('LoRA session ... does not exist (adapter may have been unloaded)'): one adapter per trainer; trainer lifetime 148 s",
+ "cost_estimate_usd": 4.55,
+ "cost_basis": "1261 trainer-seconds total x $13/B200-hour (pricing page as read 2026-11-03); not yet confirmed on the billing page",
+ "teardown": "all trainers deleted; rlorTrainerJobs list empty"
+}

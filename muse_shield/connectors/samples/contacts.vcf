@@ -1,0 +1,34 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Rahul Mehta
+ORG:Brightpath Studio
+EMAIL:rahul.mehta@brightpath.in
+TEL:+91 98450 12345
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Ananya Iyer
+ORG:Northwind Traders
+EMAIL:ananya@northwind.in
+TEL:+91 99001 22334
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Meera Pillai
+ORG:Northwind Traders
+EMAIL:meera@northwind.in
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Priya Shah
+ORG:Kestrel Labs
+EMAIL:priya@kestrel.io
+TEL:+91 98200 45678
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Kavita Rao
+ORG:Lotus Clinic
+EMAIL:appointments@lotusclinic.in
+TEL:+91 80 4123 9000
+END:VCARD

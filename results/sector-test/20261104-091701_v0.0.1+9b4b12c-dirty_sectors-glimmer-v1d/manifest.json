@@ -1,0 +1,22 @@
+{
+  "run_id": "20261104-091701_v0.0.1+9b4b12c-dirty_sectors-glimmer-v1d",
+  "eval": "sector-test",
+  "tag": "sectors-glimmer-v1d",
+  "created": "2026-11-04T09:17:01+0530",
+  "version": "0.0.1",
+  "git": "9b4b12c-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/tuning/muse_shield/sector_eval.py --backend glimmer --workers 16 --tag sectors-glimmer-v1d",
+  "dataset": {
+    "name": "data/synth-v2/test",
+    "docs": 951
+  },
+  "settings": {
+    "glimmer": {
+      "model": "accounts/rohan-majji/models/muse-shield-glimmer-lora-v1d#accounts/rohan-majji/deployments/ms-eval-v1d",
+      "workers": 16
+    }
+  },
+  "backends": [
+    "glimmer"
+  ]
+}

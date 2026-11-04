@@ -1,11 +1,13 @@
 import { MaskedText } from "@/components/privacy-text"
 import { engine } from "@/lib/engine"
-import { cn } from "@/lib/utils"
+import { modeShort } from "@/lib/modes"
+import { cn, modelLabel } from "@/lib/utils"
 import type { ChatSummary } from "@muse-shield/core"
-import { useQuery } from "@tanstack/react-query"
-import { PenSquare, Search, ShieldCheck } from "lucide-react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { PenSquare, Search, ShieldCheck, Trash2 } from "lucide-react"
 import { motion } from "motion/react"
 import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 function groupChats(chats: ChatSummary[]) {
   const start = new Date()
@@ -22,6 +24,19 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
   const health = useQuery({ queryKey: ["health"], queryFn: engine.health, refetchInterval: 15000 })
   const metrics = useQuery({ queryKey: ["metrics"], queryFn: engine.metrics })
   const [q, setQ] = useState("")
+  const qc = useQueryClient()
+  const remove = async (id: string, title: string) => {
+    if (!window.confirm(`Delete "${title}"? Its messages, files, images and the real values only it uses are removed from the vault. This can't be undone.`)) return
+    try {
+      await engine.deleteChat(id)
+      if (id === chatId) onNew()
+      qc.removeQueries({ queryKey: ["chat", id] })
+      await qc.invalidateQueries({ queryKey: ["chats"] })
+      toast.success("Chat deleted")
+    } catch (e) {
+      toast.error((e as Error).message)
+    }
+  }
   const filtered = useMemo(
     () => (chats.data ?? []).filter((c) => c.title.toLowerCase().includes(q.toLowerCase())),
     [chats.data, q],
@@ -64,8 +79,9 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
             {list.map((c) => {
               const active = c.chat_id === chatId
               return (
-                <button key={c.chat_id} type="button" onClick={() => onSelect(c.chat_id)}
-                  className={cn("relative w-full rounded-md px-2.5 py-2 text-left transition-colors",
+                <div key={c.chat_id} className="group relative">
+                <button type="button" onClick={() => onSelect(c.chat_id)}
+                  className={cn("relative w-full rounded-md py-2 pr-9 pl-2.5 text-left transition-colors",
                     active ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60")}>
                   {active && <motion.span layoutId="chat-active" className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" />}
                   <span className="block truncate text-[14px] leading-snug text-sidebar-foreground">
@@ -73,8 +89,14 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
                   </span>
                   <span className="tabular mt-0.5 block text-[11px] text-muted-foreground">
                     {c.messages} {c.messages === 1 ? "message" : "messages"} · {new Date(c.created_at * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {c.mode && <> · {modeShort(c.mode)}</>}
                   </span>
                 </button>
+                <button type="button" aria-label={`Delete chat ${c.title}`} title="Delete chat" onClick={() => remove(c.chat_id, c.title)}
+                  className="absolute top-2 right-1.5 grid size-7 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-background hover:text-foreground">
+                  <Trash2 className="size-3.5" />
+                </button>
+                </div>
               )
             })}
           </div>
@@ -85,7 +107,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
         {health.isError && <p className="font-medium">Engine unreachable</p>}
         {h && (
           <>
-            <Status ok={h.analysis} label="Masking" value={h.analysis_model ?? "off"} />
+            <Status ok={h.analysis} label="Masking" value={modelLabel(h.analysis_model)} />
             <Status ok={h.chat} label="Answers" value={h.chat_model ?? "off"} />
             {/* image_model is "<vision> + <segmentation>": Spark reads the picture, SAM outlines faces and plates */}
             <Status ok={!!h.images} label="Images" value={h.image_model?.split(" + ")[0] ?? "off"} />

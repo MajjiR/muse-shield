@@ -118,7 +118,29 @@ def check(vault: Vault, chat_id: str, tool_name: str, args: dict) -> Checked:
         where = f"{tool.name}.{p.name}"
         if p.kind == "recipients":
             out.real[p.name] = _recipients(vault, chat_id, value, where, out)
+        elif p.kind == "channel":
+            out.real[p.name] = _channel(str(value), where, out)
         else:
             out.real[p.name] = _text(vault, chat_id, str(value), p.resolve, where, out, tool.external)
+    shared = [c for p, c in ((p, out.real.get(p.name)) for p in tool.params if p.kind == "channel") if c and _shared_outside(c)]
+    if shared and tool.side_effect and out.unmasked:
+        out.violations.append(f"{tool.name}: {shared[0]} is shared with people outside your workspace, so hidden values "
+                              f"({', '.join(sorted(set(out.unmasked)))}) can't be posted there")
     out.unmasked = sorted(set(out.unmasked))
     return out
+
+
+def _channel(value: str, where: str, out: Checked) -> str:
+    """A channel must be one of yours; the model can't invent a destination."""
+    from ..connectors.personal import workspace
+
+    name = value if value.startswith("#") else "#" + value
+    if LABEL.search(name) or name not in workspace():
+        out.violations.append(f"{where}: '{value}' isn't one of your channels")
+    return name
+
+
+def _shared_outside(name: str) -> bool:
+    from ..connectors.personal import workspace
+
+    return bool(workspace().get(name, {}).get("external"))

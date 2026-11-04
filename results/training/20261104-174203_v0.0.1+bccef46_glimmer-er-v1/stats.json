@@ -1,0 +1,30 @@
+{
+ "run": "glimmer-er-v1",
+ "model_id": "accounts/rohan-majji/models/muse-shield-glimmer-er-v1",
+ "surface": "Fireworks Training API, dedicated trainer, 1x B200 (muse-glimmer-30b-131k-lora)",
+ "trainer_job": "training-api-service-bc8c2c8b",
+ "data": "runs/er/v1 (data/er-v1): 1,237 train / 60 val documents, DeepSeek V4 Flash written, plan-verified",
+ "params": {
+  "lora_rank": 16,
+  "lr": 0.0001,
+  "epochs": 2,
+  "batch_size": 16,
+  "max_seq_len": 4096
+ },
+ "steps": 156,
+ "seconds_per_step": 6.96,
+ "eval_loss": {
+  "before": 0.0733,
+  "epoch_1": 0.008,
+  "epoch_2": 0.0054
+ },
+ "timing_utc": {
+  "trainer_created": "12:12:28",
+  "first_step": "12:16:57",
+  "last_step": "12:34:54",
+  "deleted": "12:36:11"
+ },
+ "trainer_lifetime_s": 1423,
+ "cost_estimate_usd": 5.14,
+ "cost_basis": "1 B200 x $13/GPU-hour x trainer lifetime; not confirmed on the billing page"
+}

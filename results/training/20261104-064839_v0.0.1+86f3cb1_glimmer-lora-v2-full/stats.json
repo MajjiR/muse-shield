@@ -1,0 +1,65 @@
+{
+  "run": "glimmer-lora-v2-full",
+  "outcome": "completed",
+  "model": {
+    "model_id": "muse-shield-glimmer-lora-v2-full",
+    "checkpoint": "step-588",
+    "job_id": "ts-9c31e22a67264855899e5149dbef3f66"
+  },
+  "early_stop": null,
+  "params": {
+    "name": "glimmer-lora-v2-full",
+    "output_model_id": "",
+    "lr": 0.0001,
+    "batch": 16,
+    "epochs": 1,
+    "rank": 8,
+    "max_seq_len": 2048,
+    "warmup_steps": 0,
+    "max_examples": null,
+    "checkpoint_every": 25,
+    "max_attempts": 5,
+    "plateau_window": 75,
+    "plateau_min_improve": 0.02,
+    "min_steps": 150,
+    "no_early_stop": true,
+    "simulate_crash_at": 0
+  },
+  "train": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v2/train.jsonl",
+  "eval": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v2/val.jsonl",
+  "attempts": [
+    {
+      "n": 1,
+      "start": 1793755119.3206809,
+      "end": 1793756871.594168,
+      "exit": 0,
+      "last_step": 588,
+      "outcome": "completed",
+      "resumed_from": "rohan-majji/run-84d1fe999b0b428a840be83c0f27c324/step-450"
+    }
+  ],
+  "timing": {
+    "wall_seconds": 4264.2,
+    "training_seconds": 1752.3
+  },
+  "steps": 588,
+  "loss": {
+    "first5": 0.0762766247616759,
+    "last5": 0.03188724985864072,
+    "min": 0.003136711055818843
+  },
+  "eval_loss": [
+    {
+      "step": 0,
+      "loss": 0.08283316637146633
+    },
+    {
+      "step": 588,
+      "loss": 0.02671745489217726
+    }
+  ],
+  "cost_usd": {
+    "training": 0.0,
+    "basis": "Muse Glimmer LoRA SFT promotion (jobs before 2026-12-01T00:00:00-08:00)"
+  }
+}

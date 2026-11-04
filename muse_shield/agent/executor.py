@@ -26,7 +26,8 @@ from .policy import Checked, check
 from .runners import RUNNERS
 from .tools import TOOLS
 
-SKIP_KEYS = {"id", "status", "date", "outbox_id", "note_id", "message_id"}  # structure, not content
+SKIP_KEYS = {"id", "status", "date", "start", "end", "ts", "channel", "shared_outside", "outbox_id", "note_id",
+             "message_id"}  # structure, not content
 
 
 @dataclass
@@ -121,7 +122,8 @@ class Executor:
                 leaves.append((path, node))
 
         walk(value, [])
-        mask = lambda text: self.masker.mask(text, action.chat_id, propagate=True, contexts=False, title=False, origin="tool")  # noqa: E731
+        origin = "user" if TOOLS[action.tool].trusted_source else "tool"  # your own address book counts as you
+        mask = lambda text: self.masker.mask(text, action.chat_id, propagate=True, contexts=False, title=False, origin=origin)  # noqa: E731
         with ThreadPoolExecutor(max_workers=4) as pool:
             results = list(pool.map(mask, [text for _, text in leaves]))
         action.mask_cost_usd = round(sum(m.cost_usd or 0 for m in results), 6)

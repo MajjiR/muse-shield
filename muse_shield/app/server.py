@@ -14,18 +14,19 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .. import __version__, documents
-from ..backends import Backend, BackendError, MetaModelBackend
+from ..backends import Backend, BackendError, GlimmerBackend, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
+from ..connectors.personal import channel_names
 from ..agent.tools import catalog
 from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .documents import add_document_routes
 from .images_api import add_image_routes
-from .engine import Masker, rehydrate, segments
+from .engine import MODES, Masker, ModeError, ModeMasker, rehydrate, segments
 from .extension import add_extension_routes
 from .inspector import Inspector, user_text
-from .schemas import ChatRequest, ImageMaskRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
+from .schemas import ChatRequest, ImageMaskRequest, MaskRequest, NewChatRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -34,8 +35,11 @@ META_URL = "https://api.meta.ai/v1"
 
 
 def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
-    """Call 1 analyzer: Muse Spark Standard. Returns (backend or None, reason it's off)."""
+    """Call 1 analyzer: Muse Spark Standard, or the fine-tuned Glimmer with MUSE_SHIELD_ANALYZER=glimmer.
+    Returns (backend or None, reason it's off)."""
     load_env()
+    if os.environ.get("MUSE_SHIELD_ANALYZER", "muse_spark") == "glimmer":
+        return glimmer_analyzer_from_env(client)
     model = os.environ.get("MUSE_SHIELD_MODEL", "muse-spark-1.3")
     if "contributor" in model:
         return None, f"{model} lets Meta train on prompts; the app only allows Standard models"
@@ -51,6 +55,78 @@ def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | Non
         return None, str(exc)
 
 
+def glimmer_analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
+    """Muse Glimmer 30B with a Muse Shield LoRA, on the user's own Fireworks deployment.
+
+    MUSE_SHIELD_GLIMMER_TASK=resolution uses an entity-resolution LoRA (er-v2a) instead of a stage-1 one.
+    MUSE_SHIELD_GLIMMER_MODEL is the full route '<model>#<deployment>', e.g.
+    accounts/<a>/models/muse-shield-glimmer-lora-v2-full#accounts/<a>/deployments/<id> (a live-merge
+    deployment needs both full paths). Raw text goes to that dedicated deployment, so the same
+    made-up-data gate as Spark applies. A deployment that scaled to zero answers 503 SCALING_UP;
+    the backend waits for it (cold start is a few minutes).
+    """
+    model = os.environ.get("MUSE_SHIELD_GLIMMER_MODEL", "")
+    if "#" not in model:
+        return None, ("MUSE_SHIELD_ANALYZER=glimmer needs MUSE_SHIELD_GLIMMER_MODEL=<model>#<deployment> "
+                      "(a fine-tuned LoRA is served only from an on-demand deployment)")
+    if os.environ.get("MUSE_SHIELD_DEV_RAW_ANALYSIS") != "1":
+        return None, ("analysis is off: call 1 sends raw text to the Glimmer deployment. Set "
+                      "MUSE_SHIELD_DEV_RAW_ANALYSIS=1 to enable it for fake data while prototyping")
+    key = os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", "")
+    if not key:
+        return None, "MUSE_SHIELD_ANALYZER=glimmer needs FIREWORKS_API_KEY"
+    base = os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1")
+    if os.environ.get("MUSE_SHIELD_GLIMMER_TASK") == "resolution":
+        # An entity-resolution LoRA (er-*): one call per message, one identity per person, owners and relations.
+        # It speaks the resolution contract (muse_shield/resolution.py), not the stage-1 paragraph contract.
+        from ..resolution import ResolutionAnalyzer
+        return ResolutionAnalyzer(GlimmerBackend(base, model, key, client=client, max_tokens=4000, timeout=300.0)), ""
+    return GlimmerBackend(base, model, key, client=client), ""
+
+
+def _mode_entries(analyzer) -> dict[str, tuple[Backend, bool]]:
+    """The masking modes one analyzer provides: (analyzer, classify flag) per mode."""
+    if hasattr(analyzer, "classify_document"):  # entity-resolution Glimmer: plain, or with the classify prompt
+        return {"resolution": (analyzer, False), "resolution_classify": (analyzer, True)}
+    if isinstance(analyzer, GlimmerBackend):  # stage-1 Glimmer LoRA: entities + context blocks per paragraph
+        return {"pii_context": (analyzer, False)}
+    return {"spark": (analyzer, False)}
+
+
+def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[Backend, bool]], str, str]:
+    """All masking modes this server runs: (mode -> (analyzer, classify), default mode, reason analysis is off).
+
+    MUSE_SHIELD_GLIMMER_PII_MODEL and MUSE_SHIELD_GLIMMER_ER_MODEL (each '<model>#<deployment>') run the stage-1
+    Glimmer (PII + context) and the entity-resolution Glimmer side by side; without them, the single analyzer from
+    analyzer_from_env() decides. MUSE_SHIELD_DEFAULT_MODE picks the mode new chats start in.
+    """
+    load_env()
+    pii, er = os.environ.get("MUSE_SHIELD_GLIMMER_PII_MODEL", ""), os.environ.get("MUSE_SHIELD_GLIMMER_ER_MODEL", "")
+    modes: dict[str, tuple[Backend, bool]] = {}
+    off = ""
+    if pii or er:
+        if os.environ.get("MUSE_SHIELD_DEV_RAW_ANALYSIS") != "1":
+            return {}, "", ("analysis is off: call 1 sends raw text to the Glimmer deployments. Set "
+                            "MUSE_SHIELD_DEV_RAW_ANALYSIS=1 to enable it for fake data while prototyping")
+        key = os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", "")
+        base = os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1")
+        if not key:
+            return {}, "", "the Glimmer modes need FIREWORKS_API_KEY"
+        if "#" in pii:
+            modes.update(_mode_entries(GlimmerBackend(base, pii, key, client=client)))
+        if "#" in er:
+            from ..resolution import ResolutionAnalyzer
+            modes.update(_mode_entries(ResolutionAnalyzer(GlimmerBackend(base, er, key, client=client, max_tokens=4000, timeout=300.0))))
+        if not modes:
+            off = "MUSE_SHIELD_GLIMMER_PII_MODEL / _ER_MODEL must be full routes '<model>#<deployment>'"
+    else:
+        analyzer, off = analyzer_from_env(client)
+        if analyzer:
+            modes = _mode_entries(analyzer)
+    default = os.environ.get("MUSE_SHIELD_DEFAULT_MODE", "")
+    return modes, default if default in modes else next(iter(modes), ""), off
+
+
 def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel | None, str]:
     load_env()
     try:
@@ -63,15 +139,25 @@ def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel |
 
 def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat_model: ChatModel | None = None,
                inspector: Inspector | None = None, image_masker: ImageMasker | None = None,
-               documents_sync: bool = False) -> FastAPI:
+               documents_sync: bool = False, modes: dict | None = None, default_mode: str | None = None) -> FastAPI:
     inspector = inspector or Inspector()
     off_reason = chat_off = ""
-    if analyzer is None:
-        analyzer, off_reason = analyzer_from_env(inspector.client("analysis"))
+    if modes:  # tests and embedders: {mode: (analyzer, classify)}
+        default_mode = default_mode if default_mode in modes else next(iter(modes))
+    elif analyzer is None:
+        modes, default_mode, off_reason = modes_from_env(inspector.client("analysis"))
+    else:
+        modes = _mode_entries(analyzer)
+        default_mode = next(iter(modes))
     if chat_model is None:
         chat_model, chat_off = chat_model_from_env(inspector.client("chat"))
     vault = vault or Vault.open()
-    masker = Masker(vault, analyzer) if analyzer else None
+    # One Masker per analyzer; each chat is locked to one mode (ModeMasker routes by the chat's stored mode).
+    # Your chat channel names are workspace structure, never masked.
+    maskers: dict[int, Masker] = {}
+    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a, public=channel_names)), classify) for m, (a, classify) in modes.items()}
+    masker = ModeMasker(vault, masker_for, default_mode) if masker_for else None
+    analyzer = masker.analyzer if masker else None
     executor = Executor(vault, masker=masker)
     engine = ChatEngine(vault, masker, chat_model, inspector=inspector, executor=executor) if masker and chat_model else None
     images_off = ""
@@ -98,6 +184,10 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
                 "analysis_off_reason": off_reason, "chat_off_reason": chat_off,
                 "images": bool(image_masker), "images_off_reason": images_off, "documents": documents.available(),
+                # Masking modes this server runs; each chat is locked to one (POST /chats {"mode": ...}).
+                "modes": [{"id": m, "label": MODES[m]["label"], "detail": MODES[m]["detail"],
+                           "model": getattr(masker.masker_for[m][0].analyzer, "model", None)} for m in masker.modes] if masker else [],
+                "default_mode": masker.default if masker else None,
                 # Image masking uses two models: Muse Spark reads the picture, SAM 3.1 outlines faces and plates.
                 "image_model": " + ".join(m.model for m in (image_masker.vision, image_masker.sam) if m) if image_masker else None}
 
@@ -107,11 +197,14 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             chat_id = vault.ensure_chat(body.chat_id)
             return {"chat_id": chat_id, "masked_text": body.text, "spans": [], "contexts": [], "analysis_ok": False,
                     "error": off_reason, "latency_ms": 0, "cost_usd": None, "mask_id": None}
-        if engine:
-            mask_id, masked = engine.preview(body.text, body.chat_id)
-            return {**masked.to_dict(), "mask_id": mask_id}
-        chat_id = vault.ensure_chat(body.chat_id)
-        return {**masker.mask(body.text, chat_id).to_dict(), "mask_id": None}
+        try:
+            if engine:
+                mask_id, masked = engine.preview(body.text, body.chat_id, body.mode)
+                return {**masked.to_dict(), "mask_id": mask_id}
+            chat_id = vault.ensure_chat(body.chat_id)
+            return {**masker.mask(body.text, chat_id, mode=body.mode).to_dict(), "mask_id": None}
+        except ModeError as exc:
+            raise HTTPException(409, str(exc)) from exc
 
     @app.post("/images/mask")
     def mask_image(body: ImageMaskRequest):
@@ -142,7 +235,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def chat(body: ChatRequest):
         if not engine:
             raise HTTPException(503, off_reason or chat_off or "chat unavailable")
-        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids, body.image_ids).to_dict()
+        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids, body.image_ids, body.mode).to_dict()
 
     @app.post("/reveal")
     def reveal(body: RevealRequest):
@@ -158,8 +251,20 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         return vault.chats()
 
     @app.post("/chats")
-    def new_chat():
-        return {"chat_id": vault.create_chat()}
+    def new_chat(body: NewChatRequest | None = None):
+        mode = body.mode if body else None
+        try:
+            mode = masker.check(mode) if masker else None
+        except ModeError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"chat_id": vault.create_chat(mode=mode), "mode": mode}
+
+    @app.post("/chats/{chat_id}/delete")
+    def delete_chat(chat_id: str):
+        removed = vault.delete_chat(chat_id)
+        if removed is None:
+            raise HTTPException(404, "unknown chat")
+        return {"ok": True, "removed": removed}
 
     @app.get("/chats/{chat_id}")
     def chat_detail(chat_id: str):
@@ -178,7 +283,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 msgs.append({**m, "masked_text": "", "text": "", "image": vault.image(m["meta"].get("image_id", ""))})
                 continue
             msgs.append({**m, "text": shown, **extra})
-        return {"chat_id": chat_id, "messages": msgs, "consents": vault.consents(chat_id)}
+        return {"chat_id": chat_id, "messages": msgs, "consents": vault.consents(chat_id), "mode": vault.chat_mode(chat_id)}
 
     @app.get("/chats/{chat_id}/vault")
     def chat_vault(chat_id: str):
