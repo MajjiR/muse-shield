@@ -89,3 +89,15 @@ def test_an_approval_doesnt_let_email_carry_raw_values(vc):
     v.consent(chat, "<PERSON_2>", "full", "allow")
     c = check(v, chat, "send_email", {"to": "<PERSON_1>", "subject": "x", "body": "Ravi says hi"})
     assert not c.ok and "real value behind <PERSON_2>" in c.violations[0]
+
+
+def test_a_time_masked_as_a_date_doesnt_block_a_calendar_start(tmp_path):
+    v = Vault(tmp_path / "v.db", b"\x23" * 32)
+    chat = v.create_chat()
+    day, _ = v.entity_placeholder(chat, "DATE", "2026-11-06")
+    v.entity_placeholder(chat, "DATE", "IST")
+    c = check(v, chat, "create_calendar_event", {"title": "Review", "start": f"{day} 15:00 IST"})
+    assert c.ok, c.violations
+    v.entity_placeholder(chat, "AMOUNT", "₹45,000")
+    paid = check(v, chat, "create_calendar_event", {"title": "Pay ₹45,000", "start": f"{day} 15:00"})
+    assert any("real value" in x for x in paid.violations)  # other raw values are still caught
