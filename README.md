@@ -15,6 +15,22 @@ to share: the passage's shape, a one-line summary, or the full text.
 > track **Build for Your World**. Every Meta model call goes through the **Meta Model API**
 > (Muse Spark 1.3). Muse Glimmer 30B is benchmarked as the analysis model to fine-tune.
 
+### Which models run where
+
+- **We are building our own analysis model:** a LoRA fine-tune of **Muse Glimmer 30B**,
+  trained on Fireworks. Four adapters are trained so far (held-out loss 0.085 → 0.012 for v1c),
+  on branch [`feature/glimmer-lora`](https://github.com/MajjiR/muse-shield/tree/feature/glimmer-lora), with every run in `results/training/`.
+  It is the model meant to run the steps that see raw input, self-hosted.
+- **Cloud Muse Spark and SAM 3.1 are development stand-ins.** While the fine-tune is benchmarked
+  and hosted, the raw-input steps use Muse Spark and SAM 3.1 on the Meta Model API, on made-up
+  data only. Those steps are text and document analysis (call 1) and finding things in images.
+  The app keeps them off unless `MUSE_SHIELD_DEV_RAW_ANALYSIS=1`, and refuses Contributor
+  models.
+- **Muse Spark stays the answering model (call 2).** It only ever sees masked text and masked
+  images.
+- **Switching is configuration:** the analysis and image clients take a base URL and model
+  name.
+
 ---
 
 ## Why
@@ -202,8 +218,11 @@ The analysis call is the only one that ever sees raw text, so it is the one to o
 - [x] Training-set builder in the exact runtime prompt format, with name, org, place and
       amount pools disjoint from the eval set ([`trainset.py`](muse_shield/trainset.py))
 - [x] Base Muse Glimmer 30B benchmarked: 21.1% leak, the number to beat
-- [ ] SFT Muse Glimmer 30B on Fireworks; re-run the same 500 Nemotron docs and the realistic
-      loops. Target: below Spark's 15.8% leak, at Glimmer's precision
+- [x] LoRA SFT of Muse Glimmer 30B on Fireworks: 4 adapters trained on Nemotron-PII *train*
+      plus our synthetic set, with a leakage guard against the test sample
+      ([`feature/glimmer-lora`](https://github.com/MajjiR/muse-shield/tree/feature/glimmer-lora), `results/training/`)
+- [ ] Re-run the same 500 Nemotron docs and the realistic loops on the adapters. Target: below
+      Spark's 15.8% leak, at Glimmer's precision
 - [ ] Self-host the tuned adapter (vLLM or SGLang, set `GLIMMER_BASE_URL`), so raw text never
       leaves infrastructure you control
 
@@ -272,7 +291,7 @@ CONTRACT.md       the protocol every client codes against
 | Model | Via | Role |
 |---|---|---|
 | **Muse Spark 1.3** | Meta Model API | Call 1 analysis (for now) and call 2 answers; agent planning; reading images |
-| **Muse Glimmer 30B** | Fireworks on-demand deployment | Benchmarked baseline; the model we fine-tune for on-device or self-hosted analysis |
+| **Muse Glimmer 30B** | Fireworks (training and on-demand deployment) | Our analysis model: base benchmarked, 4 LoRA adapters trained; replaces the cloud Spark and SAM stand-ins for raw input once self-hosted |
 | **SAM 3.1** | Meta Model API | Precise face and licence-plate boxes for image masking |
 | Muse Wonder 1.0 | Meta Model API | Smoke-tested on 5 docs; dropped (a coding and agentic model, at 3–5× Spark's price) |
 
