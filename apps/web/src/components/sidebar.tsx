@@ -22,7 +22,6 @@ function groupChats(chats: ChatSummary[]) {
 export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; onSelect: (id: string) => void; onNew: () => void }) {
   const chats = useQuery({ queryKey: ["chats"], queryFn: engine.chats })
   const health = useQuery({ queryKey: ["health"], queryFn: engine.health, refetchInterval: 15000 })
-  const metrics = useQuery({ queryKey: ["metrics"], queryFn: engine.metrics })
   const [q, setQ] = useState("")
   const qc = useQueryClient()
   const remove = async (id: string, title: string) => {
@@ -109,14 +108,8 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
           <>
             <Status ok={h.analysis} label="Masking" value={modelLabel(h.analysis_model)} />
             <Status ok={h.chat} label="Answers" value={h.chat_model ?? "off"} />
-            {/* image_model is "<vision> + <segmentation>": Spark reads the picture, SAM outlines faces and plates */}
-            <Status ok={!!h.images} label="Images" value={h.image_model?.split(" + ")[0] ?? "off"} />
-            {h.image_model?.includes(" + ") && <Status ok label="Faces" value={h.image_model.split(" + ")[1]} />}
           </>
         )}
-        <div className="flex items-center justify-between border-t pt-2 text-muted-foreground">
-          <span className="tabular">{metrics.data ? `$${metrics.data.cost_total.toFixed(4)} · ${metrics.data.inspector.requests} calls` : "–"}</span>
-        </div>
       </div>
     </aside>
   )

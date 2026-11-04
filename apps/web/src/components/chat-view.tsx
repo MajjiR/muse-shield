@@ -1,6 +1,6 @@
 import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
-import { CategoryLine, ModeBadge, ModePicker } from "@/components/categories"
+import { CategoryLine } from "@/components/categories"
 import { DocumentCard } from "@/components/document-card"
 import { ImageCard, PendingImageCard } from "@/components/image-card"
 import { MessageView } from "@/components/message"
@@ -8,22 +8,23 @@ import { MaskedText, OriginalText } from "@/components/privacy-text"
 import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
-import { cn, isGlimmer } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import type { Ask, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
-  ArrowUp, Briefcase, FileText, FileUp, FlaskConical, KeyRound, Lock, PanelRight, Paperclip, ReceiptText, ScanEye, ShieldCheck, Sparkles, Wrench, X,
+  ArrowUp, Briefcase, FileUp, HeartPulse, Landmark, Mail, PanelRight, Paperclip, ShieldCheck, Sparkles, Wrench,
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 const EXAMPLES = [
-  { icon: Briefcase, title: "Salary & a big purchase", text: "My name is Rohan and I earn 10 lakh rupees. Tomorrow I'm planning to buy a land at 12-4, MVP Colony, Visakhapatnam. Is that a sensible plan on my salary?" },
-  { icon: FileText, title: "Confidential deal", text: "Confidential: Acme Corp has agreed to acquire Kestrel Labs for ₹120 crore. Priya Shah (priya@kestrel.io) is leading the diligence." },
-  { icon: ReceiptText, title: "Invoice email", text: "Draft a short email to Ananya Iyer at ananya@northwind.in saying the ₹45,000 invoice for Project Banyan will be paid on Friday." },
+  { icon: Mail, title: "Draft an email", text: "Draft a polite email to my landlord Suresh Kulkarni (suresh.kulkarni@gmail.com) asking to pay this month's rent of ₹38,000 a week late, because my salary from Infosys is delayed." },
+  { icon: Landmark, title: "File my taxes", text: "I'm filing my ITR for FY 2025-26. PAN ABCPM1234K, salary ₹18,40,000, ₹1,50,000 in ELSS and ₹42,000 health insurance for my parents. Is the old or the new regime better for me?" },
+  { icon: Briefcase, title: "M&A deal update", text: "Confidential: Acme Corp will acquire Kestrel Labs for ₹120 crore, closing 15 December. Priya Shah (priya@kestrel.io) leads diligence. Write a two-line update for our board." },
+  { icon: HeartPulse, title: "Understand a report", text: "My mother Sunita Verma, 64, has a TSH of 6.8 and takes levothyroxine 50 mcg from Dr. Kavita Rao at Lotus Clinic. What should I ask at her next appointment?" },
 ]
-const PREVIEW_MS = 1100 // how long Mask & send shows what will go out before sending
+const PREVIEW_MS = 1100 // how long a sent message shows what was found before it goes out
 
 type Phase = null | "masking" | "sending" | "revealing" | "acting"
 type Pending = { text: string; stage: "analysing" | "masked" | "sending"; masked?: MaskResult }
@@ -40,17 +41,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 }) {
   const qc = useQueryClient()
   const [input, setInput] = useState("")
-  const [preview, setPreview] = useState<(MaskResult & { original: string }) | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
-  const [autoSend, setAutoSend] = useState(false)
-  // The mode a NEW chat starts in (remembered per browser); an existing chat stays in the mode it's locked to.
-  const [newMode, setNewMode] = useState<MaskMode | null>(() => {
-    try { return localStorage.getItem("ms-chat-mode") } catch { return null }
-  })
-  const chooseMode = (m: MaskMode) => {
-    setNewMode(m)
-    try { localStorage.setItem("ms-chat-mode", m) } catch { /* private window: keep it for this session only */ }
-  }
   const [ask, setAsk] = useState<Ask | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
   const threadRef = useRef<HTMLDivElement>(null)
@@ -115,16 +106,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
     setAsk(t.ask)
   }
 
-  async function mask(text: string) {
-    setPhase("masking")
-    const m = await engine.mask(text, chatId, mode)
-    if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
-    setPreview({ ...m, original: text })
-    if (!chatId) onChat(m.chat_id)
-    qc.invalidateQueries({ queryKey: ["chats"] })
-    return m
-  }
-
   async function run(fn: () => Promise<void>) {
     if (phase) return
     try {
@@ -134,17 +115,11 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       setPending(null)
     } finally {
       setPhase(null)
-      setAutoSend(false)
     }
   }
 
-  const onPreview = () => run(async () => { if (input.trim()) await mask(input.trim()) })
-
   const docsAllowed = !!health.data?.analysis && health.data?.documents !== false
-  const modes = health.data?.modes ?? []
-  const chatMode = chatId ? (detail.data?.mode ?? chats.data?.find((c) => c.chat_id === chatId)?.mode ?? null) : null
-  const startMode = modes.some((m) => m.id === newMode) ? newMode : health.data?.default_mode ?? null
-  const mode: MaskMode | null = chatId ? null : startMode // the server keeps an existing chat's own mode
+  const mode: MaskMode | null = chatId ? null : health.data?.default_mode ?? null // an existing chat keeps its own mode
   const imagesAllowed = !!health.data?.images
   const filesAllowed = docsAllowed || imagesAllowed
   const statusOf = (d: DocumentInfo) => docStatus[d.doc_id] ?? d.status
@@ -157,7 +132,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
     let cid = chatId
     const list = Array.from(files)
     if (!cid && list.length > 1) {  // several files into a new conversation: one chat for all of them
-      cid = (await engine.newChat(startMode)).chat_id
+      cid = (await engine.newChat(mode)).chat_id
       onChat(cid)
     }
     const adopt = (id: string) => {
@@ -227,7 +202,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
         return
       }
       setInput("")
-      setPreview(null)
       setPending({ text, stage: "analysing" })
       setPhase("masking")
       let m: MaskResult
@@ -284,8 +258,8 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       </AnimatePresence>
       {health.data?.analysis && (
         <div className="flex items-center justify-center gap-2 border-b bg-muted px-4 py-1.5 text-[12px] text-muted-foreground">
-          <FlaskConical className="size-3.5" aria-hidden />
-          Prototype mode: finding sensitive details uses {isGlimmer(health.data.analysis_model) ? "your fine-tuned Muse Glimmer (own Fireworks deployment)" : "Muse Spark"} on your raw text. Use made-up data only.
+          <ShieldCheck className="size-3.5" aria-hidden />
+          Masking runs on your fine-tuned Muse Glimmer. Self-host it for full privacy, or use a Fireworks deployment for testing.
         </div>
       )}
 
@@ -294,10 +268,9 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
-          {chatId && <ModeBadge mode={chatMode} modes={modes} />}
-          <span className="hidden items-center gap-1.5 rounded-full border border-foreground/30 bg-card px-3 py-1 font-mono text-[12px] tracking-[-0.01em] text-muted-foreground sm:flex">
-            <ShieldCheck className="size-3.5 text-foreground" aria-hidden />
-            {maskedCount > 0 ? <><span className="tabular font-medium text-foreground">{maskedCount}</span> items shielded</> : "Shield on"}
+          <span className="hidden items-center gap-1.5 rounded-full border border-emerald-600/35 bg-emerald-50 px-3 py-1 text-[12.5px] font-medium text-emerald-700 sm:flex dark:border-emerald-400/30 dark:bg-emerald-950/60 dark:text-emerald-300">
+            <ShieldCheck className="size-4" aria-hidden />
+            {maskedCount > 0 ? <><span className="tabular">{maskedCount}</span> shielded</> : "Shield on"}
           </span>
           <Button variant="ghost" size="icon" aria-label={panelOpen ? "Hide privacy vault" : "Show privacy vault"} aria-pressed={panelOpen}
             onClick={onTogglePanel} className="max-xl:hidden">
@@ -338,20 +311,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       </section>
 
       <div className="mx-auto w-full max-w-3xl px-5 pb-5">
-        <AnimatePresence>
-          {preview && (
-            <motion.section
-              initial={{ opacity: 0, y: 12, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, y: 8, height: 0 }}
-              transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
-              className="overflow-hidden"
-            >
-              <PreviewCard preview={preview} autoSend={autoSend} onClose={() => setPreview(null)} />
-            </motion.section>
-          )}
-        </AnimatePresence>
-
         {(attached.length > 0 || images.length > 0 || pendingImages.length > 0) && (
           <div className="mb-2 flex max-h-[45vh] flex-col gap-2 overflow-y-auto">
             {pendingImages.map((p) => <PendingImageCard key={p.key} filename={p.filename} previewUrl={p.previewUrl} />)}
@@ -365,13 +324,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           </div>
         )}
 
-        {!chatId && modes.length > 1 && startMode && (
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
-            <span>Masking mode for this chat</span>
-            <ModePicker modes={modes} value={startMode} onChange={chooseMode} disabled={!!phase} />
-            <span className="max-sm:hidden">· locked once you send; start a new chat to switch</span>
-          </div>
-        )}
 
         <form
           onSubmit={(e) => { e.preventDefault(); onSend() }}
@@ -389,11 +341,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           />
           <div className="flex items-center justify-between gap-2 px-3 pb-2.5">
             <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground" aria-live="polite">
-              {phase ? (
-                <><ShieldPulse /> <span className="truncate">{PHASE_TEXT[phase]}</span></>
-              ) : (
-                <><Lock className="size-3.5" aria-hidden /> <span className="truncate">Enter to shield & send · Shift + Enter for a new line</span></>
-              )}
+              {phase && <><ShieldPulse /> <span className="truncate">{PHASE_TEXT[phase]}</span></>}
             </span>
             <div className="flex shrink-0 items-center gap-1.5">
               {filesAllowed && (
@@ -406,9 +354,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
                   </Button>
                 </>
               )}
-              <Button type="button" variant="ghost" size="sm" disabled={!!phase || !input.trim()} onClick={onPreview}>
-                <ScanEye /> Preview
-              </Button>
               <Button type="submit" size="sm" disabled={!canSend} className="gap-1.5 pr-3">
                 <ShieldCheck /> Shield & send <ArrowUp className="opacity-70" />
               </Button>
@@ -417,51 +362,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
         </form>
       </div>
     </main>
-  )
-}
-
-function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { original: string }; autoSend: boolean; onClose: () => void }) {
-  const counts = preview.spans.reduce<Record<string, number>>((acc, s) => {
-    const k = s.kind === "context" ? "passage" : (s.role && s.role !== "OTHER" ? s.role : s.type).toLowerCase().replace(/_/g, " ")
-    acc[k] = (acc[k] ?? 0) + 1
-    return acc
-  }, {})
-  const kinds = Object.fromEntries(preview.spans.map((s) => [s.placeholder, s.kind]))
-  return (
-    <div className="mb-2 overflow-hidden rounded-md border bg-card">
-      <div className="flex items-center gap-2 border-b px-4 py-2.5">
-        <ShieldCheck className="size-4 text-foreground" aria-hidden />
-        <strong className="text-[13px] font-semibold tracking-tight">What Muse Spark will receive</strong>
-        <div className="ml-2 hidden flex-wrap gap-1 sm:flex">
-          {Object.entries(counts).map(([k, n]) => (
-            <span key={k} className="tabular rounded-sm border px-1.5 py-px text-[11px] text-muted-foreground">{n} {k}</span>
-          ))}
-        </div>
-        <span className="tabular ml-auto text-[11.5px] text-muted-foreground">
-          {Math.round(preview.latency_ms)} ms{preview.cost_usd != null && ` · $${preview.cost_usd.toFixed(4)}`}
-        </span>
-        {!autoSend && (
-          <button type="button" aria-label="Close preview" onClick={onClose} className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-muted">
-            <X className="size-3.5" />
-          </button>
-        )}
-      </div>
-      {!!preview.categories?.length && <CategoryLine categories={preview.categories} summary={preview.summary} className="border-b px-4 py-2" />}
-      <div className="grid max-h-52 grid-cols-2 gap-0 overflow-y-auto max-md:grid-cols-1">
-        <div className="border-r px-4 py-3 max-md:border-r-0 max-md:border-b">
-          <div className="mb-1 eyebrow text-muted-foreground">You wrote</div>
-          <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words"><OriginalText text={preview.original} spans={preview.spans} /></div>
-        </div>
-        <div className="bg-subtle px-4 py-3">
-          <div className="mb-1 eyebrow text-muted-foreground">Sent</div>
-          <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words"><MaskedText text={preview.masked_text} kinds={kinds} /></div>
-        </div>
-      </div>
-      {autoSend && (
-        <motion.div className="h-px origin-left bg-foreground" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
-          transition={{ duration: PREVIEW_MS / 1000, ease: "linear" }} />
-      )}
-    </div>
   )
 }
 
@@ -526,15 +426,10 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
       </span>
       <h2 className="mt-6 font-heading text-[46px] leading-[1.1] font-normal tracking-[-0.03em] text-balance">Ask anything. Your secrets stay here.</h2>
       <p className="mx-auto mt-3 max-w-lg text-[16px] leading-relaxed text-pretty text-muted-foreground">
-        Names, IDs, amounts and whole confidential passages are swapped for placeholders before Muse Spark sees them,
-        then put back into the answer on your device.
+        Your private details are intelligently masked, keeping their context, so Muse Spark still understands and asks you
+        when it needs more. The real values come back only on your device.
       </p>
-      <div className="mx-auto mt-6 flex max-w-xl flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-[12px] tracking-[-0.01em] text-muted-foreground">
-        <Trust icon={ScanEye} text="You see exactly what’s sent" />
-        <Trust icon={KeyRound} text="Encrypted local vault" />
-        <Trust icon={ShieldCheck} text="Nothing hidden is shared without your OK" />
-      </div>
-      <div className="mt-8 grid gap-3 text-left sm:grid-cols-3">
+      <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
         {EXAMPLES.map(({ icon: Icon, title, text }, i) => (
           <motion.button
             key={title}
@@ -549,16 +444,12 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
               <Icon className="size-4" aria-hidden />
             </span>
             <div className="text-[15px] font-medium">{title}</div>
-            <div className="mt-1 line-clamp-3 text-[13.5px] leading-snug text-muted-foreground">{text}</div>
+            <div className="mt-1 line-clamp-2 text-[13.5px] leading-snug text-muted-foreground">{text}</div>
           </motion.button>
         ))}
       </div>
     </motion.div>
   )
-}
-
-function Trust({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
-  return <span className="flex items-center gap-1.5"><Icon className="size-3.5 text-foreground" aria-hidden />{text}</span>
 }
 
 function Thinking({ label }: { label: string }) {
