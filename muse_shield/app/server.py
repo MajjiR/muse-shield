@@ -257,6 +257,13 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             raise HTTPException(400, str(exc)) from exc
         return {"chat_id": vault.create_chat(mode=mode), "mode": mode}
 
+    @app.post("/chats/{chat_id}/delete")
+    def delete_chat(chat_id: str):
+        removed = vault.delete_chat(chat_id)
+        if removed is None:
+            raise HTTPException(404, "unknown chat")
+        return {"ok": True, "removed": removed}
+
     @app.get("/chats/{chat_id}")
     def chat_detail(chat_id: str):
         need_chat(chat_id)

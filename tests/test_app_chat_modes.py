@@ -81,3 +81,13 @@ def test_an_old_vault_file_gets_the_mode_column(tmp_path):
     new = vault.create_chat(mode="pii_context")
     assert vault.chat_mode(new) == "pii_context"
     assert vault.lock_chat_mode(new, "resolution") == "pii_context"  # once set, it never changes
+
+
+def test_deleting_a_locked_chat_removes_it_and_its_mode(tmp_path):
+    c, vault = make(tmp_path)
+    cid = c.post("/chats", json={"mode": "resolution_classify"}).json()["chat_id"]
+    assert c.post("/mask", json={"text": DOC, "chat_id": cid}).json()["analysis_ok"]
+    assert c.post(f"/chats/{cid}/delete").status_code == 200
+    assert vault.chat_mode(cid) is None and cid not in {ch["chat_id"] for ch in c.get("/chats").json()}
+    fresh = c.post("/chats", json={"mode": "pii_context"}).json()["chat_id"]  # modes still work after a delete
+    assert vault.chat_mode(fresh) == "pii_context"

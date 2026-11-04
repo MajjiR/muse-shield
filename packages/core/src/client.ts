@@ -61,6 +61,9 @@ export function createEngine(baseUrl = "") {
     documentDetail: (docId: string) => call<DocumentDetail>(`/documents/${docId}?detail=true`),
     chatDocuments: (chatId: string) => call<DocumentInfo[]>(`/chats/${chatId}/documents`),
     deleteDocument: (docId: string) => call<{ ok: boolean }>(`/documents/${docId}/delete`, {}),
+    deleteImage: (imageId: string) => call<{ ok: boolean }>(`/images/${imageId}/delete`, {}),
+    /** Deletes the chat and everything in it (messages, files, images, hidden values only it used). */
+    deleteChat: (chatId: string) => call<{ ok: boolean; removed: Record<string, number> }>(`/chats/${chatId}/delete`, {}),
     /** The verified masked copy, with the download name the engine chose. */
     downloadMasked: async (docId: string) => {
       const r = await fetch(`${baseUrl}/documents/${docId}/masked`);
