@@ -106,12 +106,14 @@ export interface Segment {
 
 export interface Message {
   message_id: string;
-  role: "user" | "assistant" | "reveal" | "tool_call" | "tool_result";
+  role: "user" | "assistant" | "reveal" | "tool_call" | "tool_result" | "document";
   masked_text: string;
   text: string;
   original: string | null;
   meta: { spans?: Span[]; cost_usd?: number | null; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
   segments?: Segment[];
+  /** role "document": the attached document, shown as a card. */
+  document?: DocumentInfo | null;
   created_at: number;
 }
 
@@ -137,6 +139,58 @@ export interface Health {
   chat_model: string | null;
   analysis_off_reason: string;
   chat_off_reason: string;
+  documents?: boolean;
+}
+
+export type DocumentFormat = "pdf" | "docx" | "pptx";
+export type DocumentStatus = "extracting" | "analysing" | "verifying" | "ready" | "blocked" | "failed";
+
+/** Something removed or flagged while masking a document, e.g. {code: "images_removed", count: 2, where: ["page 1"]}. */
+export interface DocumentWarning {
+  code: string;
+  count?: number;
+  where?: string[];
+  labels?: string[];
+}
+
+export interface PageStatus {
+  page: number;
+  status: "ok" | "empty" | "scanned" | "unreadable" | "no_text";
+}
+
+export interface VerifyReport {
+  ok: boolean;
+  checks: number;
+  failures: { label: string; where: string }[];
+  warnings: DocumentWarning[];
+}
+
+export interface DocumentInfo {
+  doc_id: string;
+  chat_id: string;
+  n: number;
+  format: DocumentFormat;
+  status: DocumentStatus;
+  bytes: number;
+  pages: number | null;
+  counts: Record<string, number>;
+  warnings: DocumentWarning[];
+  page_status: PageStatus[];
+  verify: VerifyReport | null;
+  progress?: { done: number; total: number };
+  /** The original name: shown on this device only, never sent to a model. */
+  filename: string;
+  has_masked_copy: boolean;
+  error?: string | null;
+  created_at: number;
+}
+
+/** With ?detail: the extracted text and its masked version, for the side-by-side preview (local only). */
+export interface DocumentDetail extends DocumentInfo {
+  text: string;
+  masked_text: string;
+  spans: Span[];
+  units: [number, number, string][];
 }
 
 export interface VaultItems {

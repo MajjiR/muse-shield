@@ -56,13 +56,14 @@ export function MaskedText({ text, kinds = {}, size, plain }: { text: string; ki
  * The user's own words with what was masked highlighted in its type's pastel. With animate, each item
  * lights up in reading order (passages first), as the analysis result arrives.
  */
-export function OriginalText({ text, spans = [], animate }: { text: string; spans?: Span[]; animate?: boolean }) {
+export function OriginalText({ text, spans: raw = [], animate, stagger = 110 }: { text: string; spans?: Span[]; animate?: boolean; stagger?: number }) {
+  const spans = toUtf16(text, raw)
   const ents = spans.filter((s) => s.kind !== "context").sort((a, b) => a.start - b.start)
   const ctxs = spans.filter((s) => s.kind === "context").sort((a, b) => a.start - b.start)
   let order = 0
   const reveal = (line: string): { className: string; style: CSSProperties } =>
     animate
-      ? { className: "ms-mark-in", style: { ["--ms-delay" as string]: `${order++ * 110}ms`, ["--ms-glow" as string]: `color-mix(in srgb, ${line} 45%, transparent)` } }
+      ? { className: "ms-mark-in", style: { ["--ms-delay" as string]: `${order++ * stagger}ms`, ["--ms-glow" as string]: `color-mix(in srgb, ${line} 45%, transparent)` } }
       : { className: "", style: {} }
 
   const run = (from: number, to: number, keyBase: string): ReactNode[] => {
@@ -109,6 +110,20 @@ export function OriginalText({ text, spans = [], animate }: { text: string; span
   }
   out.push(...run(cur, text.length, `r${cur}`))
   return <>{out}</>
+}
+
+/** The engine counts offsets in Unicode code points; JavaScript strings index UTF-16 units. They differ after
+ * characters outside the Basic Multilingual Plane (emoji, math letters common in PDFs), so convert. */
+function toUtf16(text: string, spans: Span[]): Span[] {
+  if (!/[\uD800-\uDBFF]/.test(text)) return spans
+  const at: number[] = []
+  let u = 0
+  for (const ch of text) {
+    at.push(u)
+    u += ch.length
+  }
+  at.push(u)
+  return spans.map((s) => ({ ...s, start: at[s.start] ?? s.start, end: at[s.end] ?? s.end }))
 }
 
 function TipBody({ kind, role, label }: { kind: string; role?: string | null; label: string }) {

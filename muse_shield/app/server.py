@@ -13,13 +13,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .. import __version__
+from .. import __version__, documents
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
 from ..agent.tools import catalog
 from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
+from .documents import add_document_routes
 from .engine import Masker, rehydrate, segments
 from .extension import add_extension_routes
 from .inspector import Inspector, user_text
@@ -60,7 +61,8 @@ def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel |
 
 
 def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat_model: ChatModel | None = None,
-               inspector: Inspector | None = None, image_masker: ImageMasker | None = None) -> FastAPI:
+               inspector: Inspector | None = None, image_masker: ImageMasker | None = None,
+               documents_sync: bool = False) -> FastAPI:
     inspector = inspector or Inspector()
     off_reason = chat_off = ""
     if analyzer is None:
@@ -80,7 +82,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     # The React dev server (and later the Electron renderer) call the engine from another local origin.
     origins = os.environ.get("MUSE_SHIELD_CORS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
     app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in origins if o.strip()],
-                       allow_methods=["GET", "POST"], allow_headers=["content-type"])
+                       allow_methods=["GET", "POST"],
+                       allow_headers=["content-type", "x-filename", "x-chat-id"], expose_headers=["content-disposition"])
     app.state.vault, app.state.masker, app.state.engine, app.state.inspector = vault, masker, engine, inspector
     app.state.executor = executor
 
@@ -93,7 +96,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         return {"ok": True, "version": __version__, "analysis": bool(masker), "chat": bool(engine),
                 "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
                 "analysis_off_reason": off_reason, "chat_off_reason": chat_off,
-                "images": bool(image_masker), "images_off_reason": images_off}
+                "images": bool(image_masker), "images_off_reason": images_off, "documents": documents.available()}
 
     @app.post("/mask")
     def mask(body: MaskRequest):
@@ -136,7 +139,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def chat(body: ChatRequest):
         if not engine:
             raise HTTPException(503, off_reason or chat_off or "chat unavailable")
-        return engine.chat(body.message, body.chat_id, body.mask_id).to_dict()
+        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids).to_dict()
 
     @app.post("/reveal")
     def reveal(body: RevealRequest):
@@ -165,6 +168,9 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             extra = {"segments": segments(m["masked_text"], chat_id, vault)} if m["role"] == "assistant" else {}
             if m["role"] == "reveal":
                 m = {**m, "original": None}  # the note's text is for the model; the UI shows the consent itself
+            if m["role"] == "document":  # shown as a card, not the whole (rehydrated) document
+                msgs.append({**m, "masked_text": "", "text": "", "document": vault.document(m["meta"].get("doc_id", ""))})
+                continue
             msgs.append({**m, "text": shown, **extra})
         return {"chat_id": chat_id, "messages": msgs, "consents": vault.consents(chat_id)}
 
@@ -268,6 +274,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
 
     add_extension_routes(app, vault, masker, off_reason)
+    add_document_routes(app, vault, masker, off_reason, inspector, sync=documents_sync)
 
     if (WEB / "assets").exists():
         app.mount("/assets", StaticFiles(directory=WEB / "assets"), name="assets")

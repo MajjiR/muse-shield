@@ -2,12 +2,18 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$6.74** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$7.11** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261104-031303_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal-units800](document-pii/20261104-031303_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal-units800/report.html) | document-pii | docs10-spark-minimal-units800 | muse_spark-docx `muse-spark-1.3` | 11 | 0.6% | – | 99.4% | – | 100.0% | $0.07 |
+| [20261104-031303_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal-units800](document-pii/20261104-031303_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal-units800/report.html) | document-pii | docs10-spark-minimal-units800 | muse_spark-pptx `muse-spark-1.3` | 11 | 0.6% | – | 99.4% | – | 100.0% | $0.08 |
+| [20261104-031303_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal-units800](document-pii/20261104-031303_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal-units800/report.html) | document-pii | docs10-spark-minimal-units800 | muse_spark-pdf `muse-spark-1.3` | 11 | 0.6% | – | 99.4% | – | 100.0% | $0.05 |
+| [20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal](document-pii/20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal/report.html) | document-pii | docs10-spark-minimal | muse_spark-docx `muse-spark-1.3` | 11 | 0.0% | – | 100.0% | – | 100.0% | $0.06 |
+| [20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal](document-pii/20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal/report.html) | document-pii | docs10-spark-minimal | muse_spark-pptx `muse-spark-1.3` | 11 | 1.3% | – | 98.7% | – | 100.0% | $0.07 |
+| [20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal](document-pii/20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal/report.html) | document-pii | docs10-spark-minimal | muse_spark-pdf `muse-spark-1.3` | 11 | 1.9% | – | 98.1% | – | 100.0% | $0.05 |
 | [20261104-023813_v0.0.1+3a4b925-dirty_images5-spark-refine-v2-repeat](image-masking/20261104-023813_v0.0.1+3a4b925-dirty_images5-spark-refine-v2-repeat/report.html) | image-masking | images5-spark-refine-v2-repeat | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 2.8% | – | 97.2% | – | 100.0% | $0.15 |
 | [20261104-023647_v0.0.1+3a4b925-dirty_images5-spark-refine-v2](image-masking/20261104-023647_v0.0.1+3a4b925-dirty_images5-spark-refine-v2/report.html) | image-masking | images5-spark-refine-v2 | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 0.0% | – | 100.0% | – | 100.0% | $0.15 |
 | [20261104-023352_v0.0.1+3a4b925-dirty_images5-spark-refine-pad](image-masking/20261104-023352_v0.0.1+3a4b925-dirty_images5-spark-refine-pad/report.html) | image-masking | images5-spark-refine-pad | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 5.6% | – | 94.4% | – | 100.0% | $0.14 |

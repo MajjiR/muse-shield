@@ -63,6 +63,7 @@ chat first, then workspace.
 | `edges` | `appears_with` (entity ↔ entity in one message), `mentioned_in` (entity → context) |
 | `audit` | event, chat, counts by type: **never values** |
 | `consents` | chat, label, level, decision, reason, time |
+| `documents` | chat, number, format, status, size, pages, counts by type, warning codes; **encrypted** original file, masked copy and record (file name, extracted text, spans) |
 
 ## Local API (127.0.0.1:8765)
 
@@ -71,7 +72,7 @@ chat first, then workspace.
 | POST | `/mask` | `{text, chat_id?}` | `{chat_id, masked_text, spans[], contexts[], analysis_ok, error?, latency_ms, cost_usd}` |
 | POST | `/unmask` | `{text, chat_id}` | `{text}` |
 | POST | `/images/mask` | `{image (data: URL or base64), chat_id?, verify?}` | `{chat_id, image (PNG data URL), regions[] {kind, type, label, box, source}, masked_text, verify {ok, leaked[], faces_left, new_finds[]}, timings_ms, cost}` |
-| POST | `/chat` | `{chat_id?, message}` | `{chat_id, message_id, reply, masked_reply, sent[], ask?, masked}` |
+| POST | `/chat` | `{chat_id?, message, document_ids?}` | `{chat_id, message_id, reply, masked_reply, sent[], ask?, masked}` |
 | POST | `/reveal` | `{ask_id, decision, level?}` | `{chat_id, reply?, ask?, revealed?}` |
 | GET | `/chats` | | `[{chat_id, title, created_at, messages}]` |
 | GET | `/chats/{id}` | | `{chat_id, messages[]}` (originals decrypted locally) |
@@ -80,6 +81,11 @@ chat first, then workspace.
 | GET | `/chats/{id}/graph` | | `{nodes[], edges[]}`: labels and types only |
 | GET | `/inspector` | | `{requests[], summary}`: every outbound byte |
 | GET | `/metrics` | | counts by type, asks, consents, cost per chat |
+| POST | `/documents` | raw file bytes, `content-type: application/octet-stream`, headers `x-filename` (percent-encoded), `x-chat-id?` | `Document` (status `analysing`) |
+| GET | `/documents/{id}` | `?detail=true` | `Document`; detail adds `{text, masked_text, spans[], units[]}` (local only) |
+| GET | `/documents/{id}/masked` | | the masked copy, same format; `409` unless it passed verification |
+| GET | `/chats/{id}/documents` | | `[Document]` |
+| POST | `/documents/{id}/delete` | | `{ok}` |
 
 A **span** is `{start, end, text, type, role?, placeholder, kind: entity|context, source: model|policy|user}`.
 An **ask** is `{ask_id, chat_id, label, kind, level, reason, preview}`; `preview` is exactly the
@@ -102,3 +108,34 @@ text that would be sent.
 Values are never in the response: regions carry labels, and the vault keeps the values. The
 original image isn't stored. Like call 1 for text, this sends the raw image to Meta, so it's off
 unless `MUSE_SHIELD_DEV_RAW_ANALYSIS=1`, and only for made-up images.
+
+## Documents (PDF, .docx, .pptx)
+
+1. **Upload** the file into a chat. The format is decided from the bytes. Encrypted, legacy
+   (`.doc`, `.ppt`), macro-enabled and Strict files are refused (`415`); limits are 25 MB, 300 pages
+   or slides, and 300,000 characters (`413`). Analysis must be on (`503` otherwise).
+2. **Sanitize** what can't be masked reliably, before anything is sent: tracked changes (accepted),
+   comments, field codes, links, pictures, charts, embedded objects, alt text, properties, thumbnails;
+   for PDFs also annotations, forms, attachments, bookmarks, XMP and text outside the page. Each
+   removal is a warning `{code, count, where?}`.
+3. **Extract** every text node into one string, packed into analysis units of up to 800
+   characters, and mask it with **one** `/mask`-style call (every occurrence of a found value is
+   masked). Placeholders are shared with the chat.
+4. **Write back** in the same format: the placeholder goes into the first run of each value, with its
+   formatting; PDFs are truly redacted (text under the box removed, label written as selectable text).
+   PDF pages with no readable text layer are emptied and marked **not checked**.
+5. **Verify**: the copy is reopened and every channel searched for every masked value, passage
+   sentence, original property value and the file name. Failures name the place and placeholder,
+   never the value. Status becomes `ready` (copy downloadable) or `blocked` (no copy; the masked text
+   can still be used in chat).
+
+A **Document** is `{doc_id, chat_id, n, format, status: extracting|analysing|verifying|ready|blocked|failed,
+bytes, pages, counts, warnings[], page_status[], verify?: {ok, checks, failures[], warnings[]},
+progress?: {done, total}, filename, has_masked_copy, error?}`. `filename` is for the local UI only and
+is never sent to a model.
+
+**In chat**, `document_ids` attaches each document once, as its own message
+`[Document n · format · pages, masked like the rest of this chat]` followed by its masked text; the
+message may then be empty. The pre-send guard and `NEED_CONTEXT` apply as for any message.
+`MUSE_SHIELD_DOC_CHAR_BUDGET` (default 200,000) caps the documents in one chat. `/chats/{id}` returns
+document messages as `{role: "document", text: "", document: Document}`.
