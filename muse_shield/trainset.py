@@ -231,12 +231,19 @@ def build_mix_v2(test_sample: Path, quasi_map_file: Path, spark_train_dir: Path,
         if meta.get("split") == "train":
             rows.append({"messages": m["messages"], "_meta": {**meta, "approx_tokens": _approx_tokens(m)}})
     rows += build(n_template, seed)[:n_template]
+    # Hygiene: no training prompt may equal a sector-test prompt or contain a benchmark paragraph,
+    # not even boilerplate ("Dear Clara Kapoor,", signature lines) that recurs across documents.
+    test_dir = spark_train_dir.parent / "test"
+    sector_test = ({json.loads(l)["messages"][3]["content"] for l in (test_dir / "rows.jsonl").read_text().splitlines() if l.strip()}
+                   if (test_dir / "rows.jsonl").exists() else set())
+    bench = [p for p in benchmark_paragraphs(test_sample) if len(p) > 40]
     out, seen = [], set()
     for r in rows:
         key = r["messages"][3]["content"]
-        if key not in seen:
-            seen.add(key)
-            out.append(r)
+        if key in seen or key in sector_test or any(p in key or p[:120] in key for p in bench):
+            continue
+        seen.add(key)
+        out.append(r)
     random.Random(seed).shuffle(out)
     return out
 
