@@ -1,0 +1,25 @@
+{
+  "run_id": "20261105-034056_v0.0.1+0b67e80_conversations6-er-v2b",
+  "eval": "realistic-conversations",
+  "tag": "conversations6-er-v2b",
+  "created": "2026-11-05T03:40:56+0530",
+  "version": "0.0.1",
+  "git": "0b67e80",
+  "command": "/Users/majjir/muse-shield/.worktrees/eval-v3a/muse_shield/conversations.py --rounds 2 --tag conversations6-er-v2b",
+  "dataset": {
+    "name": "muse_shield.conversations",
+    "conversations": 6,
+    "turns": 18,
+    "rounds": 2
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+      "reasoning_effort": null,
+      "rounds": 2
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

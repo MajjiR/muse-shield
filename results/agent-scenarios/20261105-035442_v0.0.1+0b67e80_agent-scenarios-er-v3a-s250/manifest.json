@@ -1,0 +1,23 @@
+{
+  "run_id": "20261105-035442_v0.0.1+0b67e80_agent-scenarios-er-v3a-s250",
+  "eval": "agent-scenarios",
+  "tag": "agent-scenarios-er-v3a-s250",
+  "created": "2026-11-05T03:54:42+0530",
+  "version": "0.0.1",
+  "git": "0b67e80",
+  "command": "/Users/majjir/muse-shield/.worktrees/eval-v3a/muse_shield/agent/scenarios.py --rounds 1 --tag agent-scenarios-er-v3a-s250",
+  "dataset": {
+    "name": "muse_shield.agent.scenarios",
+    "docs": 20,
+    "rounds": 1
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3",
+      "rounds": 1
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

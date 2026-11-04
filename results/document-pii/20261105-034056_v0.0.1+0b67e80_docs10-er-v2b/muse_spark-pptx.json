@@ -1,0 +1,125 @@
+{
+  "backend": "muse_spark-pptx",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+  "docs": 11,
+  "leak_rate": 0.11688311688311688,
+  "span_recall": 0.8766233766233766,
+  "valid_rate": 1.0,
+  "must_total": 154,
+  "missed_total": 19,
+  "leaked_total": 18,
+  "not_extracted": 0,
+  "missed_by_type": {
+    "SECRET": 5,
+    "ID": 3,
+    "CONTACT": 7,
+    "SENSITIVE_ATTRIBUTE": 1,
+    "ADDRESS": 3
+  },
+  "consistent_misses": [
+    {
+      "id": "card-support-chat",
+      "value": "312",
+      "times": 1
+    },
+    {
+      "id": "travel-booking",
+      "value": "QX7HT2",
+      "times": 1
+    },
+    {
+      "id": "incident-secrets",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "mild hypertension",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "312",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "9876543210",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "vikram.rao@okicici",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Vikram@2024",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "QX7HT2",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "203.0.113.45",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "tomas@acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Pr0d!Acme#2026",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "B-302, Sai Residency, Hyderabad 500032",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Flat 1102, Prestige Lakeside, Whitefield",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "99001 23456",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "4th Floor, Kamala Mills, Lower Parel, Mumbai 400013",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "accounts@brightline.in",
+      "times": 1
+    }
+  ],
+  "units_per_doc": 3.4,
+  "long_doc_units": 7,
+  "warnings": {},
+  "cost_usd": 0.0,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "seconds": 139.3
+}

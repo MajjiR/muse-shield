@@ -1,0 +1,31 @@
+{
+  "run_id": "20261105-034056_v0.0.1+0b67e80_docs10-er-v2b",
+  "eval": "document-pii",
+  "tag": "docs10-er-v2b",
+  "created": "2026-11-05T03:40:56+0530",
+  "version": "0.0.1",
+  "git": "0b67e80",
+  "command": "/Users/majjir/muse-shield/.worktrees/eval-v3a/muse_shield/document_eval.py --rounds 1 --tag docs10-er-v2b",
+  "dataset": {
+    "name": "muse_shield.realistic rendered by muse_shield.documents.samples",
+    "examples": 10,
+    "long_doc": true,
+    "formats": [
+      "docx",
+      "pptx",
+      "pdf"
+    ]
+  },
+  "settings": {
+    "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+    "reasoning_effort": null,
+    "rounds": 1,
+    "unit_chars": 800,
+    "contexts": false
+  },
+  "backends": [
+    "muse_spark-docx",
+    "muse_spark-pptx",
+    "muse_spark-pdf"
+  ]
+}

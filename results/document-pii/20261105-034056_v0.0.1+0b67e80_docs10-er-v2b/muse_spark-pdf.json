@@ -1,0 +1,100 @@
+{
+  "backend": "muse_spark-pdf",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+  "docs": 11,
+  "leak_rate": 0.08441558441558442,
+  "span_recall": 0.9090909090909091,
+  "valid_rate": 1.0,
+  "must_total": 154,
+  "missed_total": 14,
+  "leaked_total": 13,
+  "not_extracted": 0,
+  "missed_by_type": {
+    "SECRET": 2,
+    "ID": 4,
+    "CONTACT": 4,
+    "PERSON": 1,
+    "ADDRESS": 3
+  },
+  "consistent_misses": [
+    {
+      "id": "card-support-chat",
+      "value": "312",
+      "times": 1
+    },
+    {
+      "id": "travel-booking",
+      "value": "QX7HT2",
+      "times": 1
+    },
+    {
+      "id": "incident-secrets",
+      "value": "203.0.113.45",
+      "times": 1
+    },
+    {
+      "id": "incident-secrets",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "312",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "QX7HT2",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Daniel Okafor",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "203.0.113.45",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "tomas@acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "B-302, Sai Residency, Hyderabad 500032",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Flat 1102, Prestige Lakeside, Whitefield",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "99001 23456",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "4th Floor, Kamala Mills, Lower Parel, Mumbai 400013",
+      "times": 1
+    }
+  ],
+  "units_per_doc": 1.4,
+  "long_doc_units": 5,
+  "warnings": {},
+  "cost_usd": 0.0,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "seconds": 119.0
+}

@@ -1,0 +1,32 @@
+{
+  "backend": "muse_spark",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-er-cmp-er-v3a-s250-1105-0331",
+  "docs": 20,
+  "leak_rate": 0.012987012987012988,
+  "span_recall": 0.987012987012987,
+  "valid_rate": 1.0,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 1.0,
+    "CONTACT": 1.0,
+    "DATE": 1.0,
+    "ID": 1.0,
+    "ORG": 1.0,
+    "PERSON": 0.9444444444444444,
+    "SECRET": 1.0,
+    "SENSITIVE_ATTRIBUTE": 1.0
+  },
+  "cost_usd": 0.0,
+  "seconds": 176.8,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "consistent_misses": [
+    {
+      "id": "flat-negotiation",
+      "value": "Rahul",
+      "times": 2
+    }
+  ]
+}

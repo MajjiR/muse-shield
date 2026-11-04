@@ -1,0 +1,336 @@
+{
+  "backend": "muse_spark",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+  "docs": 36,
+  "leak_rate": 0.1095890410958904,
+  "span_recall": 0.8904109589041096,
+  "valid_rate": 1.0,
+  "linked_rate": 0.8888888888888888,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 0.975,
+    "CONTACT": 1.0,
+    "DATE": 1.0,
+    "ID": 0.8888888888888888,
+    "ORG": 1.0,
+    "PERSON": 0.9767441860465116,
+    "SECRET": 0.33333333333333337,
+    "SENSITIVE_ATTRIBUTE": 0.19999999999999996
+  },
+  "by_sector": {
+    "general": {
+      "must": 38,
+      "missed": 4,
+      "extra": 4,
+      "cost_usd": 0.0,
+      "latency_ms": 6403
+    },
+    "finance": {
+      "must": 48,
+      "missed": 0,
+      "extra": 0,
+      "cost_usd": 0.0,
+      "latency_ms": 7973
+    },
+    "healthcare": {
+      "must": 42,
+      "missed": 8,
+      "extra": 4,
+      "cost_usd": 0.0,
+      "latency_ms": 7780
+    },
+    "legal": {
+      "must": 62,
+      "missed": 4,
+      "extra": 4,
+      "cost_usd": 0.0,
+      "latency_ms": 7536
+    },
+    "hr": {
+      "must": 60,
+      "missed": 8,
+      "extra": 6,
+      "cost_usd": 0.0,
+      "latency_ms": 7750
+    },
+    "tech": {
+      "must": 42,
+      "missed": 8,
+      "extra": 4,
+      "cost_usd": 0.0,
+      "latency_ms": 5087
+    }
+  },
+  "cost_usd": 0.0,
+  "seconds": 255.2,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "consistent_misses": [
+    {
+      "id": "general-wedding-move/t3",
+      "value": "rehab for alcohol addiction",
+      "times": 2
+    },
+    {
+      "id": "general-wedding-move/t3",
+      "value": "diabetic",
+      "times": 2
+    },
+    {
+      "id": "health-discharge/t1",
+      "value": "32 weeks of pregnancy",
+      "times": 2
+    },
+    {
+      "id": "health-discharge/t1",
+      "value": "HIV positive",
+      "times": 2
+    },
+    {
+      "id": "health-discharge/t3",
+      "value": "HIV status",
+      "times": 2
+    },
+    {
+      "id": "health-discharge/t3",
+      "value": "Malhotras",
+      "times": 2
+    },
+    {
+      "id": "legal-settlement-nda/t1",
+      "value": "1187/2025",
+      "times": 2
+    },
+    {
+      "id": "legal-settlement-nda/t1",
+      "value": "0421/2025",
+      "times": 2
+    },
+    {
+      "id": "hr-offer-complaint-layoffs/t1",
+      "value": "5 months pregnant",
+      "times": 2
+    },
+    {
+      "id": "hr-offer-complaint-layoffs/t2",
+      "value": "his sexuality",
+      "times": 2
+    },
+    {
+      "id": "hr-offer-complaint-layoffs/t3",
+      "value": "\u20b92.4 crore",
+      "times": 2
+    },
+    {
+      "id": "hr-offer-complaint-layoffs/t3",
+      "value": "on maternity leave",
+      "times": 2
+    },
+    {
+      "id": "tech-outage-breach-bridge/t2",
+      "value": "AKIA3XAMPLEKEY9Q7Z2W",
+      "times": 2
+    },
+    {
+      "id": "tech-outage-breach-bridge/t2",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "times": 2
+    },
+    {
+      "id": "tech-outage-breach-bridge/t2",
+      "value": "SK9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c",
+      "times": 2
+    },
+    {
+      "id": "tech-outage-breach-bridge/t2",
+      "value": "rzp_live_H7qK2mNvX4pLwR",
+      "times": 2
+    }
+  ],
+  "links": [
+    {
+      "round": 1,
+      "conversation": "general-wedding-move",
+      "value": "Shreya",
+      "placeholders": [
+        "<PERSON_2>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "finance-wealth-review",
+      "value": "Rajiv",
+      "placeholders": [
+        "<PERSON_1>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "legal-settlement-nda",
+      "value": "Sameer Chawla",
+      "placeholders": [
+        "<PERSON_1>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "legal-settlement-nda",
+      "value": "Harish Vikrant",
+      "placeholders": [
+        "<PERSON_2>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "hr-offer-complaint-layoffs",
+      "value": "Ritesh",
+      "placeholders": [
+        "<PERSON_4>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "hr-offer-complaint-layoffs",
+      "value": "Manoj",
+      "placeholders": [
+        "<PERSON_3>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "tech-outage-breach-bridge",
+      "value": "Apollo",
+      "placeholders": [
+        "<ORG_2>",
+        "<ORG_3>"
+      ],
+      "linked": false,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "tech-outage-breach-bridge",
+      "value": "Siddharth",
+      "placeholders": [
+        "<PERSON_5>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 1,
+      "conversation": "tech-outage-breach-bridge",
+      "value": "Nandini",
+      "placeholders": [
+        "<PERSON_4>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "general-wedding-move",
+      "value": "Shreya",
+      "placeholders": [
+        "<PERSON_2>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "finance-wealth-review",
+      "value": "Rajiv",
+      "placeholders": [
+        "<PERSON_1>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "legal-settlement-nda",
+      "value": "Sameer Chawla",
+      "placeholders": [
+        "<PERSON_1>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "legal-settlement-nda",
+      "value": "Harish Vikrant",
+      "placeholders": [
+        "<PERSON_2>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "hr-offer-complaint-layoffs",
+      "value": "Ritesh",
+      "placeholders": [
+        "<PERSON_4>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "hr-offer-complaint-layoffs",
+      "value": "Manoj",
+      "placeholders": [
+        "<PERSON_3>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "tech-outage-breach-bridge",
+      "value": "Apollo",
+      "placeholders": [
+        "<ORG_2>",
+        "<ORG_3>"
+      ],
+      "linked": false,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "tech-outage-breach-bridge",
+      "value": "Siddharth",
+      "placeholders": [
+        "<PERSON_5>"
+      ],
+      "linked": true,
+      "unmasked": false
+    },
+    {
+      "round": 2,
+      "conversation": "tech-outage-breach-bridge",
+      "value": "Nandini",
+      "placeholders": [
+        "<PERSON_4>"
+      ],
+      "linked": true,
+      "unmasked": false
+    }
+  ]
+}

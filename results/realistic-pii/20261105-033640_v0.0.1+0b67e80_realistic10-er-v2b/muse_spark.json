@@ -1,0 +1,47 @@
+{
+  "backend": "muse_spark",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+  "docs": 20,
+  "leak_rate": 0.05194805194805195,
+  "span_recall": 0.948051948051948,
+  "valid_rate": 1.0,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 1.0,
+    "CONTACT": 0.9230769230769231,
+    "DATE": 1.0,
+    "ID": 0.8823529411764706,
+    "ORG": 1.0,
+    "PERSON": 1.0,
+    "SECRET": 0.8,
+    "SENSITIVE_ATTRIBUTE": 1.0
+  },
+  "cost_usd": 0.0,
+  "seconds": 138.4,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "consistent_misses": [
+    {
+      "id": "card-support-chat",
+      "value": "312",
+      "times": 2
+    },
+    {
+      "id": "travel-booking",
+      "value": "QX7HT2",
+      "times": 2
+    },
+    {
+      "id": "incident-secrets",
+      "value": "203.0.113.45",
+      "times": 2
+    },
+    {
+      "id": "incident-secrets",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 2
+    }
+  ]
+}

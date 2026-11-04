@@ -1,0 +1,110 @@
+{
+  "backend": "muse_spark-docx",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-cmp-er-v2b-1105-0331",
+  "docs": 11,
+  "leak_rate": 0.09740259740259741,
+  "span_recall": 0.8961038961038961,
+  "valid_rate": 1.0,
+  "must_total": 154,
+  "missed_total": 16,
+  "leaked_total": 15,
+  "not_extracted": 0,
+  "missed_by_type": {
+    "PERSON": 2,
+    "SECRET": 2,
+    "ID": 6,
+    "CONTACT": 3,
+    "ADDRESS": 3
+  },
+  "consistent_misses": [
+    {
+      "id": "medical-intake",
+      "value": "Ravi Krishnan",
+      "times": 1
+    },
+    {
+      "id": "card-support-chat",
+      "value": "312",
+      "times": 1
+    },
+    {
+      "id": "incident-secrets",
+      "value": "203.0.113.45",
+      "times": 1
+    },
+    {
+      "id": "incident-secrets",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "50100234567891",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "HDFC0001234",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "ABCPM1234K",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "312",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "QX7HT2",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Daniel Okafor",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "203.0.113.45",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "tomas@acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "db-prod-3.internal.acme.dev",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "B-302, Sai Residency, Hyderabad 500032",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "Flat 1102, Prestige Lakeside, Whitefield",
+      "times": 1
+    },
+    {
+      "id": "long-10",
+      "value": "4th Floor, Kamala Mills, Lower Parel, Mumbai 400013",
+      "times": 1
+    }
+  ],
+  "units_per_doc": 2.4,
+  "long_doc_units": 6,
+  "warnings": {},
+  "cost_usd": 0.0,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "seconds": 118.5
+}
