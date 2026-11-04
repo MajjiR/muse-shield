@@ -1,3 +1,4 @@
+import { modeShort } from "@/lib/modes"
 import { cn } from "@/lib/utils"
 import type { MaskMode, ModeInfo } from "@muse-shield/core"
 import { Layers, Lock } from "lucide-react"
@@ -43,8 +44,8 @@ export function ModeBadge({ mode, modes }: { mode?: MaskMode | null; modes: Mode
   const info = modes.find((m) => m.id === mode)
   return (
     <span title={`${info?.detail ?? mode}. Start a new chat to use another mode.`}
-      className="flex items-center gap-1 rounded-md border px-2 py-0.5 text-[12px] text-muted-foreground">
-      <Lock className="size-3" aria-hidden /> {info?.label ?? mode}
+      className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[12px] text-muted-foreground">
+      <Lock className="size-3" aria-hidden /> {modeShort(mode)}
     </span>
   )
 }

@@ -227,7 +227,10 @@ def parse(raw: str, text: str) -> Resolution:
             utext = text[us_s:us_e]
             key = (u, mtext.lower())
             i = _find(utext, mtext, cursors.get(key, 0))
-            while i >= 0 and (us_s + i, us_s + i + len(mtext)) in taken:  # already claimed by an earlier mention
+            # skip text already claimed: by anyone at exactly this span, or by this same entity anywhere around it
+            # ("Priya" inside "Priya Shah"); other entities may nest ("his" inside "his mother")
+            while i >= 0 and ((us_s + i, us_s + i + len(mtext)) in taken or
+                              any(a < us_s + i + len(mtext) and us_s + i < b for a, b in ((m.start, m.end) for m in ent.mentions))):
                 nxt = _find(utext, mtext, i + 1)
                 i = nxt if nxt > i else -1
             if i < 0:
