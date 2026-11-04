@@ -66,6 +66,12 @@ def add_image_routes(app: FastAPI, vault: Vault, image_masker, images_off: str) 
             headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{urllib.parse.quote(f'image-{info['n']}.masked.png')}"
         return Response(vault.image_png(image_id), media_type="image/png", headers=headers)
 
+    @app.post("/images/{image_id}/delete")
+    def delete_image(image_id: str):
+        if not vault.image(image_id):
+            raise HTTPException(404, "unknown image")
+        return {"ok": vault.delete_image(image_id)}
+
     @app.get("/chats/{chat_id}/images")
     def chat_images(chat_id: str):
         return vault.images(chat_id)
