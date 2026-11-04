@@ -50,12 +50,23 @@ def read_request(body: dict) -> tuple[bytes, str]:
 class Segmenter:
     """One SAM 3 model, loaded once; requests are served one at a time (one GPU)."""
 
-    def __init__(self, weights: str, device: str, conf: float, half: bool):
+    def __init__(self, weights: str, device: str, conf: float, half: bool, imgsz: int = 1008):
+        import os
+
+        os.environ["YOLO_AUTOINSTALL"] = "false"  # ultralytics must never pip-install anything at runtime
         from ultralytics.models.sam import SAM3SemanticPredictor  # heavy: only in the ML venv
 
-        self.predictor = SAM3SemanticPredictor(overrides=dict(
-            model=weights, task="segment", mode="predict", conf=conf, half=half, device=device, verbose=False))
+        # save=False: the server must never write the pictures it sees (or their masks) to disk.
+        overrides = dict(model=weights, task="segment", mode="predict", conf=conf, device=device, imgsz=imgsz,
+                         save=False, verbose=False)
+        if half:
+            overrides["half"] = True
+        self.predictor = SAM3SemanticPredictor(overrides=overrides)
         self.lock = threading.Lock()
+        # The network is built on the first image, so do that now: the server is ready when it says so.
+        buf = io.BytesIO()
+        __import__("PIL.Image", fromlist=["Image"]).new("RGB", (64, 64), (128, 128, 128)).save(buf, "PNG")
+        self.boxes(buf.getvalue(), "face")
 
     def boxes(self, image: bytes, concept: str) -> tuple[str, float]:
         import numpy as np
@@ -65,7 +76,7 @@ class Segmenter:
         w, h = img.size
         t0 = time.perf_counter()
         with self.lock:
-            self.predictor.set_image(np.asarray(img)[:, :, ::-1])  # ultralytics expects BGR arrays
+            self.predictor.set_image(np.ascontiguousarray(np.asarray(img)[:, :, ::-1]))  # ultralytics expects BGR arrays
             result = self.predictor(text=[concept])[0]
         b = result.boxes
         boxes = b.xyxy.tolist() if b is not None and len(b) else []
@@ -113,10 +124,11 @@ def main() -> None:
     ap.add_argument("--device", default="mps")
     ap.add_argument("--conf", type=float, default=0.4)
     ap.add_argument("--half", action="store_true", help="fp16 (faster on MPS, check accuracy first)")
+    ap.add_argument("--imgsz", type=int, default=1008, help="input size; 1008 is SAM 3's native, 644 is faster")
     args = ap.parse_args()
     t0 = time.time()
-    seg = Segmenter(args.weights, args.device, args.conf, args.half)
-    name = f"sam3-local ({args.device}{', fp16' if args.half else ''})"
+    seg = Segmenter(args.weights, args.device, args.conf, args.half, args.imgsz)
+    name = f"sam3-local ({args.device}, {args.imgsz}px{', fp16' if args.half else ''})"
     print(f"loaded {args.weights} on {args.device} in {time.time() - t0:.1f}s; listening on 127.0.0.1:{args.port}", flush=True)
     ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(seg, name)).serve_forever()
 
