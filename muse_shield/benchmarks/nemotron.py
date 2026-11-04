@@ -44,6 +44,7 @@ LABEL_MAP = {
         "political_view", "race_ethnicity", "religious_belief", "sexuality",
     ], "SENSITIVE_ATTRIBUTE"),
 }
+OUR_TYPES = {"PERSON", "ORG", "ADDRESS", "LOCATION", "AMOUNT", "PROJECT", "ID", "CONTACT", "DATE", "SECRET", "SENSITIVE_ATTRIBUTE"}
 # Weak quasi-identifiers: scored, but reported apart so they don't swing the core leak rate.
 QUASI = {"occupation", "employment_status", "education_level", "language"}
 
@@ -57,7 +58,8 @@ class Gold:
 
     @property
     def type(self) -> str:
-        return LABEL_MAP.get(self.label, "OTHER")
+        # Nemotron labels map through LABEL_MAP; other benchmarks store our type names directly.
+        return LABEL_MAP.get(self.label) or (self.label if self.label in OUR_TYPES else "OTHER")
 
 
 @dataclass
