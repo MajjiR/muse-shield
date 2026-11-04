@@ -1,13 +1,14 @@
 import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
 import { DocumentCard } from "@/components/document-card"
+import { ImageCard, PendingImageCard } from "@/components/image-card"
 import { MessageView } from "@/components/message"
 import { MaskedText, OriginalText } from "@/components/privacy-text"
 import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
 import { cn } from "@/lib/utils"
-import type { Ask, DocumentInfo, Level, MaskResult, Turn } from "@muse-shield/core"
+import type { Ask, DocumentInfo, ImageInfo, Level, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowUp, Briefcase, FileText, FileUp, FlaskConical, KeyRound, Lock, PanelRight, Paperclip, ReceiptText, ScanEye, ShieldCheck, Sparkles, Wrench, X,
@@ -49,6 +50,9 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   // Documents uploaded for the next message: masked in the background, sent with it.
   const [attached, setAttached] = useState<DocumentInfo[]>([])
   const [docStatus, setDocStatus] = useState<Record<string, DocumentInfo["status"]>>({})
+  // Images are masked while you wait (~20-30 s); the pending ones show a blurred local preview.
+  const [images, setImages] = useState<ImageInfo[]>([])
+  const [pendingImages, setPendingImages] = useState<{ key: string; filename: string; previewUrl: string }[]>([])
   const [dragging, setDragging] = useState(false)
 
   const detail = useQuery({ queryKey: ["chat", chatId], queryFn: () => engine.chatDetail(chatId!), enabled: !!chatId })
@@ -83,7 +87,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
     if (!el) return
     el.style.height = "0px"
     el.style.height = `${Math.min(el.scrollHeight, 220)}px`
-  }, [input, attached.length]) // the placeholder changes with attachments
+  }, [input, attached.length, images.length, pendingImages.length]) // the placeholder and layout change with attachments
 
   const refresh = (id: string) => {
     for (const key of [["chat", id], ["vault", id], ["actions", id], ["outbox", id], ["chats"], ["metrics"], ["audit-chain"]]) {
@@ -128,26 +132,49 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const onPreview = () => run(async () => { if (input.trim()) await mask(input.trim()) })
 
   const docsAllowed = !!health.data?.analysis && health.data?.documents !== false
+  const imagesAllowed = !!health.data?.images
+  const filesAllowed = docsAllowed || imagesAllowed
   const statusOf = (d: DocumentInfo) => docStatus[d.doc_id] ?? d.status
   const sendable = attached.filter((d) => ["ready", "blocked"].includes(statusOf(d)))
-  const docsBusy = attached.some((d) => !["ready", "blocked", "failed"].includes(statusOf(d)))
-  const canSend = !phase && !docsBusy && (!!input.trim() || sendable.length > 0)
+  const docsBusy = attached.some((d) => !["ready", "blocked", "failed"].includes(statusOf(d))) || pendingImages.length > 0
+  const canSend = !phase && !docsBusy && (!!input.trim() || sendable.length > 0 || images.length > 0)
+  const accept = [docsAllowed && ".pdf,.docx,.pptx", imagesAllowed && "image/png,image/jpeg,image/webp,image/gif"].filter(Boolean).join(",")
 
   async function upload(files: FileList | File[]) {
     let cid = chatId
-    for (const file of Array.from(files)) {
-      if (!/\.(pdf|docx|pptx)$/i.test(file.name)) {
-        toast.error(`${file.name}: only PDF, Word (.docx) and PowerPoint (.pptx) files`)
+    const list = Array.from(files)
+    if (!cid && list.length > 1) {  // several files into a new conversation: one chat for all of them
+      cid = (await engine.newChat()).chat_id
+      onChat(cid)
+    }
+    const adopt = (id: string) => {
+      if (!cid) {
+        cid = id
+        onChat(id)
+      }
+      qc.invalidateQueries({ queryKey: ["chats"] })
+    }
+    for (const file of list) {
+      const isImage = /^image\/(png|jpe?g|webp|gif)$/i.test(file.type) || /\.(png|jpe?g|webp|gif)$/i.test(file.name)
+      const isDoc = /\.(pdf|docx|pptx)$/i.test(file.name)
+      if ((isImage && !imagesAllowed) || (isDoc && !docsAllowed) || (!isImage && !isDoc)) {
+        toast.error(`${file.name}: ${[docsAllowed && "PDF, Word or PowerPoint files", imagesAllowed && "PNG, JPEG, WebP or GIF images"].filter(Boolean).join(", or ")} only`)
+        continue
+      }
+      if (isImage) {
+        const key = `${file.name}-${file.size}-${Date.now()}`
+        const previewUrl = URL.createObjectURL(file)
+        setPendingImages((p) => [...p, { key, filename: file.name, previewUrl }])
+        engine.uploadImage(file, cid)
+          .then((img) => { adopt(img.chat_id); setImages((a) => [...a, img]) })
+          .catch((e) => toast.error(`${file.name}: ${(e as Error).message}`))
+          .finally(() => { setPendingImages((p) => p.filter((x) => x.key !== key)); URL.revokeObjectURL(previewUrl) })
         continue
       }
       try {
         const d = await engine.uploadDocument(file, cid)
-        if (!cid) {
-          cid = d.chat_id
-          onChat(d.chat_id)
-        }
+        adopt(d.chat_id)
         setAttached((a) => [...a, d])
-        qc.invalidateQueries({ queryKey: ["chats"] })
       } catch (e) {
         toast.error(`${file.name}: ${(e as Error).message}`)
       }
@@ -166,10 +193,12 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       if (!canSend) return
       const text = input.trim()
       const docIds = sendable.map((d) => d.doc_id)
+      const imageIds = images.map((i) => i.image_id)
       if (docIds.length) setAttached([])
+      if (imageIds.length) setImages([])
       if (!text) {
         setPhase("sending")
-        await afterTurn(await engine.chat("", chatId, null, docIds))
+        await afterTurn(await engine.chat("", chatId, null, docIds, imageIds))
         return
       }
       setInput("")
@@ -190,7 +219,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       await new Promise((r) => setTimeout(r, Math.max(PREVIEW_MS, m.spans.length * 110 + 700)))
       setPending({ text, stage: "sending", masked: m })
       setPhase("sending")
-      await afterTurn(await engine.chat(text, m.chat_id, m.mask_id, docIds))
+      await afterTurn(await engine.chat(text, m.chat_id, m.mask_id, docIds, imageIds))
     })
 
   const onDecide = (decision: "allow" | "deny", level: Level) =>
@@ -212,9 +241,9 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   return (
     <main
       className="relative flex min-h-0 min-w-0 flex-col bg-background"
-      onDragOver={(e) => { if (docsAllowed && e.dataTransfer.types.includes("Files")) { e.preventDefault(); setDragging(true) } }}
+      onDragOver={(e) => { if (filesAllowed && e.dataTransfer.types.includes("Files")) { e.preventDefault(); setDragging(true) } }}
       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false) }}
-      onDrop={(e) => { if (!docsAllowed) return; e.preventDefault(); setDragging(false); upload(e.dataTransfer.files) }}
+      onDrop={(e) => { if (!filesAllowed) return; e.preventDefault(); setDragging(false); upload(e.dataTransfer.files) }}
     >
       <AnimatePresence>
         {dragging && (
@@ -222,8 +251,8 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
             className="pointer-events-none absolute inset-3 z-40 grid place-items-center rounded-md border-2 border-dashed border-foreground/40 bg-background/90">
             <div className="text-center">
               <FileUp className="mx-auto size-7" aria-hidden />
-              <div className="mt-2 text-[15px] font-semibold">Drop a PDF, Word or PowerPoint file</div>
-              <div className="text-[13px] text-muted-foreground">It’s masked on your device before Muse Spark sees it</div>
+              <div className="mt-2 text-[15px] font-semibold">Drop {[docsAllowed && "a PDF, Word or PowerPoint file", imagesAllowed && "an image"].filter(Boolean).join(" or ")}</div>
+              <div className="text-[13px] text-muted-foreground">Sensitive details are masked before Muse Spark answers</div>
             </div>
           </motion.div>
         )}
@@ -267,6 +296,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
                     : <StepLine key={m.message_id} icon={Wrench} text={`${toolMeta(m.meta.tool ?? "").done}: ${m.meta.status ?? "finished"}`} />
                 }
                 if (m.role === "document") return m.document ? <DocumentCard key={m.message_id} doc={m.document} /> : null
+                if (m.role === "image") return m.image ? <ImageCard key={m.message_id} image={m.image} /> : null
                 return <MessageView key={m.message_id} m={m} kinds={kinds} />
               })}
               {pending && <PendingMessage pending={pending} />}
@@ -292,8 +322,12 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           )}
         </AnimatePresence>
 
-        {attached.length > 0 && (
-          <div className="mb-2 flex flex-col gap-2">
+        {(attached.length > 0 || images.length > 0 || pendingImages.length > 0) && (
+          <div className="mb-2 flex max-h-[45vh] flex-col gap-2 overflow-y-auto">
+            {pendingImages.map((p) => <PendingImageCard key={p.key} filename={p.filename} previewUrl={p.previewUrl} />)}
+            {images.map((i) => (
+              <ImageCard key={i.image_id} image={i} align="start" onRemove={() => setImages((a) => a.filter((x) => x.image_id !== i.image_id))} />
+            ))}
             {attached.map((d) => (
               <DocumentCard key={d.doc_id} doc={d} align="start" onRemove={() => removeAttached(d)}
                 onStatus={(x) => setDocStatus((s) => (s[x.doc_id] === x.status ? s : { ...s, [x.doc_id]: x.status }))} />
@@ -310,7 +344,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend() } }}
-            placeholder={attached.length ? "Ask about the document, or just send it." : "Message Muse Spark. Sensitive details are masked before they leave your device."}
+            placeholder={attached.length || images.length ? "Ask about it, or just send it." : "Message Muse Spark. Sensitive details are masked before they leave your device."}
             rows={1}
             className="block max-h-[220px] w-full resize-none bg-transparent px-4 pt-3.5 pb-2 text-[16px] leading-relaxed outline-none placeholder:text-muted-foreground"
             aria-label="Message"
@@ -324,11 +358,11 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
               )}
             </span>
             <div className="flex shrink-0 items-center gap-1.5">
-              {docsAllowed && (
+              {filesAllowed && (
                 <>
-                  <input ref={fileRef} type="file" accept=".pdf,.docx,.pptx" multiple hidden
+                  <input ref={fileRef} type="file" accept={accept} multiple hidden
                     onChange={(e) => { if (e.target.files) upload(e.target.files); e.target.value = "" }} />
-                  <Button type="button" variant="ghost" size="icon" aria-label="Attach a PDF, Word or PowerPoint file" disabled={!!phase}
+                  <Button type="button" variant="ghost" size="icon" aria-label={imagesAllowed ? "Attach a file or an image" : "Attach a PDF, Word or PowerPoint file"} disabled={!!phase}
                     onClick={() => fileRef.current?.click()}>
                     <Paperclip />
                   </Button>

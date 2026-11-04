@@ -63,6 +63,7 @@ chat first, then workspace.
 | `edges` | `appears_with` (entity ↔ entity in one message), `mentioned_in` (entity → context) |
 | `audit` | event, chat, counts by type: **never values** |
 | `consents` | chat, label, level, decision, reason, time |
+| `images` | chat, number, verified, counts by kind; **encrypted** masked PNG and record (file name, regions, text read from it). The original image is never stored |
 | `documents` | chat, number, format, status, size, pages, counts by type, warning codes; **encrypted** original file, masked copy and record (file name, extracted text, spans) |
 
 ## Local API (127.0.0.1:8765)
@@ -72,7 +73,7 @@ chat first, then workspace.
 | POST | `/mask` | `{text, chat_id?}` | `{chat_id, masked_text, spans[], contexts[], analysis_ok, error?, latency_ms, cost_usd}` |
 | POST | `/unmask` | `{text, chat_id}` | `{text}` |
 | POST | `/images/mask` | `{image (data: URL or base64), chat_id?, verify?}` | `{chat_id, image (PNG data URL), regions[] {kind, type, label, box, source}, masked_text, verify {ok, leaked[], faces_left, new_finds[]}, timings_ms, cost}` |
-| POST | `/chat` | `{chat_id?, message, document_ids?}` | `{chat_id, message_id, reply, masked_reply, sent[], ask?, masked}` |
+| POST | `/chat` | `{chat_id?, message, document_ids?, image_ids?}` | `{chat_id, message_id, reply, masked_reply, sent[], ask?, masked}` |
 | POST | `/reveal` | `{ask_id, decision, level?}` | `{chat_id, reply?, ask?, revealed?}` |
 | GET | `/chats` | | `[{chat_id, title, created_at, messages}]` |
 | GET | `/chats/{id}` | | `{chat_id, messages[]}` (originals decrypted locally) |
@@ -86,6 +87,10 @@ chat first, then workspace.
 | GET | `/documents/{id}/masked` | | the masked copy, same format; `409` unless it passed verification |
 | GET | `/chats/{id}/documents` | | `[Document]` |
 | POST | `/documents/{id}/delete` | | `{ok}` |
+| POST | `/images` | raw image bytes, `content-type: application/octet-stream`, headers `x-filename`, `x-chat-id?` | `Image` (masked and stored; ~20-30 s) |
+| GET | `/images/{id}` | | `Image` |
+| GET | `/images/{id}/masked` | `?download=true` | the masked PNG |
+| GET | `/chats/{id}/images` | | `[Image]` |
 
 A **span** is `{start, end, text, type, role?, placeholder, kind: entity|context, source: model|policy|user}`.
 An **ask** is `{ask_id, chat_id, label, kind, level, reason, preview}`; `preview` is exactly the
@@ -106,7 +111,13 @@ text that would be sent.
    outside a blurred region, sets `verify.ok = false`.
 
 Values are never in the response: regions carry labels, and the vault keeps the values. The
-original image isn't stored. Like call 1 for text, this sends the raw image to Meta, so it's off
+original image isn't stored.
+
+**In chat** (web app): `POST /images` runs the same masking and keeps the masked PNG in the chat. An
+**Image** is `{image_id, chat_id, n, verified, counts, filename, width, height, regions[], masked_text,
+verify, cost, timings_ms}`. `image_ids` on `/chat` attaches each image once as its own message
+`[Image n, masked like the rest of this chat…]` plus the text read from it. The masked picture
+itself goes to Muse Spark only when the re-scan passed (`verified`); otherwise only that text does. Like call 1 for text, this sends the raw image to Meta, so it's off
 unless `MUSE_SHIELD_DEV_RAW_ANALYSIS=1`, and only for made-up images.
 
 ## Documents (PDF, .docx, .pptx)

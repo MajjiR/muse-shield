@@ -65,6 +65,14 @@ class Inspector:
 def user_text(body: str) -> str:
     """The non-system message text of a chat-completions body (what the leak audit scans)."""
     try:
-        return "\n".join(m.get("content", "") for m in json.loads(body).get("messages", []) if m.get("role") != "system")
+        out = []
+        for m in json.loads(body).get("messages", []):
+            if m.get("role") == "system":
+                continue
+            content = m.get("content", "")
+            if isinstance(content, list):  # text parts of a message with an image
+                content = "\n".join(part.get("text", "") for part in content if isinstance(part, dict))
+            out.append(content)
+        return "\n".join(out)
     except (ValueError, AttributeError):
         return body

@@ -21,6 +21,7 @@ from ..agent.tools import catalog
 from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .documents import add_document_routes
+from .images_api import add_image_routes
 from .engine import Masker, rehydrate, segments
 from .extension import add_extension_routes
 from .inspector import Inspector, user_text
@@ -139,7 +140,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def chat(body: ChatRequest):
         if not engine:
             raise HTTPException(503, off_reason or chat_off or "chat unavailable")
-        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids).to_dict()
+        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids, body.image_ids).to_dict()
 
     @app.post("/reveal")
     def reveal(body: RevealRequest):
@@ -170,6 +171,9 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 m = {**m, "original": None}  # the note's text is for the model; the UI shows the consent itself
             if m["role"] == "document":  # shown as a card, not the whole (rehydrated) document
                 msgs.append({**m, "masked_text": "", "text": "", "document": vault.document(m["meta"].get("doc_id", ""))})
+                continue
+            if m["role"] == "image":
+                msgs.append({**m, "masked_text": "", "text": "", "image": vault.image(m["meta"].get("image_id", ""))})
                 continue
             msgs.append({**m, "text": shown, **extra})
         return {"chat_id": chat_id, "messages": msgs, "consents": vault.consents(chat_id)}
@@ -275,6 +279,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
 
     add_extension_routes(app, vault, masker, off_reason)
     add_document_routes(app, vault, masker, off_reason, inspector, sync=documents_sync)
+    add_image_routes(app, vault, image_masker, images_off)
 
     if (WEB / "assets").exists():
         app.mount("/assets", StaticFiles(directory=WEB / "assets"), name="assets")
