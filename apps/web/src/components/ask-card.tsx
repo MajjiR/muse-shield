@@ -33,7 +33,7 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
           <ShieldQuestion className="size-4" aria-hidden />
         </span>
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold tracking-tight">
+          <p className="font-heading text-[20px] leading-tight font-normal tracking-[-0.01em]">
             Muse Spark is asking to see {ask.kind === "context" ? "a hidden passage" : "a hidden value"}
           </p>
           <p className="mt-0.5 text-[13px] text-muted-foreground">

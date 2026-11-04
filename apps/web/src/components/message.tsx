@@ -72,7 +72,7 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
               className="w-full overflow-hidden"
             >
               <div className="rounded-md border border-dashed bg-subtle px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap">
-                <div className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                <div className="mb-1 eyebrow text-muted-foreground">
                   {user ? "Sent to Muse Spark" : "Muse Spark wrote"}
                 </div>
                 <MaskedText text={m.masked_text} kinds={kinds} />

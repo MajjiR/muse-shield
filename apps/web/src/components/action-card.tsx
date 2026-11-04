@@ -50,7 +50,7 @@ function PendingAction({ action, busy, onDecide }: { action: AgentAction; busy: 
           <Icon className="size-4" aria-hidden />
         </span>
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold tracking-tight">Muse Spark wants to {meta.wants}</p>
+          <p className="font-heading text-[20px] leading-tight font-normal tracking-[-0.01em]">Muse Spark wants to {meta.wants}</p>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
             It planned this with placeholders only. The real values are filled in here, and nothing runs until you confirm.
           </p>
@@ -76,11 +76,11 @@ function PendingAction({ action, busy, onDecide }: { action: AgentAction; busy: 
 
       <div className="grid grid-cols-2 max-md:grid-cols-1">
         <div className="border-r px-5 py-3 max-md:border-r-0 max-md:border-b">
-          <div className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Muse Spark planned</div>
+          <div className="mb-2 eyebrow text-muted-foreground">Muse Spark planned</div>
           <Fields fields={fields} values={action.args} masked />
         </div>
         <div className="bg-subtle px-5 py-3">
-          <div className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Runs on your device</div>
+          <div className="mb-2 eyebrow text-muted-foreground">Runs on your device</div>
           <Fields fields={fields} values={action.preview} />
         </div>
       </div>
@@ -163,7 +163,7 @@ export function ActionStep({ action }: { action: AgentAction }) {
               )}
               {action.error && <p className="text-[13px]">{action.error}</p>}
               <div>
-                <div className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Muse Spark planned</div>
+                <div className="mb-1 eyebrow text-muted-foreground">Muse Spark planned</div>
                 <Fields fields={fields} values={action.args} masked />
               </div>
               {action.status === "refused" && (

@@ -264,12 +264,12 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
         </div>
       )}
 
-      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-5">
-        <h1 className="min-w-0 truncate text-[15px] font-semibold tracking-tight">
+      <header className="flex h-[68px] shrink-0 items-center justify-between gap-3 border-b px-5">
+        <h1 className="min-w-0 truncate font-heading text-[21px] leading-none font-normal tracking-[-0.01em]">
           {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-1.5 rounded-sm border bg-card px-2 py-0.5 text-[12px] text-muted-foreground sm:flex">
+          <span className="hidden items-center gap-1.5 rounded-full border border-foreground/30 bg-card px-3 py-1 font-mono text-[12px] tracking-[-0.01em] text-muted-foreground sm:flex">
             <ShieldCheck className="size-3.5 text-foreground" aria-hidden />
             {maskedCount > 0 ? <><span className="tabular font-medium text-foreground">{maskedCount}</span> items shielded</> : "Shield on"}
           </span>
@@ -337,7 +337,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
         <form
           onSubmit={(e) => { e.preventDefault(); onSend() }}
-          className="relative rounded-md border border-input bg-card shadow-soft transition-colors focus-within:border-foreground/50"
+          className="relative rounded-xl border border-input bg-card shadow-float transition-colors focus-within:border-foreground/60"
         >
           <textarea
             ref={inputRef}
@@ -410,11 +410,11 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
       </div>
       <div className="grid max-h-52 grid-cols-2 gap-0 overflow-y-auto max-md:grid-cols-1">
         <div className="border-r px-4 py-3 max-md:border-r-0 max-md:border-b">
-          <div className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">You wrote</div>
+          <div className="mb-1 eyebrow text-muted-foreground">You wrote</div>
           <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words"><OriginalText text={preview.original} spans={preview.spans} /></div>
         </div>
         <div className="bg-subtle px-4 py-3">
-          <div className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Sent</div>
+          <div className="mb-1 eyebrow text-muted-foreground">Sent</div>
           <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words"><MaskedText text={preview.masked_text} kinds={kinds} /></div>
         </div>
       </div>
@@ -465,7 +465,7 @@ function PendingMessage({ pending }: { pending: Pending }) {
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} transition={{ delay: 0.35 }}
           className="max-w-[min(42rem,85%)] overflow-hidden">
           <div className="border-l-2 border-border pl-3 text-[13.5px] leading-relaxed text-muted-foreground whitespace-pre-wrap">
-            <span className="mr-1 text-[11px] font-medium tracking-wide uppercase">Muse Spark receives</span>
+            <span className="mr-1 eyebrow">Muse Spark receives</span>
             <MaskedText text={masked.masked_text} kinds={kinds} />
           </div>
         </motion.div>
@@ -482,12 +482,12 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
           <ShieldCheck className="size-5.5" aria-hidden />
         </span>
       </span>
-      <h2 className="mt-5 text-[28px] font-semibold tracking-[-0.025em] text-balance">Ask anything. Your secrets stay here.</h2>
-      <p className="mx-auto mt-2 max-w-lg text-[14.5px] leading-relaxed text-pretty text-muted-foreground">
+      <h2 className="mt-6 font-heading text-[46px] leading-[1.1] font-normal tracking-[-0.03em] text-balance">Ask anything. Your secrets stay here.</h2>
+      <p className="mx-auto mt-3 max-w-lg text-[16px] leading-relaxed text-pretty text-muted-foreground">
         Names, IDs, amounts and whole confidential passages are swapped for placeholders before Muse Spark sees them,
         then put back into the answer on your device.
       </p>
-      <div className="mx-auto mt-6 flex max-w-xl flex-wrap justify-center gap-x-5 gap-y-2 text-[12.5px] text-muted-foreground">
+      <div className="mx-auto mt-6 flex max-w-xl flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-[12px] tracking-[-0.01em] text-muted-foreground">
         <Trust icon={ScanEye} text="You see exactly what’s sent" />
         <Trust icon={KeyRound} text="Encrypted local vault" />
         <Trust icon={ShieldCheck} text="Nothing hidden is shared without your OK" />
@@ -506,8 +506,8 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
             <span className="mb-2.5 grid size-7 place-items-center rounded-sm border text-foreground">
               <Icon className="size-4" aria-hidden />
             </span>
-            <div className="text-[13px] font-semibold tracking-tight">{title}</div>
-            <div className="mt-1 line-clamp-3 text-[12.5px] leading-snug text-muted-foreground">{text}</div>
+            <div className="text-[15px] font-medium">{title}</div>
+            <div className="mt-1 line-clamp-3 text-[13.5px] leading-snug text-muted-foreground">{text}</div>
           </motion.button>
         ))}
       </div>

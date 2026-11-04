@@ -36,8 +36,8 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
             <ShieldCheck className="size-4" aria-hidden />
           </span>
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold tracking-tight">Muse Shield</div>
-            <div className="text-[11px] text-muted-foreground">Private AI workspace</div>
+            <div className="font-heading text-[21px] leading-none font-normal tracking-[-0.01em]">Muse Shield</div>
+            <div className="mt-1 font-mono text-[11px] tracking-[-0.01em] text-muted-foreground">Private AI workspace</div>
           </div>
         </div>
         <button type="button" onClick={onNew} aria-label="New chat"
@@ -60,7 +60,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
         )}
         {groupChats(filtered).map(([label, list]) => (
           <div key={label}>
-            <div className="px-2.5 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{label}</div>
+            <div className="px-2.5 pb-1 eyebrow text-muted-foreground">{label}</div>
             {list.map((c) => {
               const active = c.chat_id === chatId
               return (
