@@ -33,7 +33,13 @@ ID_SUBTYPES = {
     "SENSITIVE_ATTRIBUTE": {"HEALTH", "AGE", "GENDER", "RELIGION", "CASTE_ETHNICITY", "POLITICS", "SEXUALITY",
                             "BODY_MEASUREMENT", "DISABILITY", "OTHER"},
 }
-OWNED_TYPES = {"AMOUNT", "ADDRESS", "ID", "CONTACT", "DATE", "SENSITIVE_ATTRIBUTE", "SECRET"}
+# v3 adds web and device identifiers, places, times and secrets (they were all leaking on public benchmarks)
+ID_SUBTYPES["CONTACT"] |= {"URL", "USERNAME", "OTHER"}
+ID_SUBTYPES["ID"] |= {"IP_ADDRESS", "DEVICE", "VEHICLE", "LICENSE"}
+ID_SUBTYPES["DATE"] |= {"TIME"}
+ID_SUBTYPES["LOCATION"] = {"CITY", "STATE", "COUNTRY", "OTHER"}
+ID_SUBTYPES["SECRET"] = {"PASSWORD", "API_KEY", "PIN", "OTHER"}
+OWNED_TYPES = {"AMOUNT", "ADDRESS", "ID", "CONTACT", "DATE", "SENSITIVE_ATTRIBUTE", "SECRET", "LOCATION"}
 RELATIONS = {"MANAGES", "EMPLOYED_BY", "SPOUSE_OF", "PARENT_OF", "SIBLING_OF", "EMERGENCY_CONTACT_OF", "REPRESENTS",
              "TREATS", "GUARANTOR_FOR", "NOMINEE_OF", "LANDLORD_OF", "CLIENT_OF"}
 ALWAYS_MASK = {"PERSON", "ID", "CONTACT", "SECRET", "ADDRESS"}
@@ -131,10 +137,46 @@ EXAMPLE_ASSISTANT = json.dumps({
 }, ensure_ascii=False)
 
 
-def messages(text: str, example: bool = True) -> list[dict]:
-    """The prompt. Fine-tuned models skip the worked example (they were trained without it: ~600 fewer tokens)."""
+# v3 policy (er-v3 models): anything that can point back to a person is private, including the places, organisations,
+# links and times around them. Public benchmarks (Nemotron-PII, PUPA) count all of these; v2 left them readable.
+SYSTEM_PROMPT_V3 = SYSTEM_PROMPT.replace(
+    "  TAX_ID, POLICY, OTHER. CONTACT: PHONE, EMAIL. ADDRESS: RESIDENTIAL, OFFICE, OTHER. DATE: DOB, JOINING, EXIT,\n"
+    "  DEADLINE, EVENT, OTHER.",
+    "  TAX_ID, POLICY, IP_ADDRESS, DEVICE, VEHICLE, LICENSE, OTHER. CONTACT: PHONE, EMAIL, URL, USERNAME, OTHER.\n"
+    "  ADDRESS: RESIDENTIAL, OFFICE, OTHER. DATE: DOB, JOINING, EXIT, DEADLINE, EVENT, TIME, OTHER. LOCATION: CITY,\n"
+    "  STATE, COUNTRY, OTHER. SECRET: PASSWORD, API_KEY, PIN, OTHER.",
+).replace(
+    "- owner: for AMOUNT, ADDRESS, ID, CONTACT, DATE, SENSITIVE_ATTRIBUTE and SECRET,",
+    "- owner: for AMOUNT, ADDRESS, ID, CONTACT, DATE, LOCATION, SENSITIVE_ATTRIBUTE and SECRET,",
+).replace(
+    "- Specific dates only (not \"next quarter\"). Job titles and public facts are not private values.",
+    "- Also private, because they point back to the people in the text or the user: web addresses and profile links,\n"
+    "  usernames and handles (CONTACT); IP and MAC addresses, device, vehicle and licence numbers (ID); passwords, PINs,\n"
+    "  API keys and cookies (SECRET); cities, states, countries and other places (LOCATION); employers, schools,\n"
+    "  banks, hospitals, brands, apps and every other organisation they deal with (ORG); times of day (DATE, TIME);\n"
+    "  gender, religion, politics, ethnicity and sexuality (SENSITIVE_ATTRIBUTE).\n"
+    "- Specific dates and times only (not \"next quarter\"). Job titles are not private values. Placeholders already\n"
+    "  in the text (<PERSON_1>) are not entities.",
+)
+assert SYSTEM_PROMPT_V3.count("LOCATION: CITY") == 1 and "web addresses" in SYSTEM_PROMPT_V3 and "LOCATION, SENSITIVE" in SYSTEM_PROMPT_V3
+# Rows converted from span-only datasets (Nemotron-PII) have no pronouns, roles, owners or relations: they say so.
+VALUES_ONLY_NOTE = ("\n- Short form for this document: list every name and private value with all its mentions; pronouns,"
+                    " descriptions, roles, owners and relations may be left out.")
+
+
+def messages(text: str, example: bool = True, version: str = "v2", values_only: bool = False) -> list[dict]:
+    """The prompt. Fine-tuned models skip the worked example (they were trained without it: ~600 fewer tokens).
+    version "v3" is the er-v3 policy prompt; values_only marks span-only training rows."""
+    system = SYSTEM_PROMPT_V3 if version == "v3" else SYSTEM_PROMPT
+    if values_only:
+        system += VALUES_ONLY_NOTE
     shot = [{"role": "user", "content": EXAMPLE_USER}, {"role": "assistant", "content": EXAMPLE_ASSISTANT}] if example else []
-    return [{"role": "system", "content": SYSTEM_PROMPT}, *shot, {"role": "user", "content": render_units(text)}]
+    return [{"role": "system", "content": system}, *shot, {"role": "user", "content": render_units(text)}]
+
+
+def prompt_version(model: str) -> str:
+    """er-v3 adapters (and their checkpoints) were trained on the v3 prompt; everything else on v2."""
+    return "v3" if "er-v3" in (model or "") else "v2"
 
 
 # -- parsing and grounding --------------------------------------------------------------------
@@ -585,9 +627,10 @@ class ResolutionAnalyzer:
 
     def __init__(self, chat_backend):
         self.chat, self.model = chat_backend, chat_backend.model
+        self.version = prompt_version(self.model)
 
     def _call(self, text: str):
-        msgs, usage, err = messages(text, example=False), {"prompt_tokens": 0, "completion_tokens": 0}, ""
+        msgs, usage, err = messages(text, example=False, version=self.version), {"prompt_tokens": 0, "completion_tokens": 0}, ""
         for attempt in (1, 2):
             raw, u = self.chat._call(msgs)
             for k in usage:
