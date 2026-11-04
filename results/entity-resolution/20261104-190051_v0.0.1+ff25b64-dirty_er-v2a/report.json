@@ -1,0 +1,142 @@
+{
+ "backend": "glimmer",
+ "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2a#accounts/rohan-majji/deployments/ms-er-hield-glimmer-er-v2a-1104-1857",
+ "tag": "er-v2a",
+ "git": "ff25b64-dirty",
+ "sets": {
+  "test": {
+   "docs": 150,
+   "valid": 1.0,
+   "leak": 0.0019096117122851686,
+   "core_leak": 0.0023331777881474567,
+   "person_leak": 0.002554278416347382,
+   "mention": {
+    "precision": 0.9918912473169569,
+    "recall": 0.991654744873629,
+    "f1": 0.9917729819959461,
+    "tp": 4159,
+    "fp": 34,
+    "fn": 35
+   },
+   "coref": {
+    "precision": 0.9902244389027431,
+    "recall": 0.9654736432600661,
+    "f1": 0.9776924213325454,
+    "tp": 9927,
+    "fp": 98,
+    "fn": 355
+   },
+   "owner_acc": 0.9874015748031496,
+   "unknown_acc": null,
+   "type_acc": 1.0,
+   "amount_role_acc": 1.0,
+   "relations": {
+    "precision": 0.964516129032258,
+    "recall": 0.9966666666666667,
+    "f1": 0.980327868852459,
+    "tp": 299,
+    "fp": 11,
+    "fn": 1
+   },
+   "persons_resolved": 0.9646017699115044,
+   "dropped_mentions": 5,
+   "seconds": 61.4,
+   "tokens": {
+    "prompt_tokens": 158579,
+    "completion_tokens": 85581
+   }
+  },
+  "challenge": {
+   "docs": 80,
+   "valid": 1.0,
+   "leak": 0.002081165452653486,
+   "core_leak": 0.0007052186177715092,
+   "person_leak": 0.0,
+   "mention": {
+    "precision": 0.9926584234930448,
+    "recall": 0.9876970396001538,
+    "f1": 0.9901715166698786,
+    "tp": 2569,
+    "fp": 19,
+    "fn": 32
+   },
+   "coref": {
+    "precision": 0.9814577093139353,
+    "recall": 0.947143840330351,
+    "f1": 0.9639955169515271,
+    "tp": 6881,
+    "fp": 130,
+    "fn": 384
+   },
+   "owner_acc": 0.9682926829268292,
+   "unknown_acc": 0.0,
+   "type_acc": 1.0,
+   "amount_role_acc": 0.9878048780487805,
+   "relations": {
+    "precision": 0.9952153110047847,
+    "recall": 1.0,
+    "f1": 0.9976019184652278,
+    "tp": 208,
+    "fp": 1,
+    "fn": 0
+   },
+   "persons_resolved": 0.9539473684210527,
+   "dropped_mentions": 3,
+   "seconds": 37.6,
+   "tokens": {
+    "prompt_tokens": 84163,
+    "completion_tokens": 51882
+   }
+  },
+  "tab": {
+   "docs": 127,
+   "valid": 0.9921259842519685,
+   "leak": 0.44981412639405205,
+   "core_leak": 0.3021276595744681,
+   "person_leak": 0.06908665105386416,
+   "mention": {
+    "precision": 0.19640092879256965,
+    "recall": 0.3838880484114977,
+    "f1": 0.25985663082437277,
+    "tp": 1015,
+    "fp": 4153,
+    "fn": 1629
+   },
+   "coref": {
+    "precision": 0.6595460614152203,
+    "recall": 0.2729281767955801,
+    "f1": 0.38608831574833924,
+    "tp": 494,
+    "fp": 255,
+    "fn": 1316
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.4221267454350161,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 231,
+    "fn": 0
+   },
+   "persons_resolved": 0.7378378378378379,
+   "dropped_mentions": 94,
+   "seconds": 78.6,
+   "tokens": {
+    "prompt_tokens": 206491,
+    "completion_tokens": 103369
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 4000,
+  "workers": 32,
+  "data": "/Users/majjir/muse-shield/.worktrees/entity-engine/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages without the worked example",
+  "relaxed": false
+ }
+}
