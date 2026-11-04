@@ -74,6 +74,10 @@ CREATE TABLE IF NOT EXISTS documents (
     nonce BLOB, record_ct BLOB, orig_nonce BLOB, orig_ct BLOB, masked_nonce BLOB, masked_ct BLOB,
     created_at REAL NOT NULL, updated_at REAL
 );
+CREATE TABLE IF NOT EXISTS images (
+    id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, n INTEGER NOT NULL, verified INTEGER NOT NULL, counts TEXT,
+    nonce BLOB NOT NULL, record_ct BLOB NOT NULL, png_nonce BLOB NOT NULL, png_ct BLOB NOT NULL, created_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS consents (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT NOT NULL, label TEXT NOT NULL,
     level TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT
@@ -456,6 +460,36 @@ class Vault:
             found = self._db.execute("SELECT 1 FROM documents WHERE id=?", (doc_id,)).fetchone() is not None
             self._db.execute("DELETE FROM documents WHERE id=?", (doc_id,))
         return found
+
+    # -- images --------------------------------------------------------------
+    # Only the masked picture is kept (the original never is), sealed with its record (file name, regions,
+    # the text read from it); counts by kind and whether the re-scan passed are in the clear.
+    def add_image(self, chat_id: str, png: bytes, record: dict, verified: bool, counts: dict) -> tuple[str, int]:
+        image_id = "i_" + uuid.uuid4().hex[:12]
+        nonce, ct = self._seal(f"image:{image_id}:record", json.dumps(record, ensure_ascii=False).encode())
+        png_nonce, png_ct = self._seal(f"image:{image_id}:masked", png)
+        with self._lock, self._db:
+            (count,) = self._db.execute("SELECT COUNT(*) FROM images WHERE chat_id=?", (chat_id,)).fetchone()
+            self._db.execute("INSERT INTO images VALUES (?,?,?,?,?,?,?,?,?,?)",
+                             (image_id, chat_id, count + 1, int(verified), json.dumps(counts), nonce, ct, png_nonce, png_ct, time.time()))
+        return image_id, count + 1
+
+    def image(self, image_id: str) -> dict | None:
+        row = self._db.execute("SELECT id, chat_id, n, verified, counts, nonce, record_ct, created_at FROM images WHERE id=?",
+                               (image_id,)).fetchone()
+        if not row:
+            return None
+        i, chat_id, n, verified, counts, nonce, ct, created = row
+        return {"image_id": i, "chat_id": chat_id, "n": n, "verified": bool(verified), "counts": json.loads(counts or "{}"),
+                "created_at": created, **json.loads(self._open(f"image:{i}:record", nonce, ct))}
+
+    def image_png(self, image_id: str) -> bytes | None:
+        row = self._db.execute("SELECT png_nonce, png_ct FROM images WHERE id=?", (image_id,)).fetchone()
+        return self._open(f"image:{image_id}:masked", *row) if row else None
+
+    def images(self, chat_id: str) -> list[dict]:
+        ids = [r[0] for r in self._db.execute("SELECT id FROM images WHERE chat_id=? ORDER BY n", (chat_id,))]
+        return [self.image(i) for i in ids]
 
     def members(self, chat_id: str, context_label: str) -> list[str]:
         """Entity placeholders inside a context block (mentioned_in edges)."""

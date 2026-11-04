@@ -8,6 +8,7 @@ deny. A guard refuses to send any raw vault value the user hasn't explicitly all
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -34,7 +35,8 @@ Rules:
 NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
 Ask for the least you need: shape before summary before full. Ask for at most one label per reply.
-5. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name."""
+5. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name.
+6. A message starting "[Image n, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered."""
 
 # Models sometimes drop the angle brackets ("NEED_CONTEXT: DEAL_1 summary ..."): accept both.
 AGENT_PROMPT = """
@@ -101,9 +103,17 @@ class Turn:
 
     def to_dict(self) -> dict:
         return {"chat_id": self.chat_id, "message_id": self.message_id, "reply": self.reply, "masked_reply": self.masked_reply,
-                "sent": self.sent, "ask": self.ask.to_dict() if self.ask else None,
+                "sent": [_without_images(m) for m in self.sent], "ask": self.ask.to_dict() if self.ask else None,
                 "masked": self.masked.to_dict() if self.masked else None, "error": self.error,
                 "cost_usd": self.cost_usd, "unknown_labels": self.unknown_labels, "action": self.action}
+
+
+def _without_images(message: dict) -> dict:
+    """A sent message for the response: image bytes replaced by a note (they're large, and the UI has them)."""
+    if not isinstance(message.get("content"), list):
+        return message
+    return {**message, "content": [{"type": "image_url", "image_url": {"url": "[masked image]"}} if p.get("type") == "image_url" else p
+                                   for p in message["content"]]}
 
 
 def find_leaks(payload: str, secrets: dict[str, str]) -> list[str]:
@@ -168,6 +178,15 @@ class ChatEngine:
                 msgs.append({"role": m["role"], "content": m["masked_text"]})
             elif m["role"] == "document":
                 msgs.append({"role": "user", "content": m["masked_text"]})
+            elif m["role"] == "image":
+                # The masked picture goes along only if its re-scan found nothing readable; otherwise just its text.
+                png = self.vault.image_png(m["meta"]["image_id"]) if m["meta"].get("verified") else None
+                if png:
+                    url = "data:image/png;base64," + base64.b64encode(png).decode()
+                    msgs.append({"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}},
+                                                             {"type": "text", "text": m["masked_text"]}]})
+                else:
+                    msgs.append({"role": "user", "content": m["masked_text"]})
             elif m["role"] == "reveal":
                 msgs.append({"role": "user", "content": m["original"] or m["masked_text"]})
             elif m["role"] == "tool_call":
@@ -315,13 +334,31 @@ class ChatEngine:
             self.vault.add_message(chat_id, "document", text, meta={"doc_id": doc_id, "n": d["n"], "format": d["format"],
                                                                      "pages": d["pages"], "counts": d["counts"]})
 
+    def attach_images(self, chat_id: str, image_ids: list[str]) -> None:
+        """Add masked images to the chat as their own messages, each once."""
+        attached = {m["meta"].get("image_id") for m in self.vault.messages(chat_id) if m["role"] == "image"}
+        for image_id in image_ids:
+            if image_id in attached:
+                continue
+            info = self.vault.image(image_id)
+            if not info or info["chat_id"] != chat_id:
+                raise ChatError("unknown image for this chat")
+            read = info.get("masked_text", "").strip()
+            text = f"[Image {info['n']}, masked like the rest of this chat: faces blurred, values replaced by their placeholders]"
+            if read:
+                text += f"\nText in the image: {read}"
+            attached.add(image_id)
+            self.vault.add_message(chat_id, "image", text, meta={"image_id": image_id, "n": info["n"],
+                                                                 "verified": info["verified"], "counts": info["counts"]})
+
     def chat(self, message: str, chat_id: str | None = None, mask_id: str | None = None,
-             document_ids: list[str] | None = None) -> Turn:
-        if document_ids:
+             document_ids: list[str] | None = None, image_ids: list[str] | None = None) -> Turn:
+        if document_ids or image_ids:
             if not chat_id:
-                return Turn("", error="Not sent: documents belong to a chat; pass its chat_id")
+                return Turn("", error="Not sent: attachments belong to a chat; pass its chat_id")
             try:
-                self.attach_documents(chat_id, document_ids)
+                self.attach_documents(chat_id, document_ids or [])
+                self.attach_images(chat_id, image_ids or [])
             except ChatError as exc:
                 return Turn(chat_id, error=f"Not sent: {exc}")
             if not message.strip():
