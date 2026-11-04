@@ -36,7 +36,7 @@ def grid(b):  # pixel box -> Muse Spark's 0-1000 grid
     return {"x_min": b[0] / W * 1000, "y_min": b[1] / H * 1000, "x_max": b[2] / W * 1000, "y_max": b[3] / H * 1000}
 
 
-def fake_meta(find=None, recheck=None, sam_faces=(FACE_BOX,), locate=None, calls=None):
+def fake_meta(find=None, recheck=None, sam_faces=(FACE_BOX,), locate=None, calls=None, sam_plates=()):
     """One MockTransport for both models: chat/completions is Muse Spark, responses is SAM 3.1."""
     calls = calls if calls is not None else []
     finds = iter([find, recheck])
@@ -46,7 +46,7 @@ def fake_meta(find=None, recheck=None, sam_faces=(FACE_BOX,), locate=None, calls
         calls.append((request.url.path, body))
         if request.url.path.endswith("/responses"):
             concept = body["input"][0]["content"][1]["text"]
-            boxes = sam_faces if concept == "face" else ()
+            boxes = sam_faces if concept == "face" else sam_plates if concept == "license plate" else ()
             text = "<0f>" + ",".join(f"{i}<|box;x1={b[0]};y1={b[1]};x2={b[2]};y2={b[3]};w={W};h={H}|><|mask;x=0;y=0;data=1,1,!!|>"
                                      for i, b in enumerate(boxes))
             return httpx.Response(200, json={"output": [{"content": [{"type": "output_text", "text": text}]}]})
@@ -191,10 +191,20 @@ def test_private_text_in_an_image_is_refused_not_sent(vault):
     from muse_shield.images import ImageRefused
     _, sam, calls = fake_meta()
     seen = []
-    masker = ImageMasker(vault, None, sam, text_check=lambda img, mime: (seen.append(mime), (True, "an ID card"))[1])
-    with pytest.raises(ImageRefused, match="private text \\(an ID card\\)"):
+    masker = ImageMasker(vault, None, sam, text_check=lambda img, mime: (seen.append(img), (True, "an ID card"))[1])
+    with pytest.raises(ImageRefused, match="still shows private text \\(an ID card\\)"):
         masker.mask(picture())
-    assert seen == ["image/png"]
+    assert len(seen) == 1 and seen[0] != picture()  # Glimmer looked at the masked picture, not the original
+
+
+def test_a_number_plate_sam_covered_is_not_refused(vault):
+    """The plate's number is private text in the original, but SAM covers the plate, so the masked picture passes."""
+    _, sam, _ = fake_meta(sam_faces=(), sam_plates=(NAME_BOX,))
+    original = picture()
+    check = lambda img, mime: (img == original, "vehicle registration number AP32CD7890")  # noqa: E731
+    out = ImageMasker(vault, None, sam, text_check=check).mask(original)
+    assert [r["kind"] for r in out.regions] == ["license_plate"] and out.regions[0]["label"] == "<LICENSE_PLATE_1>"
+    assert out.verify["ok"] is True and "masked image" in out.verify["checked"]
 
 
 def test_a_photo_without_private_text_is_masked(vault):

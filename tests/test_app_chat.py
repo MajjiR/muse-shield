@@ -191,3 +191,43 @@ def test_guard_ignores_our_own_system_prompt(tmp_path):
     vault.entity_placeholder(chat_id, "ORG", word)  # e.g. a masked word that the rules text happens to contain
     r = c.post("/chat", json={"message": "Draft a note to Rohan about my salary.", "chat_id": chat_id}).json()
     assert r["error"] == "" and len(m.payloads) == 2
+
+
+ANSWERS["Old or new regime?"] = {"entities": [], "contexts": []}
+ASK_ALL = ("NEED_CONTEXT: <SALARY_1> full the tax depends on the exact salary\n"
+           "NEED_CONTEXT: <PERSON_1> full to address the letter\n"
+           "NEED_CONTEXT: <SALARY_1> full asked twice\n"
+           "NEED_CONTEXT: <PAN_7> full not in this chat")
+
+
+def test_the_model_asks_for_several_values_at_once_and_you_decide_each(tmp_path):
+    c, m = make(tmp_path, ["Got it.", ASK_ALL, "Old regime saves more on 10 lakh rupees."])
+    chat_id = c.post("/chat", json={"message": ACCEPT}).json()["chat_id"]
+    ask = c.post("/chat", json={"message": "Old or new regime?", "chat_id": chat_id}).json()["ask"]
+    assert [i["label"] for i in ask["items"]] == ["<SALARY_1>", "<PERSON_1>"]  # repeats and unknown labels dropped
+    assert ask["label"] == "<SALARY_1>" and ask["items"][0]["preview"] == "10 lakh rupees"  # first item mirrored on top
+    r = c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": "deny",
+                                "items": {"<SALARY_1>": {"decision": "allow"}, "<PERSON_1>": {"decision": "deny"}}}).json()
+    assert r["error"] == "" and r["reply"] == "Old regime saves more on 10 lakh rupees."
+    sent = json.dumps(m.payloads[-1], ensure_ascii=False)
+    assert "10 lakh rupees" in sent and "Rohan" not in sent  # only what you allowed went out
+    assert "declined to reveal <PERSON_1>" in sent
+    consents = c.get(f"/chats/{chat_id}").json()["consents"]
+    assert sorted((x["label"], x["decision"]) for x in consents) == [("<PERSON_1>", "deny"), ("<SALARY_1>", "allow")]
+    assert len(m.payloads) == 3  # one decision, one continuation: no ask after ask
+
+
+def test_one_decision_still_answers_every_value(tmp_path):
+    c, m = make(tmp_path, ["Got it.", ASK_ALL, "Done."])
+    chat_id = c.post("/chat", json={"message": ACCEPT}).json()["chat_id"]
+    ask = c.post("/chat", json={"message": "Old or new regime?", "chat_id": chat_id}).json()["ask"]
+    c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": "allow"})
+    sent = json.dumps(m.payloads[-1], ensure_ascii=False)
+    assert "10 lakh rupees" in sent and "Rohan" in sent
+
+
+def test_only_unknown_labels_is_an_error_not_an_answer(tmp_path):
+    c, _ = make(tmp_path, ["Got it.", "NEED_CONTEXT: <PAN_7> full x\nNEED_CONTEXT: <ID_9> full y"])
+    chat_id = c.post("/chat", json={"message": ACCEPT}).json()["chat_id"]
+    r = c.post("/chat", json={"message": "Old or new regime?", "chat_id": chat_id}).json()
+    assert r["ask"] is None and "<PAN_7>, <ID_9>" in r["error"] and r["reply"] == ""

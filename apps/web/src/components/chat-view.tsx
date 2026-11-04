@@ -9,7 +9,7 @@ import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
 import { cn } from "@/lib/utils"
-import type { Ask, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
+import type { Ask, AskChoice, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowUp, Briefcase, FileUp, HeartPulse, Landmark, Mail, PanelRight, Paperclip, ShieldCheck, Sparkles, Wrench,
@@ -221,11 +221,11 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       await afterTurn(await engine.chat(text, m.chat_id, m.mask_id, docIds, imageIds))
     })
 
-  const onDecide = (decision: "allow" | "deny", level: Level) =>
+  const onDecide = (decision: "allow" | "deny", level: Level, items?: Record<string, AskChoice>) =>
     run(async () => {
       if (!ask) return
       setPhase("revealing")
-      await afterTurn(await engine.reveal(ask, decision, level))
+      await afterTurn(await engine.reveal(ask, decision, level, items))
     })
 
   // Confirm runs the tool here with the real values; cancel drops it. Either way Muse Spark is told how it went.

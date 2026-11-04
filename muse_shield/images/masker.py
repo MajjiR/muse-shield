@@ -1,8 +1,10 @@
 """Mask an image: SAM 3.1 (and optionally Muse Spark) finds what's sensitive, the vault names it, Pillow covers it.
 
 Default (no reader): SAM 3.1 alone looks for each concept in SAM_ONLY_CONCEPTS, faces get an oval blur and
-everything else is pixelated under a labelled bar. Nothing reads the raw image's text, so the picture never
-goes to a chat model before it's masked. With a reader (MUSE_SHIELD_IMAGE_READER=spark):
+everything else (number plates, cards, documents, signatures, codes) is pixelated under a labelled bar. Nothing
+reads the raw image's text, so the picture never goes to a chat model before it's masked. SAM can't find loose
+text, so with MUSE_SHIELD_IMAGE_TEXT_CHECK=1 our Glimmer checks the masked picture and refuses it if private
+text still shows. With a reader (MUSE_SHIELD_IMAGE_READER=spark):
 
     faces           SAM 3.1 "face" boxes (precise), plus any face Muse Spark sees that SAM missed -> oval blur
     ID photos       Muse Spark "photo_id" -> oval blur
@@ -138,18 +140,8 @@ class ImageMasker:
         chat_id = self.vault.ensure_chat(chat_id)
         t0 = time.perf_counter()
 
-        checked = self._pool.submit(self.text_check, payload, mime) if self.text_check and not self.vision else None
         found = self._pool.submit(self.vision.find, payload, mime, W, H) if self.vision else None
         sam_jobs = {c: self._pool.submit(self.sam.boxes, payload, mime, c) for c in self.concepts} if self.sam else {}
-        if checked is not None:
-            try:
-                has_text, what = checked.result()
-            except BackendError as exc:
-                raise ImageRefused(f"couldn't check this image for private text, so it wasn't sent ({exc})") from exc
-            if has_text:
-                raise ImageRefused(f"this image shows private text{f' ({what})' if what else ''}. Images are masked for "
-                                   "faces, plates and cards only, and text in pictures can't be hidden yet, so it wasn't "
-                                   "sent. Paste the text as a message instead: it's masked there.")
         finding: Finding = found.result() if found else Finding()
         t_refine = time.perf_counter()
         refine_usage = refine(self.vision, img, finding.items, self._pool) if self.refine and self.vision else {}
@@ -183,6 +175,18 @@ class ImageMasker:
             text = text.replace(r["value"], r["label"])
         buf = io.BytesIO()
         out.save(buf, "PNG")
+        # SAM can't read, so with no reader our Glimmer looks at the MASKED picture: a number plate, card or document
+        # SAM has covered is fine; private text still showing (a printed name, a chat) means it isn't sent.
+        checked = self.text_check is not None and not self.vision
+        if checked:
+            try:
+                has_text, what = self.text_check(buf.getvalue(), "image/png")
+            except BackendError as exc:
+                raise ImageRefused(f"couldn't check this image for private text, so it wasn't sent ({exc})") from exc
+            if has_text:
+                raise ImageRefused(f"this image still shows private text{f' ({what})' if what else ''} after covering faces, "
+                                   "plates, cards and documents, so it wasn't sent. Paste the text as a message instead: "
+                                   "it's masked there.")
         masked = ImageMasked(chat_id=chat_id, image=buf.getvalue(), width=W, height=H, text=text,
                              sam_images=len(sam_jobs),
                              timings_ms={"spark_find": round(finding.latency_ms), "sam": round(max(sam_ms, default=0))})
@@ -192,8 +196,9 @@ class ImageMasker:
 
         if verify and not self.vision:
             # No reader re-scans the output; the Glimmer text check (if any) already found no private text in it.
-            masked.verify = ({"ok": True, "checked": "no private text (Glimmer text check); faces and objects by SAM 3.1"}
-                             if checked is not None else
+            masked.verify = ({"ok": True, "checked": "no private text left in the masked image (Glimmer check); "
+                                                    "faces and objects by SAM 3.1"}
+                             if checked else
                              {"ok": None, "skipped": "SAM 3.1 only: there's no reader to re-scan the masked image"})
         elif verify:
             masked.verify, recheck = self._verify(masked.image, regions, W, H)

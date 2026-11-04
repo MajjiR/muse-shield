@@ -52,9 +52,8 @@ export interface MaskResult {
   summary?: string;
 }
 
-export interface Ask {
-  ask_id: string;
-  chat_id: string;
+/** One value, passage or picture Muse Spark asked to see. */
+export interface AskItem {
   label: string;
   kind: "entity" | "context" | "image";
   level: Level;
@@ -62,6 +61,16 @@ export interface Ask {
   preview: string;
   previews: Partial<Record<Level, string>>;
 }
+
+/** A request to see hidden content. The top-level fields are the first item; `items` lists everything asked at once. */
+export interface Ask extends AskItem {
+  ask_id: string;
+  chat_id: string;
+  items?: AskItem[];
+}
+
+/** Your answer for one item of a multi-value ask. */
+export type AskChoice = { decision: "allow" | "deny"; level?: Level };
 
 export interface Turn {
   chat_id: string;
