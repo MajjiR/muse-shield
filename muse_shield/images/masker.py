@@ -1,4 +1,8 @@
-"""Mask an image: Muse Spark and SAM 3.1 find what's sensitive, the vault names it, Pillow covers it.
+"""Mask an image: SAM 3.1 (and optionally Muse Spark) finds what's sensitive, the vault names it, Pillow covers it.
+
+Default (no reader): SAM 3.1 alone looks for each concept in SAM_ONLY_CONCEPTS, faces get an oval blur and
+everything else is pixelated under a labelled bar. Nothing reads the raw image's text, so the picture never
+goes to a chat model before it's masked. With a reader (MUSE_SHIELD_IMAGE_READER=spark):
 
     faces           SAM 3.1 "face" boxes (precise), plus any face Muse Spark sees that SAM missed -> oval blur
     ID photos       Muse Spark "photo_id" -> oval blur
@@ -28,8 +32,14 @@ from .meta import Box, Finding, Sam, SparkVision, data_url
 from .render import blur_oval, cover, pixelate
 
 MIMES = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp", "GIF": "image/gif"}
-SAM_CONCEPTS = ("face", "license plate")
+SAM_CONCEPTS = ("face", "license plate")  # with a reader, which finds text values and other objects itself
+# SAM 3.1 alone: one request per concept, in parallel. MUSE_SHIELD_SAM_CONCEPTS overrides (comma-separated).
+SAM_ONLY_CONCEPTS = ("face", "license plate", "id card", "credit card", "document", "signature", "qr code", "barcode")
 BLUR_KINDS = {"face", "photo_id"}
+
+
+class ImageRefused(ValueError):
+    """The image can't be masked safely (private text, and nothing here reads text), so it isn't sent."""
 
 
 def _norm(s: str) -> str:
@@ -112,9 +122,14 @@ def refine(vision: SparkVision, img: Image.Image, items: list[dict], pool: Threa
 
 
 class ImageMasker:
-    def __init__(self, vault: Vault, vision: SparkVision, sam: Sam | None = None, concepts=SAM_CONCEPTS,
-                 refine: bool = True, workers: int = 16):
+    def __init__(self, vault: Vault, vision: SparkVision | None, sam: Sam | None = None, concepts=None,
+                 refine: bool = True, workers: int = 16, text_check=None):
+        if vision is None and sam is None:
+            raise ValueError("image masking needs SAM 3.1, a reader, or both")
+        concepts = concepts or (SAM_CONCEPTS if vision else SAM_ONLY_CONCEPTS)
         self.vault, self.vision, self.sam, self.concepts, self.refine = vault, vision, sam, tuple(concepts), refine
+        # SAM can't read: with no reader, text_check(image, mime) -> (private text?, what) refuses images with text
+        self.text_check = text_check
         self._pool = ThreadPoolExecutor(max_workers=workers)
 
     def mask(self, image: bytes, chat_id: str | None = None, verify: bool = True) -> ImageMasked:
@@ -123,11 +138,21 @@ class ImageMasker:
         chat_id = self.vault.ensure_chat(chat_id)
         t0 = time.perf_counter()
 
-        found = self._pool.submit(self.vision.find, payload, mime, W, H)
+        checked = self._pool.submit(self.text_check, payload, mime) if self.text_check and not self.vision else None
+        found = self._pool.submit(self.vision.find, payload, mime, W, H) if self.vision else None
         sam_jobs = {c: self._pool.submit(self.sam.boxes, payload, mime, c) for c in self.concepts} if self.sam else {}
-        finding: Finding = found.result()
+        if checked is not None:
+            try:
+                has_text, what = checked.result()
+            except BackendError as exc:
+                raise ImageRefused(f"couldn't check this image for private text, so it wasn't sent ({exc})") from exc
+            if has_text:
+                raise ImageRefused(f"this image shows private text{f' ({what})' if what else ''}. Images are masked for "
+                                   "faces, plates and cards only, and text in pictures can't be hidden yet, so it wasn't "
+                                   "sent. Paste the text as a message instead: it's masked there.")
+        finding: Finding = found.result() if found else Finding()
         t_refine = time.perf_counter()
-        refine_usage = refine(self.vision, img, finding.items, self._pool) if self.refine else {}
+        refine_usage = refine(self.vision, img, finding.items, self._pool) if self.refine and self.vision else {}
         refine_ms = (time.perf_counter() - t_refine) * 1000
         sam_boxes: dict[str, list[Box]] = {}
         sam_ms: list[float] = []
@@ -135,6 +160,8 @@ class ImageMasker:
             try:
                 boxes, ms = job.result()
             except BackendError:
+                if not self.vision:  # SAM is the only finder: a failed concept must not pass as "nothing found"
+                    raise
                 boxes, ms = [], 0.0  # Muse Spark's own face boxes still cover this case
             sam_boxes[concept], sam_ms = boxes, sam_ms + [ms]
 
@@ -163,14 +190,19 @@ class ImageMasker:
         for k, v in refine_usage.items():
             tokens[k] = tokens.get(k, 0) + v
 
-        if verify:
+        if verify and not self.vision:
+            # No reader re-scans the output; the Glimmer text check (if any) already found no private text in it.
+            masked.verify = ({"ok": True, "checked": "no private text (Glimmer text check); faces and objects by SAM 3.1"}
+                             if checked is not None else
+                             {"ok": None, "skipped": "SAM 3.1 only: there's no reader to re-scan the masked image"})
+        elif verify:
             masked.verify, recheck = self._verify(masked.image, regions, W, H)
             masked.timings_ms["spark_recheck"] = round(recheck.latency_ms)
             for k in ("in", "out", "cached_in"):
                 tokens[k] = tokens.get(k, 0) + recheck.usage.get(k, 0)
         masked.timings_ms["spark_refine"] = round(refine_ms)
         masked.timings_ms["total"] = round((time.perf_counter() - t0) * 1000)
-        cost = run_cost(self.vision.model, tokens, 0)
+        cost = run_cost(self.vision.model, tokens, 0) if self.vision else {"usd": 0.0}
         masked.cost = {"spark_usd": cost["usd"], "spark_tokens": tokens,
                        "sam_requests": len(sam_jobs),
                        "note": "SAM 3.1 per-image price is not published; requests are counted, not priced"}
@@ -197,10 +229,10 @@ class ImageMasker:
             regions.append({"kind": kind, "type": kind.upper(), "label": f"<{kind.upper()}_{counters[kind]}>",
                             "box": box.as_list(), "source": source})
 
-        for b in sam_boxes.get("face", []):
-            visual("face", b, "sam-3.1")
-        for b in sam_boxes.get("license plate", []):
-            visual("license_plate", b, "sam-3.1")
+        source = getattr(self.sam, "model", "sam-3.1")
+        for concept, boxes in sam_boxes.items():  # face, license plate, id card, ... -> face, license_plate, id_card
+            for b in boxes:
+                visual(concept.replace(" ", "_"), b, source)
         for v in f.visual:
             visual(v["kind"], v["box"], self.vision.model)
         for it in f.items:

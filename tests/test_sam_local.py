@@ -60,7 +60,7 @@ def test_engine_sam_client_talks_to_the_local_server(monkeypatch):
         monkeypatch.setenv("MODEL_API_KEY", "k")
         monkeypatch.setenv("MUSE_SHIELD_SAM_URL", url)
         vision, sam, why = image_models_from_env()
-        assert not why and sam.base_url == url and sam.model == "sam3-local" and vision.model == "muse-spark-1.3"
+        assert not why and sam.base_url == url and sam.model == "sam3-local" and vision is None  # SAM alone by default
     finally:
         server.shutdown()
 
@@ -68,5 +68,7 @@ def test_engine_sam_client_talks_to_the_local_server(monkeypatch):
 def test_cloud_sam_by_default(monkeypatch):
     monkeypatch.setenv("MUSE_SHIELD_DEV_RAW_ANALYSIS", "1")
     monkeypatch.setenv("MODEL_API_KEY", "k")
-    _, sam, _ = image_models_from_env()
-    assert sam.base_url == "https://api.meta.ai/v1" and sam.model == "sam-3.1"
+    vision, sam, _ = image_models_from_env()
+    assert sam.base_url == "https://api.meta.ai/v1" and sam.model == "sam-3.1" and vision is None
+    monkeypatch.setenv("MUSE_SHIELD_IMAGE_READER", "spark")  # opt in to Muse Spark reading the raw image
+    assert image_models_from_env()[0].model == "muse-spark-1.3"

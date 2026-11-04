@@ -113,6 +113,35 @@ def _post(client: httpx.Client, url: str, api_key: str, payload: dict, timeout: 
     raise BackendError(f"{name}: gave up after retries")
 
 
+TEXT_CHECK_PROMPT = """Look at this image for a privacy gateway. Does it show private text: anything that could identify a
+person or hold private data, such as names, ID or account numbers, dates of birth, addresses, phone numbers, emails,
+passwords or keys, or the content of a document, form, card, chat or screen? Brand names, logos, shop or street signs
+and jersey numbers don't count. Reply with ONE JSON object and nothing else:
+{"private_text": true or false, "what": "a few words on what it is"}"""
+
+
+class GlimmerTextCheck:
+    """Asks our Glimmer deployment one question about an image: does it show private text? Used when SAM 3.1 is the
+    only finder: SAM covers faces and objects but can't read, so an image with private text isn't sent."""
+
+    def __init__(self, base_url: str, route: str, api_key: str, *, client: httpx.Client | None = None, timeout: float = 120.0):
+        if not (route and api_key):
+            raise BackendError("image text check: needs the Glimmer deployment route and FIREWORKS_API_KEY")
+        self.base_url, self.model, self.api_key, self.timeout = base_url.rstrip("/"), route, api_key, timeout
+        self._client = client or httpx.Client()
+
+    def __call__(self, image: bytes, mime: str) -> tuple[bool, str]:
+        payload = {"model": self.model, "temperature": 0, "max_tokens": 200, "messages": [{"role": "user", "content": [
+            {"type": "image_url", "image_url": {"url": data_url(image, mime)}}, {"type": "text", "text": TEXT_CHECK_PROMPT}]}]}
+        data = _post(self._client, f"{self.base_url}/chat/completions", self.api_key, payload, self.timeout, "image text check")
+        try:
+            raw = data["choices"][0]["message"]["content"] or ""
+            obj = json.loads(raw[raw.find("{"): raw.rfind("}") + 1])
+            return bool(obj["private_text"]), str(obj.get("what") or "")[:120]
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            raise BackendError(f"image text check: not the JSON contract ({exc})") from exc
+
+
 class SparkVision:
     """Muse Spark reads the image: its text, the sensitive values in it, and faces or codes, with boxes."""
 

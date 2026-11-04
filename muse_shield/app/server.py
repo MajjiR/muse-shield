@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .. import __version__, documents
-from ..backends import Backend, BackendError, GlimmerBackend, MetaModelBackend
+from ..backends import Backend, BackendError, GlimmerBackend
 from ..config import load_env
 from ..agent.executor import Executor
 from ..connectors.personal import channel_names
@@ -35,24 +35,13 @@ META_URL = "https://api.meta.ai/v1"
 
 
 def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
-    """Call 1 analyzer: Muse Spark Standard, or the fine-tuned Glimmer with MUSE_SHIELD_ANALYZER=glimmer.
-    Returns (backend or None, reason it's off)."""
+    """Call 1 analyzer: our fine-tuned Muse Glimmer (MUSE_SHIELD_ANALYZER=glimmer + MUSE_SHIELD_GLIMMER_MODEL).
+    Cloud Muse Spark no longer finds what to mask; it only answers over masked text. Returns (backend, why off)."""
     load_env()
-    if os.environ.get("MUSE_SHIELD_ANALYZER", "muse_spark") == "glimmer":
+    if os.environ.get("MUSE_SHIELD_ANALYZER") == "glimmer":
         return glimmer_analyzer_from_env(client)
-    model = os.environ.get("MUSE_SHIELD_MODEL", "muse-spark-1.3")
-    if "contributor" in model:
-        return None, f"{model} lets Meta train on prompts; the app only allows Standard models"
-    if os.environ.get("MUSE_SHIELD_DEV_RAW_ANALYSIS") != "1":
-        return None, ("analysis is off: call 1 sends raw text to Meta. Set MUSE_SHIELD_DEV_RAW_ANALYSIS=1 "
-                      "to enable it for fake data while prototyping")
-    try:
-        # Analysis runs on every message, so default to minimal reasoning for chat-speed latency.
-        effort = os.environ.get("MUSE_SHIELD_ANALYSIS_EFFORT", "minimal")
-        return MetaModelBackend(os.environ.get("META_BASE_URL", META_URL), model, os.environ.get("MODEL_API_KEY", ""),
-                                name="muse_spark", synthetic_only=True, reasoning_effort=effort, client=client), ""
-    except BackendError as exc:
-        return None, str(exc)
+    return None, ("masking runs on the fine-tuned Muse Glimmer: start the app with `python -m muse_shield.app`, which "
+                  "brings up the masking model, or set MUSE_SHIELD_GLIMMER_ER_MODEL to a running deployment")
 
 
 def glimmer_analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
@@ -90,7 +79,7 @@ def _mode_entries(analyzer) -> dict[str, tuple[Backend, bool]]:
         return {"resolution": (analyzer, False), "resolution_classify": (analyzer, True)}
     if isinstance(analyzer, GlimmerBackend):  # stage-1 Glimmer LoRA: entities + context blocks per paragraph
         return {"pii_context": (analyzer, False)}
-    return {"spark": (analyzer, False)}
+    return {"custom": (analyzer, False)}  # an analyzer passed in directly (tests, embedders)
 
 
 def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[Backend, bool]], str, str]:
@@ -125,6 +114,22 @@ def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[
             modes = _mode_entries(analyzer)
     default = os.environ.get("MUSE_SHIELD_DEFAULT_MODE", "")
     return modes, default if default in modes else next(iter(modes), ""), off
+
+
+def image_text_check(client: httpx.Client | None = None):
+    """SAM can't read, so with no reader our Glimmer deployment answers one question per image: private text?
+    Without a Glimmer deployment there's nothing to ask, and every image is refused (fail closed)."""
+    from ..images import GlimmerTextCheck
+
+    route = os.environ.get("MUSE_SHIELD_GLIMMER_ER_MODEL") or os.environ.get("MUSE_SHIELD_GLIMMER_PII_MODEL", "")
+    key = os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", "")
+    try:
+        return GlimmerTextCheck(os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1"), route, key,
+                                client=client)
+    except BackendError as exc:
+        def refuse(image: bytes, mime: str):
+            raise BackendError(str(exc))
+        return refuse
 
 
 def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel | None, str]:
@@ -163,7 +168,9 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     images_off = ""
     if image_masker is None:
         vision, sam, images_off = image_models_from_env(inspector.client("image"))
-        image_masker = ImageMasker(vault, vision, sam) if vision else None
+        concepts = [c.strip() for c in os.environ.get("MUSE_SHIELD_SAM_CONCEPTS", "").split(",") if c.strip()] or None
+        image_masker = ImageMasker(vault, vision, sam, concepts=concepts, text_check=image_text_check(inspector.client("image"))
+                                   if not vision else None) if (vision or sam) else None
 
     app = FastAPI(title="Muse Shield", version=__version__, docs_url="/docs")
     # The React dev server (and later the Electron renderer) call the engine from another local origin.
