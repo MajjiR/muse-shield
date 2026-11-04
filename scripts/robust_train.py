@@ -233,7 +233,8 @@ def main(argv: list[str] | None = None) -> int:
                     state["sessions"].append(sess)
                     log(f"session {sess}")
             for run in set(re.findall(r"\b(run-[0-9a-f]{32})\b", txt)):
-                if run not in state["runs"]:
+                # The log also names the run of the checkpoint we resumed from; that one is not ours.
+                if run not in state["runs"] and run not in (resume_ref or ""):
                     state["runs"].append(run)
                     log(f"run {run}")
             save()
