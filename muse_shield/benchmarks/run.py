@@ -22,7 +22,7 @@ from ..analysis import Analysis
 from ..backends import Backend, BackendError, backend_from_env
 from ..costs import deployment_info, run_cost
 from ..results import git_version, save_run, sha256
-from .nemotron import DATASET, LABEL_MAP, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
+from .nemotron import DATASET, LABEL_MAP, OUR_TYPES, QUASI, Doc, DocScore, load_or_sample, paragraphs, predictions, score
 
 def analyze_doc(backend: Backend, doc: Doc) -> dict:
     t0 = time.perf_counter()
@@ -67,8 +67,8 @@ def aggregate(name: str, model: str, results: list[dict], seconds: float, gpu: d
 
     by_type: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     for label, (fd, tt) in found_by_label.items():
-        by_type[LABEL_MAP.get(label, "OTHER")][0] += fd
-        by_type[LABEL_MAP.get(label, "OTHER")][1] += tt
+        by_type[LABEL_MAP.get(label) or (label if label in OUR_TYPES else "OTHER")][0] += fd
+        by_type[LABEL_MAP.get(label) or (label if label in OUR_TYPES else "OTHER")][1] += tt
     gold_found = sum(v[0] for v in found_by_label.values())
     gold_total = sum(v[1] for v in found_by_label.values())
     quasi_gold = total.gold_chars - total.core_gold_chars
@@ -150,11 +150,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cache", type=Path, default=Path("runs/benchmarks"), help="where the sampled docs are cached")
     ap.add_argument("--tag", default="", help="label for the results registry (default: smoke or full)")
     ap.add_argument("--no-record", action="store_true", help="don't write to results/")
+    ap.add_argument("--docs", type=Path, default=None,
+                    help="another benchmark in the same span format (e.g. runs/eval/pii/gretel-finance-test.jsonl) instead of Nemotron")
+    ap.add_argument("--eval-name", default="", help="results/<eval-name>/ for --docs (default pii-<file stem>)")
     args = ap.parse_args(argv)
 
     started, git_at_start = time.time(), git_version()  # the code that runs, even if the checkout changes later
-    cache = args.cache / f"nemotron-test-{args.n}-s{args.seed}.jsonl"
-    docs = load_or_sample(cache, args.n, args.seed)
+    cache = args.docs or args.cache / f"nemotron-test-{args.n}-s{args.seed}.jsonl"
+    docs = [Doc.from_dict(json.loads(l)) for l in cache.read_text().splitlines() if l.strip()] if args.docs \
+        else load_or_sample(cache, args.n, args.seed)
     if args.limit:
         docs = docs[: args.limit]
     stamp = time.strftime("%Y%m%d-%H%M%S")
@@ -183,9 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     (run_dir / "compare.md").write_text(md + "\n")
     print("\n" + md + f"\n\nsaved {run_dir}/")
     if not args.no_record:
-        dataset = {"name": DATASET, "split": "test", "docs": len(docs), "sample_n": args.n, "seed": args.seed,
-                   "limit": args.limit, "sample_file": cache.name, "sample_sha256": sha256(cache)}
-        out = save_run("nemotron-pii", args.tag or ("smoke" if args.limit else "full"), reports, all_preds,
+        dataset = {"name": str(args.docs) if args.docs else DATASET, "split": "test", "docs": len(docs), "sample_n": args.n,
+                   "seed": args.seed, "limit": args.limit, "sample_file": cache.name, "sample_sha256": sha256(cache),
+                   "task": os.environ.get("ANALYSIS_TASK", "full")}
+        out = save_run(args.eval_name or (f"pii-{args.docs.stem}" if args.docs else "nemotron-pii"), args.tag or ("smoke" if args.limit else "full"), reports, all_preds,
                        settings=settings, dataset=dataset, compare_md=md, when=started, git=git_at_start)
         print(f"recorded {out}")
     return 0

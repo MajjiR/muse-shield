@@ -1,0 +1,27 @@
+{
+  "run_id": "20261104-140329_v0.0.1+3ba045a-dirty_pii1-s150",
+  "eval": "pii-tab-test",
+  "tag": "pii1-s150",
+  "created": "2026-11-04T14:03:29+0530",
+  "version": "0.0.1",
+  "git": "3ba045a-dirty",
+  "command": "scripts/sampler_eval.py --model-path rohan-majji/run-3ae33b189bfd44bbb59217963a11fcfe/step-150-008d387b --task pii --docs runs/eval/pii/tab-test.jsonl --limit 30 --workers 32 --tag pii1-s150",
+  "dataset": {
+    "name": "runs/eval/pii/tab-test.jsonl",
+    "docs": 30,
+    "sample_sha256": "e2d099fa8fb70dd4",
+    "task": "pii"
+  },
+  "settings": {
+    "glimmer-sampler": {
+      "model": "rohan-majji/run-3ae33b189bfd44bbb59217963a11fcfe/step-150-008d387b",
+      "task": "pii",
+      "max_tokens": 1536,
+      "workers": 32,
+      "via": "training-api sampler"
+    }
+  },
+  "backends": [
+    "glimmer-sampler"
+  ]
+}

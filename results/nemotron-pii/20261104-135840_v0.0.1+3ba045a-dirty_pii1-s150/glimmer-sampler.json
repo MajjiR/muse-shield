@@ -1,0 +1,264 @@
+{
+  "backend": "glimmer-sampler",
+  "model": "rohan-majji/run-3ae33b189bfd44bbb59217963a11fcfe/step-150-008d387b",
+  "docs": 200,
+  "seconds": 101.2,
+  "leak_rate": 0.09802235597592433,
+  "core_leak_rate": 0.02488798189964953,
+  "quasi_leak_rate": 0.9739638682252922,
+  "span_recall": 0.901060070671378,
+  "span_precision": 0.9545762711864407,
+  "type_accuracy": 0.9943181818181818,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "CONTACT": 0.9817518248175182,
+    "DATE": 0.9402985074626866,
+    "ID": 1.0,
+    "LOCATION": 0.8859060402684564,
+    "ORG": 1.0,
+    "PERSON": 0.9771863117870723,
+    "SECRET": 1.0,
+    "SENSITIVE_ATTRIBUTE": 0.39215686274509803
+  },
+  "recall_by_label": {
+    "account_number": {
+      "recall": 1.0,
+      "n": 32
+    },
+    "age": {
+      "recall": 0.8571428571428571,
+      "n": 7
+    },
+    "api_key": {
+      "recall": 1.0,
+      "n": 8
+    },
+    "bank_routing_number": {
+      "recall": 1.0,
+      "n": 19
+    },
+    "biometric_identifier": {
+      "recall": 1.0,
+      "n": 29
+    },
+    "blood_type": {
+      "recall": 1.0,
+      "n": 11
+    },
+    "certificate_license_number": {
+      "recall": 1.0,
+      "n": 6
+    },
+    "city": {
+      "recall": 0.9583333333333334,
+      "n": 24
+    },
+    "company_name": {
+      "recall": 1.0,
+      "n": 136
+    },
+    "coordinate": {
+      "recall": 0.8125,
+      "n": 16
+    },
+    "country": {
+      "recall": 0.9393939393939394,
+      "n": 33
+    },
+    "county": {
+      "recall": 0.68,
+      "n": 25
+    },
+    "credit_debit_card": {
+      "recall": 1.0,
+      "n": 24
+    },
+    "customer_id": {
+      "recall": 1.0,
+      "n": 33
+    },
+    "cvv": {
+      "recall": 1.0,
+      "n": 7
+    },
+    "date": {
+      "recall": 0.9562043795620438,
+      "n": 137
+    },
+    "date_of_birth": {
+      "recall": 1.0,
+      "n": 36
+    },
+    "date_time": {
+      "recall": 0.9615384615384616,
+      "n": 26
+    },
+    "device_identifier": {
+      "recall": 1.0,
+      "n": 7
+    },
+    "education_level": {
+      "recall": 0.07142857142857142,
+      "n": 14
+    },
+    "email": {
+      "recall": 0.9646017699115044,
+      "n": 113
+    },
+    "employee_id": {
+      "recall": 1.0,
+      "n": 23
+    },
+    "employment_status": {
+      "recall": 0.11764705882352941,
+      "n": 17
+    },
+    "fax_number": {
+      "recall": 1.0,
+      "n": 10
+    },
+    "first_name": {
+      "recall": 0.972027972027972,
+      "n": 143
+    },
+    "gender": {
+      "recall": 0.8947368421052632,
+      "n": 19
+    },
+    "health_plan_beneficiary_number": {
+      "recall": 1.0,
+      "n": 28
+    },
+    "http_cookie": {
+      "recall": 1.0,
+      "n": 3
+    },
+    "ipv4": {
+      "recall": 1.0,
+      "n": 19
+    },
+    "ipv6": {
+      "recall": 1.0,
+      "n": 10
+    },
+    "language": {
+      "recall": 0.0,
+      "n": 16
+    },
+    "last_name": {
+      "recall": 0.9833333333333333,
+      "n": 120
+    },
+    "license_plate": {
+      "recall": 1.0,
+      "n": 8
+    },
+    "mac_address": {
+      "recall": 1.0,
+      "n": 8
+    },
+    "medical_record_number": {
+      "recall": 1.0,
+      "n": 21
+    },
+    "national_id": {
+      "recall": 1.0,
+      "n": 5
+    },
+    "occupation": {
+      "recall": 0.01282051282051282,
+      "n": 78
+    },
+    "password": {
+      "recall": 1.0,
+      "n": 20
+    },
+    "phone_number": {
+      "recall": 1.0,
+      "n": 47
+    },
+    "pin": {
+      "recall": 1.0,
+      "n": 16
+    },
+    "political_view": {
+      "recall": 1.0,
+      "n": 12
+    },
+    "postcode": {
+      "recall": 1.0,
+      "n": 15
+    },
+    "race_ethnicity": {
+      "recall": 1.0,
+      "n": 8
+    },
+    "religious_belief": {
+      "recall": 1.0,
+      "n": 13
+    },
+    "sexuality": {
+      "recall": 1.0,
+      "n": 9
+    },
+    "ssn": {
+      "recall": 1.0,
+      "n": 7
+    },
+    "state": {
+      "recall": 0.9166666666666666,
+      "n": 36
+    },
+    "street_address": {
+      "recall": 1.0,
+      "n": 38
+    },
+    "swift_bic": {
+      "recall": 1.0,
+      "n": 18
+    },
+    "tax_id": {
+      "recall": 1.0,
+      "n": 3
+    },
+    "time": {
+      "recall": 0.8695652173913043,
+      "n": 69
+    },
+    "unique_id": {
+      "recall": 1.0,
+      "n": 2
+    },
+    "url": {
+      "recall": 0.9868421052631579,
+      "n": 76
+    },
+    "user_name": {
+      "recall": 1.0,
+      "n": 28
+    },
+    "vehicle_identifier": {
+      "recall": 1.0,
+      "n": 10
+    }
+  },
+  "calls": 1381,
+  "valid_rate": 1.0,
+  "first_try_rate": 1.0,
+  "hallucinated_spans": 4,
+  "errors": 0,
+  "latency_ms_per_doc": {
+    "p50": 10538.581792032346,
+    "p95": 41358.29179204302
+  },
+  "tokens": {
+    "in": 711573,
+    "out": 36042,
+    "cached_in": 0,
+    "reasoning_out": 0
+  },
+  "cost_usd": null,
+  "cost": {
+    "basis": "training-api sampling (per token; rate not published here)"
+  }
+}

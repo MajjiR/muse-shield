@@ -43,6 +43,16 @@
         "serve"
       ],
       "port": 8787
+    },
+    {
+      "name": "er-playground",
+      "runtimeExecutable": "/Users/majjir/muse-shield/.venv/bin/python",
+      "runtimeArgs": [
+        "scripts/er_playground.py",
+        "--port",
+        "8790"
+      ],
+      "port": 8790
     }
   ]
 }

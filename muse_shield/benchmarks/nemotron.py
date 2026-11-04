@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import random
 import re
 import time
@@ -43,6 +44,7 @@ LABEL_MAP = {
         "political_view", "race_ethnicity", "religious_belief", "sexuality",
     ], "SENSITIVE_ATTRIBUTE"),
 }
+OUR_TYPES = {"PERSON", "ORG", "ADDRESS", "LOCATION", "AMOUNT", "PROJECT", "ID", "CONTACT", "DATE", "SECRET", "SENSITIVE_ATTRIBUTE"}
 # Weak quasi-identifiers: scored, but reported apart so they don't swing the core leak rate.
 QUASI = {"occupation", "employment_status", "education_level", "language"}
 
@@ -56,7 +58,8 @@ class Gold:
 
     @property
     def type(self) -> str:
-        return LABEL_MAP.get(self.label, "OTHER")
+        # Nemotron labels map through LABEL_MAP; other benchmarks store our type names directly.
+        return LABEL_MAP.get(self.label) or (self.label if self.label in OUR_TYPES else "OTHER")
 
 
 @dataclass
@@ -85,16 +88,31 @@ def parse_row(row: dict) -> Doc:
     return Doc(row["uid"], row["text"], gold, row.get("domain", ""), row.get("locale", ""), row.get("document_format", ""))
 
 
-def _fetch_page(offset: int, n: int = 100, split: str = "test", tries: int = 5) -> list[dict]:
+def _cache_dir() -> Path:
+    from ..config import REPO_ROOT
+
+    return Path(os.environ.get("NEMOTRON_CACHE", REPO_ROOT / "runs" / "cache" / "nemotron"))
+
+
+def _fetch_page(offset: int, n: int = 100, split: str = "test", tries: int = 8) -> list[dict]:
+    """One page of rows from the public rows API, cached on disk so repeated builds don't re-download
+    (the API rate-limits repeated fetches). 429s and transient errors back off up to 2 minutes."""
+    cache = _cache_dir() / f"{split}-{offset}-{n}.json"
+    if cache.exists():
+        return json.loads(cache.read_text())
     url = ROWS_API.format(ds=DATASET, split=split, off=offset, n=n)
     for attempt in range(tries):
         try:
             with urllib.request.urlopen(url, timeout=60) as r:
-                return [x["row"] for x in json.load(r)["rows"]]
-        except OSError:  # HTTPError / URLError / timeouts from the public rows API
+                rows = [x["row"] for x in json.load(r)["rows"]]
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            cache.write_text(json.dumps(rows))
+            return rows
+        except OSError as exc:  # HTTPError / URLError / timeouts from the public rows API
             if attempt == tries - 1:
                 raise
-            time.sleep(2 ** attempt)
+            retry_after = getattr(exc, "headers", None) and exc.headers.get("Retry-After")
+            time.sleep(float(retry_after) if retry_after and str(retry_after).isdigit() else min(2 ** (attempt + 2), 120))
     return []
 
 

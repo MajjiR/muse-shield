@@ -94,11 +94,13 @@ def run(backend: Backend, cases: list[Case], workers: int = 4) -> dict:
     latencies, tokens_in, tokens_out, tokens_cached = [], 0, 0, 0
     failures = []
     by_template: dict[str, list[float]] = defaultdict(list)
+    per_case = []  # per-case counts, so two runs on the same cases can be compared with a paired bootstrap
 
     for case, a, err in results:
         if a is None:
             errors += 1
             failures.append({"id": case.id, "error": err})
+            per_case.append({"id": case.id, "valid": False})
             continue
         latencies.append(a.latency_ms)
         tokens_in += a.usage.get("prompt_tokens", 0)
@@ -106,6 +108,7 @@ def run(backend: Backend, cases: list[Case], workers: int = 4) -> dict:
         tokens_cached += a.usage.get("prompt_tokens_details.cached_tokens", 0)
         if not a.valid:
             failures.append({"id": case.id, "error": a.error})
+            per_case.append({"id": case.id, "valid": False})
             continue
         valid += 1
         first_try += a.attempts == 1
@@ -115,6 +118,12 @@ def run(backend: Backend, cases: list[Case], workers: int = 4) -> dict:
             totals[t][0] += tp; totals[t][1] += fp; totals[t][2] += fn
             case_tp += tp; case_fp += fp; case_fn += fn
         by_template[case.template].append(_prf(case_tp, case_fp, case_fn)["f1"])
+        per_case.append({"id": case.id, "valid": True, "tp": case_tp, "fp": case_fp, "fn": case_fn,
+                         "ctx": list(s["contexts"]), "roles": list(s["roles"]),
+                         # the model's own output, for error analysis
+                         "pred": [[x.text, x.type, getattr(x, "role", None)] for x in a.entities],
+                         "pred_ctx": [[list(c.sentences), c.kind, getattr(c, "subtype", None)] for c in a.contexts],
+                         "dropped": [d["text"] for d in a.dropped]})
         roles[0] += s["roles"][0]; roles[1] += s["roles"][1]
         for i in range(3):
             ctx[i] += s["contexts"][i]
@@ -150,6 +159,7 @@ def run(backend: Backend, cases: list[Case], workers: int = 4) -> dict:
         "tokens": tokens,
         "cost_usd": cost["usd"], "cost": cost,
         "failures": failures[:25],
+        "per_case": per_case,
     }
 
 

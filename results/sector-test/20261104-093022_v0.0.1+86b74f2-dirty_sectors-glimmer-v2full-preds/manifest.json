@@ -1,0 +1,22 @@
+{
+  "run_id": "20261104-093022_v0.0.1+86b74f2-dirty_sectors-glimmer-v2full-preds",
+  "eval": "sector-test",
+  "tag": "sectors-glimmer-v2full-preds",
+  "created": "2026-11-04T09:30:22+0530",
+  "version": "0.0.1",
+  "git": "86b74f2-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/tuning/muse_shield/sector_eval.py --backend glimmer --workers 16 --tag sectors-glimmer-v2full-preds",
+  "dataset": {
+    "name": "data/synth-v2/test",
+    "docs": 951
+  },
+  "settings": {
+    "glimmer": {
+      "model": "accounts/rohan-majji/models/muse-shield-glimmer-lora-v2-full#accounts/rohan-majji/deployments/ms-chat-v2full",
+      "workers": 16
+    }
+  },
+  "backends": [
+    "glimmer"
+  ]
+}

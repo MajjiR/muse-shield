@@ -1,0 +1,550 @@
+launch 2026-11-04T11:01:29Z
+2026-11-04 16:31:38,285 INFO fireworks.training.sdk._rest_client Auto-resolved account ID: rohan-majji
+2026-11-04 16:31:38,554 INFO fireworks.training.sdk.managed Reusing trainer job training-api-service-bcf7c735
+2026-11-04 16:31:39,639 INFO fireworks.training.sdk.trainer [0s] Trainer job training-api-service-bcf7c735: state=JOB_STATE_RUNNING, healthz=OK -- service ready
+2026-11-04 16:31:40,464 INFO fireworks.training.sdk._core.lib.public_interfaces.service_client ServiceClient initialized for session fed05af09c3c4e53877618dfc420b2a6
+2026-11-04 16:31:41,730 INFO fireworks.training.sdk.client Created model rlor-47e0568b0542 (lora_rank=16)
+2026-11-04 16:31:41,731 INFO fireworks.training.sdk.client FiretitanTrainingClient session_id: 9797af20
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 16:31:42,421 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 16:31:47,986 INFO training.utils.resource_autosizing Auto-selected 4 render workers: cpu=11 (quota=0 affinity=0 host=11) max=16 tasks=960 cgroup=0.0/0.0 GiB host_available=0.0/0.0 GiB base=8.0 GiB reserve=8.0 GiB per_worker=10.0 GiB
+2026-11-04 16:31:47,986 INFO training.recipes.sft_loop Dataset: 960 examples from /Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/train.jsonl (renderer=muse_glimmer, train_on_what=last_assistant_turn, workers=4, seed=0) -> ~30 batches/epoch x 1 epochs
+2026-11-04 16:31:48,835 INFO training.utils.checkpoints Starting at step 0 from base model (no checkpoint)
+2026-11-04 16:31:50,863 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '8ae5d847-2ea9-4484-93a1-c7f6f7935cdf'}
+2026-11-04 16:31:52,121 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'b05ed3aa-bbf4-4d61-8926-36af586a668b'}
+2026-11-04 16:31:53,368 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '68c8c1a5-968b-45aa-a5c5-3a6f35a5c5e1'}
+2026-11-04 16:31:54,617 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '9111c4af-24de-4a21-98fd-9950e0082a2a'}
+2026-11-04 16:31:55,857 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'df6fd412-ad0d-41b8-9c1e-84dafd9b123b'}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 16:31:57,102 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '046b0fb5-224a-45df-9a78-9a785dbd23f3'}
+2026-11-04 16:31:58,350 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '692ebcdb-b122-44d3-9f0e-a069fcb2373d'}
+2026-11-04 16:31:59,742 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '3300ef07-1dc2-45a5-88f9-ee2a94aea5d8'}
+2026-11-04 16:32:01,162 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '59891744-eb61-464f-947a-223f7ff31d30'}
+2026-11-04 16:32:02,502 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '1b2c35e8-fa2a-4700-8e24-8f1fe7e2227e'}
+2026-11-04 16:32:03,338 WARNING training.recipes.sft_loop pipeline drain: Training request sequence failed; unload this model and reconnect
+2026-11-04 16:32:03,340 WARNING training.recipes.sft_loop pipeline drain: Training request sequence failed; unload this model and reconnect
+2026-11-04 16:32:03,340 WARNING training.recipes.sft_loop pipeline drain: Training request sequence failed; unload this model and reconnect
+2026-11-04 16:32:03,863 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'b8dce21e-1428-4a01-9ba1-4dc0480b878b'}
+2026-11-04 16:32:05,281 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '5d4d3288-5892-44f2-9b1f-bafd314acc4b'}
+2026-11-04 16:32:06,527 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '1f75c6b1-5991-450f-ad09-cd69f0c0f84f'}
+2026-11-04 16:32:07,772 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'ca80f85f-2968-45fb-a8c5-91f00b904676'}
+2026-11-04 16:32:09,033 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'ba691a31-2a3d-4efd-aedb-9e94d63167ff'}
+2026-11-04 16:32:10,282 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'c739d50b-d188-4f48-b83c-9b4161185be0'}
+2026-11-04 16:32:11,524 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'ece603c6-8bea-4531-bc10-e9b00a9ac936'}
+2026-11-04 16:32:12,769 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '76bd3027-cd42-4c48-be17-528536567469'}
+2026-11-04 16:32:14,012 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'cbdb52c5-50e2-4915-ac42-5bddb22a2b4f'}
+2026-11-04 16:32:15,258 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '584193c8-69c4-48cb-8160-6935f500c1d3'}
+2026-11-04 16:32:16,501 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '9aa3a5a4-1db5-47a2-8cb4-9fbaf365ce7c'}
+2026-11-04 16:32:17,909 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '26dc3e76-47f7-4cd6-b557-7e174d1c3355'}
+2026-11-04 16:32:19,335 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '2ea9ae2b-fae1-4a08-ac57-6fc26d1b86bc'}
+2026-11-04 16:32:20,577 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '0511da73-2c91-4ccb-969c-75787e86b1a5'}
+2026-11-04 16:32:22,046 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '1a60d530-6dea-4f30-8ab2-486248b5561e'}
+2026-11-04 16:32:23,463 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '2fa3b46d-436f-457b-9e4d-7a8fc01ed5af'}
+2026-11-04 16:32:24,820 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '0d639663-5d0a-42fb-956d-00776924cfee'}
+2026-11-04 16:32:26,368 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '7d7c2897-9b9e-4f6a-99d2-01d787eef97b'}
+2026-11-04 16:32:27,647 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '123535dc-5cc6-455b-b0b7-02622b12ee6a'}
+2026-11-04 16:32:28,890 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': 'cd57c9f3-2c05-4015-a566-d72ac15a3611'}
+2026-11-04 16:32:30,135 WARNING fireworks.training.sdk._core.lib.telemetry Failed to send telemetry batch
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 134, in _send_batch_with_retry
+    return await self._send_batch(batch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/telemetry.py", line 143, in _send_batch
+    return await client.telemetry.send(request=request, timeout=HTTP_TIMEOUT_SECONDS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/telemetry.py", line 68, in send
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.NotFoundError: Error code: 404 - {'error': {'message': 'Trainer job not found or not running', 'param': 'jobId', 'code': 'NOT_FOUND', 'type': 'error'}, 'request_id': '4ec6dc45-95c2-43d9-a326-7e2c7dacc692'}
+2026-11-04 16:32:30,968 WARNING training.recipes.sft_loop Received SIGTERM — raising SystemExit for cleanup
+Terminated by SIGTERM
+exit 1
+end 2026-11-04T11:02:31Z

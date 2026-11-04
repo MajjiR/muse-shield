@@ -1,0 +1,2624 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ms-eval-base",
+  "n": 60,
+  "seconds": 4.79,
+  "contract": {
+    "valid_rate": 1.0,
+    "first_try_rate": 1.0,
+    "errors": 0
+  },
+  "entities": {
+    "precision": 0.906832298136646,
+    "recall": 0.9733333333333334,
+    "f1": 0.9389067524115757,
+    "tp": 146,
+    "fp": 15,
+    "fn": 4
+  },
+  "entities_by_type": {
+    "ADDRESS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 8,
+      "fp": 0,
+      "fn": 0
+    },
+    "AMOUNT": {
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666,
+      "f1": 0.9166666666666666,
+      "tp": 44,
+      "fp": 4,
+      "fn": 4
+    },
+    "DATE": {
+      "precision": 0.0,
+      "recall": 1.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 11,
+      "fn": 0
+    },
+    "LOCATION": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 13,
+      "fp": 0,
+      "fn": 0
+    },
+    "ORG": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 33,
+      "fp": 0,
+      "fn": 0
+    },
+    "PERSON": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 41,
+      "fp": 0,
+      "fn": 0
+    },
+    "PROJECT": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 7,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "role_accuracy": 0.9772727272727273,
+  "contexts": {
+    "precision": 0.7804878048780488,
+    "recall": 0.7619047619047619,
+    "f1": 0.7710843373493976,
+    "tp": 32,
+    "fp": 9,
+    "fn": 10
+  },
+  "context_kind_accuracy": 0.8,
+  "hallucinated_spans": 0,
+  "f1_by_template": {
+    "acceptance": 1.0,
+    "deal": 1.0,
+    "hr": 1.0,
+    "loan": 1.0,
+    "negative": 1.0,
+    "negotiation": 0.8571428571428571,
+    "plan": 0.8333333333333334,
+    "price": 1.0,
+    "project": 0.8775510204081632,
+    "salary_decision": 0.9523809523809523
+  },
+  "latency_ms": {
+    "p50": 1021.8808330246247,
+    "p95": 3027.849832957145
+  },
+  "tokens": {
+    "in": 45232,
+    "out": 5100,
+    "cached_in": 42240
+  },
+  "cost_usd": 0.010641953519985287,
+  "cost": {
+    "usd": 0.010641953519985287,
+    "basis": "gpu_time",
+    "detail": {
+      "seconds": 4.8,
+      "gpus": 1,
+      "accelerator": "NVIDIA_H200_141GB",
+      "usd_per_gpu_hour": 8.0,
+      "note": "deployment idle time between runs is billed but not attributed"
+    }
+  },
+  "failures": [
+    {
+      "id": "c005",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c008",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c014",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c017",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c023",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c030",
+      "template": "negotiation",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c032",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c035",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c037",
+      "template": "salary_decision",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c044",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c048",
+      "template": "negotiation",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c050",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c053",
+      "template": "plan",
+      "missed": [],
+      "extra": [
+        "January"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c057",
+      "template": "negotiation",
+      "missed": [
+        "\u20b924 lakh a year"
+      ],
+      "extra": [
+        "\u20b924 lakh"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c059",
+      "template": "project",
+      "missed": [],
+      "extra": [
+        "March"
+      ],
+      "hallucinated": []
+    }
+  ],
+  "per_case": [
+    {
+      "id": "c000",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Rohan",
+          "PERSON",
+          null
+        ],
+        [
+          "10 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "12-4, MVP Colony, Visakhapatnam",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c001",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Vikram Rao",
+          "PERSON",
+          null
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "45 Gandhi Road, Indore",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c002",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Tidewater Logistics",
+          "ORG",
+          null
+        ],
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b945 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Daniel Okafor",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c003",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ],
+      "pred": [
+        [
+          "Priya Shah",
+          "PERSON",
+          null
+        ],
+        [
+          "10 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "NEGOTIATION",
+          "HIRING"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c004",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Sonia Mehta",
+          "PERSON",
+          null
+        ],
+        [
+          "Tidewater Logistics",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c005",
+      "valid": true,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Kingfisher",
+          "PROJECT",
+          null
+        ],
+        [
+          "Pune",
+          "LOCATION",
+          null
+        ],
+        [
+          "March",
+          "DATE",
+          null
+        ],
+        [
+          "\u20b960 lakh",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c006",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Farhan Qureshi",
+          "PERSON",
+          null
+        ],
+        [
+          "8 lakh rupees",
+          "AMOUNT",
+          "LOAN"
+        ],
+        [
+          "Unity Finance",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c007",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Farhan Qureshi",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b93.2 lakh",
+          "AMOUNT",
+          "PRICE"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c008",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Kestrel Labs",
+          "ORG",
+          null
+        ],
+        [
+          "Nagpur",
+          "LOCATION",
+          null
+        ],
+        [
+          "January",
+          "DATE",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PLAN",
+          "EXPANSION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c009",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c010",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Lucia Fernandes",
+          "PERSON",
+          null
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "Plot 7, Sector 21, Nagpur",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c011",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Halcyon Health",
+          "ORG",
+          null
+        ],
+        [
+          "Northwind",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b945 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Priya Shah",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c012",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        1
+      ],
+      "roles": [
+        2,
+        2
+      ],
+      "pred": [
+        [
+          "Ananya Iyer",
+          "PERSON",
+          null
+        ],
+        [
+          "10 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c013",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Rohan",
+          "PERSON",
+          null
+        ],
+        [
+          "Brightline Finance",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c014",
+      "valid": true,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Monsoon",
+          "PROJECT",
+          null
+        ],
+        [
+          "Mysuru",
+          "LOCATION",
+          null
+        ],
+        [
+          "March",
+          "DATE",
+          null
+        ],
+        [
+          "\u20b960 lakh",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c015",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Kavya Reddy",
+          "PERSON",
+          null
+        ],
+        [
+          "8 lakh rupees",
+          "AMOUNT",
+          "LOAN"
+        ],
+        [
+          "Sahyadri Co-operative Bank",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c016",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Kavya Reddy",
+          "PERSON",
+          null
+        ],
+        [
+          "6,50,000 rupees",
+          "AMOUNT",
+          "PRICE"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c017",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        1,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ],
+        [
+          "Mysuru",
+          "LOCATION",
+          null
+        ],
+        [
+          "January",
+          "DATE",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "PLAN",
+          "EXPANSION"
+        ],
+        [
+          [
+            2
+          ],
+          "HR",
+          "HIRING"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c018",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c019",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Arjun Nair",
+          "PERSON",
+          null
+        ],
+        [
+          "10 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "12-4, MVP Colony, Visakhapatnam",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c020",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Kestrel Labs",
+          "ORG",
+          null
+        ],
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b9120 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Sonia Mehta",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c021",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ],
+      "pred": [
+        [
+          "Lucia Fernandes",
+          "PERSON",
+          null
+        ],
+        [
+          "12 LPA",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "\u20b924 lakh a year",
+          "AMOUNT",
+          "SALARY"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "NEGOTIATION",
+          "HIRING"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c022",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Sonia Mehta",
+          "PERSON",
+          null
+        ],
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c023",
+      "valid": true,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Banyan",
+          "PROJECT",
+          null
+        ],
+        [
+          "Indore",
+          "LOCATION",
+          null
+        ],
+        [
+          "March",
+          "DATE",
+          null
+        ],
+        [
+          "\u20b960 lakh",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c024",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Arjun Nair",
+          "PERSON",
+          null
+        ],
+        [
+          "8 lakh rupees",
+          "AMOUNT",
+          "LOAN"
+        ],
+        [
+          "Unity Finance",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c025",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Kavya Reddy",
+          "PERSON",
+          null
+        ],
+        [
+          "6,50,000 rupees",
+          "AMOUNT",
+          "PRICE"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c026",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Brightline Finance",
+          "ORG",
+          null
+        ],
+        [
+          "Pune",
+          "LOCATION",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PLAN",
+          "EXPANSION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c027",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c028",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Sonia Mehta",
+          "PERSON",
+          null
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "45 Gandhi Road, Indore",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c029",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Tidewater Logistics",
+          "ORG",
+          null
+        ],
+        [
+          "Halcyon Health",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b945 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Priya Shah",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c030",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Ishaan Kapoor",
+          "PERSON",
+          null
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "\u20b924 lakh",
+          "AMOUNT",
+          "SALARY"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "NEGOTIATION",
+          "HIRING"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c031",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Daniel Okafor",
+          "PERSON",
+          null
+        ],
+        [
+          "Brightline Finance",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c032",
+      "valid": true,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Monsoon",
+          "PROJECT",
+          null
+        ],
+        [
+          "Visakhapatnam",
+          "LOCATION",
+          null
+        ],
+        [
+          "March",
+          "DATE",
+          null
+        ],
+        [
+          "\u20b92 crore",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c033",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Farhan Qureshi",
+          "PERSON",
+          null
+        ],
+        [
+          "8 lakh rupees",
+          "AMOUNT",
+          "LOAN"
+        ],
+        [
+          "Sahyadri Co-operative Bank",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c034",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Priya Shah",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b93.2 lakh",
+          "AMOUNT",
+          "PRICE"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c035",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ],
+        [
+          "Visakhapatnam",
+          "LOCATION",
+          null
+        ],
+        [
+          "January",
+          "DATE",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PLAN",
+          "EXPANSION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c036",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c037",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 1,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Rohan",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b924 lakh",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "Plot 7, Sector 21, Nagpur",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c038",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ],
+        [
+          "Northwind",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b9120 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Daniel Okafor",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c039",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        1
+      ],
+      "roles": [
+        2,
+        2
+      ],
+      "pred": [
+        [
+          "Daniel Okafor",
+          "PERSON",
+          null
+        ],
+        [
+          "10 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c040",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Ishaan Kapoor",
+          "PERSON",
+          null
+        ],
+        [
+          "Tidewater Logistics",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c041",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Monsoon",
+          "PROJECT",
+          null
+        ],
+        [
+          "Mysuru",
+          "LOCATION",
+          null
+        ],
+        [
+          "15 lakh rupees",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c042",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Meera Pillai",
+          "PERSON",
+          null
+        ],
+        [
+          "25 lakh",
+          "AMOUNT",
+          "LOAN"
+        ],
+        [
+          "Coastal Bank",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c043",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Sonia Mehta",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b945,000",
+          "AMOUNT",
+          "PRICE"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c044",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Northwind",
+          "ORG",
+          null
+        ],
+        [
+          "Visakhapatnam",
+          "LOCATION",
+          null
+        ],
+        [
+          "January",
+          "DATE",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PLAN",
+          "EXPANSION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c045",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c046",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Vikram Rao",
+          "PERSON",
+          null
+        ],
+        [
+          "12 LPA",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "45 Gandhi Road, Indore",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c047",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Tidewater Logistics",
+          "ORG",
+          null
+        ],
+        [
+          "Brightline Finance",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b9120 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Ishaan Kapoor",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c048",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Rohan",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b924 lakh",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "NEGOTIATION",
+          "HIRING"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c049",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Arjun Nair",
+          "PERSON",
+          null
+        ],
+        [
+          "Kestrel Labs",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c050",
+      "valid": true,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Monsoon",
+          "PROJECT",
+          null
+        ],
+        [
+          "Indore",
+          "LOCATION",
+          null
+        ],
+        [
+          "March",
+          "DATE",
+          null
+        ],
+        [
+          "15 lakh rupees",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c051",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Meera Pillai",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b940 lakh",
+          "AMOUNT",
+          "LOAN"
+        ],
+        [
+          "Unity Finance",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c052",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Daniel Okafor",
+          "PERSON",
+          null
+        ],
+        [
+          "6,50,000 rupees",
+          "AMOUNT",
+          "PRICE"
+        ]
+      ],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c053",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Northwind",
+          "ORG",
+          null
+        ],
+        [
+          "Mysuru",
+          "LOCATION",
+          null
+        ],
+        [
+          "January",
+          "DATE",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PLAN",
+          "EXPANSION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c054",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [],
+      "pred_ctx": [],
+      "dropped": []
+    },
+    {
+      "id": "c055",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        1,
+        1
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Kavya Reddy",
+          "PERSON",
+          null
+        ],
+        [
+          "18 lakh rupees",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "45 Gandhi Road, Indore",
+          "ADDRESS",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            2
+          ],
+          "PLAN",
+          "PURCHASE"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c056",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Oakmont Retail",
+          "ORG",
+          null
+        ],
+        [
+          "Brightline Finance",
+          "ORG",
+          null
+        ],
+        [
+          "\u20b945 crore",
+          "AMOUNT",
+          "DEAL_VALUE"
+        ],
+        [
+          "Sonia Mehta",
+          "PERSON",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "DEAL",
+          "ACQUISITION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c057",
+      "valid": true,
+      "tp": 2,
+      "fp": 1,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        1
+      ],
+      "pred": [
+        [
+          "Meera Pillai",
+          "PERSON",
+          null
+        ],
+        [
+          "\u20b924 lakh",
+          "AMOUNT",
+          "SALARY"
+        ],
+        [
+          "10 lakh rupees",
+          "AMOUNT",
+          "OTHER"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "NEGOTIATION",
+          "HIRING"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c058",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ],
+      "pred": [
+        [
+          "Kavya Reddy",
+          "PERSON",
+          null
+        ],
+        [
+          "Tidewater Logistics",
+          "ORG",
+          null
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1
+          ],
+          "HR",
+          "TERMINATION"
+        ]
+      ],
+      "dropped": []
+    },
+    {
+      "id": "c059",
+      "valid": true,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ],
+      "pred": [
+        [
+          "Project Monsoon",
+          "PROJECT",
+          null
+        ],
+        [
+          "Visakhapatnam",
+          "LOCATION",
+          null
+        ],
+        [
+          "March",
+          "DATE",
+          null
+        ],
+        [
+          "15 lakh rupees",
+          "AMOUNT",
+          "BUDGET"
+        ]
+      ],
+      "pred_ctx": [
+        [
+          [
+            1,
+            2
+          ],
+          "PROJECT",
+          "LAUNCH"
+        ]
+      ],
+      "dropped": []
+    }
+  ],
+  "span_recall": 0.9733333333333334,
+  "span_precision": 0.906832298136646,
+  "valid_rate": 1.0,
+  "docs": 60,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 0.9166666666666666,
+    "DATE": 1.0,
+    "LOCATION": 1.0,
+    "ORG": 1.0,
+    "PERSON": 1.0,
+    "PROJECT": 1.0
+  }
+}

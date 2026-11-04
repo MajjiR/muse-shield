@@ -1,0 +1,141 @@
+{
+  "labellers": {
+    "spark-low": "muse-spark-1.3-contributor:low",
+    "deepseek-pro": "azure:DeepSeek-V4-Pro",
+    "deepseek-flash": "azure:DeepSeek-V4-Flash"
+  },
+  "reports": {
+    "spark-low": {
+      "leak_rate": 0.21680710544295148,
+      "core_leak_rate": 0.1927230046948357,
+      "span_recall": 0.7960396039603961,
+      "span_precision": 0.8295218295218295,
+      "valid_rate": null,
+      "tokens": {},
+      "calls": 0,
+      "cost_usd": 0,
+      "recall_by_type": {
+        "ADDRESS": 1.0,
+        "CONTACT": 0.968421052631579,
+        "DATE": 0.22641509433962265,
+        "ID": 0.8290598290598291,
+        "LOCATION": 0.7719298245614035,
+        "ORG": 1.0,
+        "PERSON": 1.0,
+        "SECRET": 0.8,
+        "SENSITIVE_ATTRIBUTE": 0.3870967741935484
+      },
+      "rescored_from": "results/labeler-bakeoff/20261104-122933_v0.0.1+81095cf-dirty_deepseek-vs-spark",
+      "planted": {
+        "paragraphs": 162,
+        "invalid": 0,
+        "errors": 0,
+        "planted": 313,
+        "missed": 0,
+        "planted_recall": 1.0,
+        "missed_examples": [],
+        "tokens_in": 127016,
+        "tokens_out": 240079,
+        "cost_usd": 0.0607174
+      }
+    },
+    "deepseek-pro": {
+      "leak_rate": 0.4327032566613528,
+      "core_leak_rate": 0.41525821596244133,
+      "span_recall": 0.594059405940594,
+      "span_precision": 0.8126721763085399,
+      "valid_rate": null,
+      "tokens": {},
+      "calls": 0,
+      "cost_usd": 0,
+      "recall_by_type": {
+        "ADDRESS": 0.6666666666666666,
+        "CONTACT": 0.6631578947368421,
+        "DATE": 0.3584905660377358,
+        "ID": 0.717948717948718,
+        "LOCATION": 0.7017543859649122,
+        "ORG": 0.4426229508196721,
+        "PERSON": 0.7169811320754716,
+        "SECRET": 0.5714285714285714,
+        "SENSITIVE_ATTRIBUTE": 0.22580645161290322
+      },
+      "rescored_from": "results/labeler-bakeoff/20261104-122933_v0.0.1+81095cf-dirty_deepseek-vs-spark",
+      "planted": {
+        "paragraphs": 162,
+        "invalid": 4,
+        "errors": 4,
+        "planted": 308,
+        "missed": 0,
+        "planted_recall": 1.0,
+        "missed_examples": [],
+        "tokens_in": 129324,
+        "tokens_out": 14837,
+        "cost_usd": 0.27665651999999996
+      }
+    },
+    "deepseek-flash": {
+      "leak_rate": 0.4087907082669096,
+      "core_leak_rate": 0.40023474178403756,
+      "span_recall": 0.5504950495049505,
+      "span_precision": 0.8879551820728291,
+      "valid_rate": null,
+      "tokens": {},
+      "calls": 0,
+      "cost_usd": 0,
+      "recall_by_type": {
+        "ADDRESS": 1.0,
+        "CONTACT": 0.6631578947368421,
+        "DATE": 0.41509433962264153,
+        "ID": 0.5811965811965812,
+        "LOCATION": 0.6140350877192983,
+        "ORG": 0.45901639344262296,
+        "PERSON": 0.4528301886792453,
+        "SECRET": 0.6571428571428571,
+        "SENSITIVE_ATTRIBUTE": 0.3870967741935484
+      },
+      "rescored_from": "results/labeler-bakeoff/20261104-122933_v0.0.1+81095cf-dirty_deepseek-vs-spark",
+      "planted": {
+        "paragraphs": 162,
+        "invalid": 0,
+        "errors": 0,
+        "planted": 313,
+        "missed": 0,
+        "planted_recall": 1.0,
+        "missed_examples": [],
+        "tokens_in": 132619,
+        "tokens_out": 15657,
+        "cost_usd": 0.0790196
+      }
+    }
+  },
+  "shared_misses": {
+    "spark-low|deepseek-pro": {
+      "missed_by_a": 87,
+      "also_b": 51
+    },
+    "spark-low|deepseek-flash": {
+      "missed_by_a": 87,
+      "also_b": 41
+    },
+    "deepseek-pro|spark-low": {
+      "missed_by_a": 189,
+      "also_b": 51
+    },
+    "deepseek-pro|deepseek-flash": {
+      "missed_by_a": 189,
+      "also_b": 95
+    },
+    "deepseek-flash|spark-low": {
+      "missed_by_a": 215,
+      "also_b": 41
+    },
+    "deepseek-flash|deepseek-pro": {
+      "missed_by_a": 215,
+      "also_b": 95
+    }
+  },
+  "core_spans": 489,
+  "missed_by_all": 30,
+  "git": "81095cf-dirty",
+  "seed": 11
+}

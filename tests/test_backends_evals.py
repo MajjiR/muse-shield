@@ -231,3 +231,16 @@ def test_rate_limits_get_patient_backoff(monkeypatch):
         return httpx.Response(429) if len(calls) <= 8 else reply('{"entities": [], "contexts": []}')
 
     assert backend(handler).analyze(["Hi."])[0].valid and len(calls) == 9
+
+
+def test_transport_errors_are_retried(monkeypatch):
+    monkeypatch.setattr("muse_shield.backends.time.sleep", lambda s: None)
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        if len(calls) <= 2:
+            raise httpx.ReadTimeout("read timed out", request=request)
+        return reply('{"entities": [], "contexts": []}')
+
+    assert backend(handler).analyze(["Hi."])[0].valid and len(calls) == 3

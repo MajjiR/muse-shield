@@ -1,0 +1,89 @@
+launch 2026-11-04T10:59:07Z
+2026-11-04 16:29:18,030 INFO fireworks.training.sdk._rest_client Auto-resolved account ID: rohan-majji
+2026-11-04 16:29:18,374 INFO fireworks.training.sdk.managed Trainer job training-api-service-bcf7c735 not found; creating with stable ID for managed SFT resume
+2026-11-04 16:29:18,375 INFO fireworks.training.sdk.trainer Creating RLOR job: POST https://api.fireworks.ai/v1/accounts/rohan-majji/rlorTrainerJobs?trainingShape=accounts%2Ffireworks%2FtrainingShapes%2Fmuse-glimmer-30b-131k-lora&rlorTrainerJobId=training-api-service-bcf7c735 (model=accounts/fireworks/models/muse-glimmer-30b) (payload={'serviceMode': True, 'keepAlive': False, 'dataset': '', 'trainingConfig': {'baseModel': 'accounts/fireworks/models/muse-glimmer-30b', 'loraRank': 16, 'learningRate': 0.000141}, 'useReservation': True})
+2026-11-04 16:29:19,086 INFO fireworks.training.sdk.trainer Created trainer job: training-api-service-bcf7c735
+2026-11-04 16:29:19,799 INFO fireworks.training.sdk.trainer [0s] Trainer job training-api-service-bcf7c735: state=JOB_STATE_PENDING
+2026-11-04 16:30:20,723 INFO fireworks.training.sdk.trainer [61s] Trainer job training-api-service-bcf7c735: state=JOB_STATE_CREATING, detail=0/1 replicas ready
+2026-11-04 16:31:22,635 INFO fireworks.training.sdk.trainer [122s] Trainer job training-api-service-bcf7c735: state=JOB_STATE_RUNNING, healthz=OK -- service ready
+2026-11-04 16:31:25,026 INFO fireworks.training.sdk._core.lib.public_interfaces.service_client ServiceClient initialized for session f6605a77fa3c406396d6cc31f846bd5f
+2026-11-04 16:31:26,785 INFO fireworks.training.sdk.client Created model rlor-8c07133546c1 (lora_rank=16)
+2026-11-04 16:31:26,785 INFO fireworks.training.sdk.client FiretitanTrainingClient session_id: 87b6bac1
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 16:31:27,171 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 16:31:32,888 INFO training.utils.resource_autosizing Auto-selected 4 render workers: cpu=11 (quota=0 affinity=0 host=11) max=16 tasks=960 cgroup=0.0/0.0 GiB host_available=0.0/0.0 GiB base=8.0 GiB reserve=8.0 GiB per_worker=10.0 GiB
+2026-11-04 16:31:32,888 INFO training.recipes.sft_loop Dataset: 960 examples from /Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/train.jsonl (renderer=muse_glimmer, train_on_what=last_assistant_turn, workers=4, seed=0) -> ~30 batches/epoch x 1 epochs
+2026-11-04 16:31:33,579 INFO training.utils.checkpoints Starting at step 0 from base model (no checkpoint)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 16:31:44,788 WARNING training.recipes.sft_loop pipeline drain: Training request sequence failed; unload this model and reconnect
+2026-11-04 16:31:44,790 WARNING training.recipes.sft_loop pipeline drain: Training request sequence failed; unload this model and reconnect
+2026-11-04 16:31:44,790 WARNING training.recipes.sft_loop pipeline drain: Training request sequence failed; unload this model and reconnect
+2026-11-04 16:31:46,733 INFO fireworks.training.sdk.trainer Deleted trainer job: training-api-service-bcf7c735
+Traceback (most recent call last):
+  File "/Users/majjir/muse-shield/.worktrees/tuning/scripts/sft_entry.py", line 69, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/majjir/muse-shield/.worktrees/tuning/scripts/sft_entry.py", line 63, in main
+    sft_loop.main(cfg)
+  File "/Volumes/MajjiR/ai/fw-cookbook/training/recipes/sft_loop.py", line 1451, in main
+    _pipe_collect()
+  File "/Volumes/MajjiR/ai/fw-cookbook/training/recipes/sft_loop.py", line 1336, in _pipe_collect
+    result = fb_fut.result(timeout=cfg.step_timeout or DEFAULT_TIMEOUT_S)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 863, in result
+    return self._transform(self._inner.result(timeout))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/public_interfaces/api_future.py", line 127, in result
+    return self._future.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/public_interfaces/training_client.py", line 162, in run
+    return await coro
+           ^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 2154, in _forward_backward_async
+    combined_future = await self._run_chunked_requests(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 1897, in _run_chunked_requests
+    raise result
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/public_interfaces/training_client.py", line 162, in run
+    return await coro
+           ^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 2101, in _optim_step_async
+    async with self._take_turn(request_id):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 204, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 1776, in _take_turn
+    raise result
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 1858, in _submit_chunk
+    untyped_future = await self._submit_parallel_backward(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 1807, in _submit_parallel_backward
+    return await asyncio.shield(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/internal_client_holder.py", line 673, in execute_with_retries
+    raise e
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/internal_client_holder.py", line 633, in execute_with_retries
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 2039, in _send_single_forward_backward_request
+    return await client.training.forward_backward(request=request, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/training.py", line 118, in forward_backward
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.BadRequestError: Error code: 400 - {'detail': 'LoRA session rlor-8c07133546c1 does not exist (adapter may have been unloaded)'}
+exit 1
+end 2026-11-04T11:01:47Z
