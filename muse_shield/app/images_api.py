@@ -47,6 +47,7 @@ def add_image_routes(app: FastAPI, vault: Vault, image_masker, images_off: str) 
         record = {"filename": filename, "width": masked.width, "height": masked.height, "regions": masked.regions,
                   "masked_text": masked.text, "verify": masked.verify, "cost": masked.cost, "timings_ms": masked.timings_ms}
         image_id, _ = vault.add_image(chat_id, masked.image, record, verified, counts)
+        vault.add_image_original(image_id, chat_id, bytes(data))  # sealed; sent only after a consent
         return vault.image(image_id)
 
     @app.get("/images/{image_id}")
@@ -65,6 +66,16 @@ def add_image_routes(app: FastAPI, vault: Vault, image_masker, images_off: str) 
         if download:
             headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{urllib.parse.quote(f'image-{info['n']}.masked.png')}"
         return Response(vault.image_png(image_id), media_type="image/png", headers=headers)
+
+    @app.get("/images/{image_id}/original")
+    def original_png(image_id: str):
+        """The unmasked picture, for the consent card on this device only."""
+        data = vault.image_original(image_id)
+        if data is None:
+            raise HTTPException(404, "no original kept for this image")
+        kind = next((m for sig, m in ((b"\x89PNG", "image/png"), (b"\xff\xd8", "image/jpeg"), (b"GIF8", "image/gif"),
+                                      (b"RIFF", "image/webp")) if data.startswith(sig)), "application/octet-stream")
+        return Response(data, media_type=kind, headers={"Cache-Control": "no-store"})
 
     @app.post("/images/{image_id}/delete")
     def delete_image(image_id: str):

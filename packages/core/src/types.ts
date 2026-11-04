@@ -56,7 +56,7 @@ export interface Ask {
   ask_id: string;
   chat_id: string;
   label: string;
-  kind: "entity" | "context";
+  kind: "entity" | "context" | "image";
   level: Level;
   reason: string;
   preview: string;

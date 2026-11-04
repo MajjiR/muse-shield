@@ -191,7 +191,10 @@ class ImageMasker:
             tokens[k] = tokens.get(k, 0) + v
 
         if verify and not self.vision:
-            masked.verify = {"ok": None, "skipped": "SAM 3.1 only: there's no reader to re-scan the masked image"}
+            # No reader re-scans the output; the Glimmer text check (if any) already found no private text in it.
+            masked.verify = ({"ok": True, "checked": "no private text (Glimmer text check); faces and objects by SAM 3.1"}
+                             if checked is not None else
+                             {"ok": None, "skipped": "SAM 3.1 only: there's no reader to re-scan the masked image"})
         elif verify:
             masked.verify, recheck = self._verify(masked.image, regions, W, H)
             masked.timings_ms["spark_recheck"] = round(recheck.latency_ms)

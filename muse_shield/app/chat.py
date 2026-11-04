@@ -39,7 +39,12 @@ NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
 Ask for the least you need: shape before summary before full. Ask for at most one label per reply.
 6. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name.
-7. A message starting "[Image n, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered."""
+7. A message starting "[<IMAGE_n>, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered. If a good answer needs what the masking hides (who or what is in it, a covered card or plate), ask to see the original picture with exactly one line: NEED_CONTEXT: <IMAGE_n> full <short reason>. Otherwise answer from what you can see."""
+
+def _mime(data: bytes) -> str:
+    return next((m for sig, m in ((b"\x89PNG", "image/png"), (b"\xff\xd8", "image/jpeg"), (b"GIF8", "image/gif"),
+                                  (b"RIFF", "image/webp")) if data.startswith(sig)), "image/png")
+
 
 # Models sometimes drop the angle brackets ("NEED_CONTEXT: DEAL_1 summary ..."): accept both.
 AGENT_PROMPT = """
@@ -195,6 +200,14 @@ class ChatEngine:
                                                              {"type": "text", "text": m["masked_text"]}]})
                 else:
                     msgs.append({"role": "user", "content": m["masked_text"]})
+            elif m["role"] == "reveal" and m["meta"].get("image_id"):
+                original = self.vault.image_original(m["meta"]["image_id"])
+                if original:  # you allowed it on the consent card
+                    url = f"data:{_mime(original)};base64," + base64.b64encode(original).decode()
+                    msgs.append({"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}},
+                                                             {"type": "text", "text": m["masked_text"]}]})
+                else:
+                    msgs.append({"role": "user", "content": m["masked_text"]})
             elif m["role"] == "reveal":
                 msgs.append({"role": "user", "content": m["original"] or m["masked_text"]})
             elif m["role"] == "tool_call":
@@ -236,6 +249,15 @@ class ChatEngine:
         need = NEED.search(content)
         if need and turn.ask is None:
             label, level, reason = f"<{need.group(1).upper()}>", need.group(2).lower(), need.group(3).strip()
+            image = self._image_for(chat_id, label)
+            if image:
+                ask = Ask("a_" + uuid.uuid4().hex[:10], chat_id, label, "image", "full", reason,
+                          f"The original picture <IMAGE_{image['n']}>, unmasked: faces and covered parts visible.",
+                          {"full": f"/images/{image['image_id']}/original"})
+                self.pending[ask.ask_id] = ask
+                turn.ask = ask
+                self.vault.audit("ask", chat_id, {"asks": 1})
+                return
             if label not in mapping:
                 # Don't show the request line as an answer, and don't store it in the conversation.
                 turn.error = f"Muse Spark asked for {label}, which isn't in this chat's vault. Try rephrasing."
@@ -343,6 +365,14 @@ class ChatEngine:
             self.vault.add_message(chat_id, "document", text, meta={"doc_id": doc_id, "n": d["n"], "format": d["format"],
                                                                      "pages": d["pages"], "counts": d["counts"]})
 
+    def _image_for(self, chat_id: str, label: str) -> dict | None:
+        """<IMAGE_n> -> that image of this chat, if its original is kept."""
+        m = re.fullmatch(r"<IMAGE_(\d+)>", label)
+        if not m:
+            return None
+        image = next((i for i in self.vault.images(chat_id) if i["n"] == int(m.group(1))), None)
+        return image if image and self.vault.image_original(image["image_id"]) is not None else None
+
     def attach_images(self, chat_id: str, image_ids: list[str]) -> None:
         """Add masked images to the chat as their own messages, each once."""
         attached = {m["meta"].get("image_id") for m in self.vault.messages(chat_id) if m["role"] == "image"}
@@ -353,7 +383,8 @@ class ChatEngine:
             if not info or info["chat_id"] != chat_id:
                 raise ChatError("unknown image for this chat")
             read = info.get("masked_text", "").strip()
-            text = f"[Image {info['n']}, masked like the rest of this chat: faces blurred, values replaced by their placeholders]"
+            text = (f"[<IMAGE_{info['n']}>, masked like the rest of this chat: faces blurred, cards, plates and values "
+                    f"covered]")
             if read:
                 text += f"\nText in the image: {read}"
             attached.add(image_id)
@@ -409,16 +440,26 @@ class ChatEngine:
         if level and level != ask.level and ask.kind == "context":
             ask.level, ask.preview = level, self.vault.resolve(ask.chat_id, ask.label, level)
         self.vault.consent(ask.chat_id, ask.label, ask.level, decision, ask.reason)
-        if decision == "allow":
+        if ask.kind == "image":
+            image = self._image_for(ask.chat_id, ask.label)
+            meta = {"label": ask.label, "level": "full", "decision": decision}
+            if decision == "allow" and image:
+                meta["image_id"] = image["image_id"]  # _history sends the original picture with this note
+                note = f"[The user allowed you to see the original picture {ask.label}, unmasked]"
+            else:
+                note = f"[The user declined to show the original picture {ask.label}. Answer from the masked one.]"
+            self.vault.add_message(ask.chat_id, "reveal", note, meta=meta)
+        elif decision == "allow":
             note = f"[The user allowed you to see {ask.label} ({ask.level})]: {ask.preview}"
         else:
             note = f"[The user declined to reveal {ask.label}. Answer as well as you can without it, keeping placeholders.]"
-        meta = {"label": ask.label, "level": ask.level, "decision": decision}
-        if decision == "allow" and ask.level == "full":
-            # The note holds real text: keep it encrypted, store only a stub in the clear column.
-            self.vault.add_message(ask.chat_id, "reveal", f"[{ask.label} revealed in full]", original=note, meta=meta)
-        else:
-            self.vault.add_message(ask.chat_id, "reveal", note, meta=meta)
+        if ask.kind != "image":
+            meta = {"label": ask.label, "level": ask.level, "decision": decision}
+            if decision == "allow" and ask.level == "full":
+                # The note holds real text: keep it encrypted, store only a stub in the clear column.
+                self.vault.add_message(ask.chat_id, "reveal", f"[{ask.label} revealed in full]", original=note, meta=meta)
+            else:
+                self.vault.add_message(ask.chat_id, "reveal", note, meta=meta)
         turn = Turn(ask.chat_id)
         try:
             self._send(ask.chat_id, turn)

@@ -81,6 +81,9 @@ CREATE TABLE IF NOT EXISTS images (
     id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, n INTEGER NOT NULL, verified INTEGER NOT NULL, counts TEXT,
     nonce BLOB NOT NULL, record_ct BLOB NOT NULL, png_nonce BLOB NOT NULL, png_ct BLOB NOT NULL, created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS image_originals (
+    image_id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, nonce BLOB NOT NULL, ct BLOB NOT NULL
+);
 CREATE TABLE IF NOT EXISTS consents (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, chat_id TEXT NOT NULL, label TEXT NOT NULL,
     level TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT
@@ -506,7 +509,8 @@ class Vault:
         return found
 
     # Everything keyed by chat_id; the audit rows stay (counts only, and the HMAC chain must not break).
-    _CHAT_TABLES = ("messages", "placeholders", "contexts", "edges", "outbox", "actions", "documents", "images", "consents")
+    _CHAT_TABLES = ("messages", "placeholders", "contexts", "edges", "outbox", "actions", "documents", "images",
+                    "image_originals", "consents")
 
     def delete_chat(self, chat_id: str) -> dict | None:
         """Delete a chat and everything in it: messages, placeholders, contexts, graph, documents, images,
@@ -527,6 +531,7 @@ class Vault:
         """Delete a masked image and the chat message that showed it."""
         with self._lock, self._db:
             found = self._db.execute("DELETE FROM images WHERE id=?", (image_id,)).rowcount > 0
+            self._db.execute("DELETE FROM image_originals WHERE image_id=?", (image_id,))
             if found:
                 self._db.execute("DELETE FROM messages WHERE role='image' AND json_extract(meta, '$.image_id')=?", (image_id,))
         return found
@@ -552,6 +557,16 @@ class Vault:
         i, chat_id, n, verified, counts, nonce, ct, created = row
         return {"image_id": i, "chat_id": chat_id, "n": n, "verified": bool(verified), "counts": json.loads(counts or "{}"),
                 "created_at": created, **json.loads(self._open(f"image:{i}:record", nonce, ct))}
+
+    def add_image_original(self, image_id: str, chat_id: str, data: bytes) -> None:
+        """The unmasked picture, sealed: it leaves the device only if you allow it on the consent card."""
+        nonce, ct = self._seal(f"image:{image_id}:original", data)
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO image_originals VALUES (?,?,?,?)", (image_id, chat_id, nonce, ct))
+
+    def image_original(self, image_id: str) -> bytes | None:
+        row = self._db.execute("SELECT nonce, ct FROM image_originals WHERE image_id=?", (image_id,)).fetchone()
+        return self._open(f"image:{image_id}:original", *row) if row else None
 
     def image_png(self, image_id: str) -> bytes | None:
         row = self._db.execute("SELECT png_nonce, png_ct FROM images WHERE id=?", (image_id,)).fetchone()

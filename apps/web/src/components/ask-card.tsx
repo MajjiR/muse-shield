@@ -17,6 +17,7 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
   // Start at the least exposure on offer, whatever Spark asked for; the user can step up.
   const [level, setLevel] = useState<Level>(levels[0] ?? ask.level)
   const preview = ask.previews?.[level] ?? ask.preview
+  const imageUrl = ask.kind === "image" ? ask.previews?.full : undefined // the original, served by this device's engine
   const meta = LEVELS[level]
 
   return (
@@ -34,7 +35,7 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
         </span>
         <div className="min-w-0">
           <p className="font-heading text-[20px] leading-tight font-normal tracking-[-0.01em]">
-            Muse Spark is asking to see {ask.kind === "context" ? "a hidden passage" : "a hidden value"}
+            Muse Spark is asking to see {ask.kind === "context" ? "a hidden passage" : ask.kind === "image" ? "the original picture" : "a hidden value"}
           </p>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
             <span className="font-mono text-xs text-foreground">{ask.label}</span>
@@ -88,8 +89,17 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
               level === "full" && "border-2 border-dashed border-foreground/70 bg-card",
             )}
           >
-            <MaskedText text={preview} />
+            {imageUrl ? (
+              <img src={imageUrl} alt="The original picture, unmasked" className="max-h-64 w-auto rounded-sm" />
+            ) : (
+              <MaskedText text={preview} />
+            )}
           </motion.div>
+          {ask.kind === "image" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              If you share it, Muse Spark sees this picture unmasked (faces and covered parts) for this chat.
+            </p>
+          )}
           {level === "full" && ask.kind === "entity" && (
             <p className="mt-2 text-xs text-muted-foreground">
               If you share it, Muse Spark may also use it in a web search for this chat. Other tools keep placeholders.
@@ -103,7 +113,7 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
         <div className="flex gap-2">
           <Button variant="ghost" disabled={busy} onClick={() => onDecide("deny", level)}>Don’t share</Button>
           <Button disabled={busy} onClick={() => onDecide("allow", level)} >
-            {busy && <Loader2 className="animate-spin" />} Share {meta.label.toLowerCase()}
+            {busy && <Loader2 className="animate-spin" />} {ask.kind === "image" ? "Share original picture" : `Share ${meta.label.toLowerCase()}`}
           </Button>
         </div>
       </div>
