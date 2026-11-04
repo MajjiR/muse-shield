@@ -1,5 +1,6 @@
 import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
+import { CategoryLine, ModeToggle } from "@/components/categories"
 import { DocumentCard } from "@/components/document-card"
 import { ImageCard, PendingImageCard } from "@/components/image-card"
 import { MessageView } from "@/components/message"
@@ -8,7 +9,7 @@ import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
 import { cn, isGlimmer } from "@/lib/utils"
-import type { Ask, DocumentInfo, ImageInfo, Level, MaskResult, Turn } from "@muse-shield/core"
+import type { Ask, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowUp, Briefcase, FileText, FileUp, FlaskConical, KeyRound, Lock, PanelRight, Paperclip, ReceiptText, ScanEye, ShieldCheck, Sparkles, Wrench, X,
@@ -42,6 +43,13 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const [preview, setPreview] = useState<(MaskResult & { original: string }) | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [autoSend, setAutoSend] = useState(false)
+  const [maskMode, setMaskMode] = useState<MaskMode>(() => {
+    try { return localStorage.getItem("ms-mask-mode") === "classify" ? "classify" : "normal" } catch { return "normal" }
+  })
+  const chooseMode = (m: MaskMode) => {
+    setMaskMode(m)
+    try { localStorage.setItem("ms-mask-mode", m) } catch { /* private window: keep it for this session only */ }
+  }
   const [ask, setAsk] = useState<Ask | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
   const threadRef = useRef<HTMLDivElement>(null)
@@ -108,7 +116,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
   async function mask(text: string) {
     setPhase("masking")
-    const m = await engine.mask(text, chatId)
+    const m = await engine.mask(text, chatId, mode)
     if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
     setPreview({ ...m, original: text })
     if (!chatId) onChat(m.chat_id)
@@ -132,6 +140,8 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const onPreview = () => run(async () => { if (input.trim()) await mask(input.trim()) })
 
   const docsAllowed = !!health.data?.analysis && health.data?.documents !== false
+  const classifyAllowed = !!health.data?.classify_mode
+  const mode: MaskMode = classifyAllowed ? maskMode : "normal"
   const imagesAllowed = !!health.data?.images
   const filesAllowed = docsAllowed || imagesAllowed
   const statusOf = (d: DocumentInfo) => docStatus[d.doc_id] ?? d.status
@@ -207,7 +217,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       setPhase("masking")
       let m: MaskResult
       try {
-        m = await engine.mask(text, chatId)
+        m = await engine.mask(text, chatId, mode)
         if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
       } catch (e) {
         setInput(text) // give the text back so nothing is lost
@@ -358,6 +368,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
               )}
             </span>
             <div className="flex shrink-0 items-center gap-1.5">
+              {classifyAllowed && <ModeToggle mode={maskMode} onChange={chooseMode} disabled={!!phase} />}
               {filesAllowed && (
                 <>
                   <input ref={fileRef} type="file" accept={accept} multiple hidden
@@ -408,6 +419,7 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
           </button>
         )}
       </div>
+      {preview.mode === "classify" && <CategoryLine categories={preview.categories} summary={preview.summary} className="border-b px-4 py-2" />}
       <div className="grid max-h-52 grid-cols-2 gap-0 overflow-y-auto max-md:grid-cols-1">
         <div className="border-r px-4 py-3 max-md:border-r-0 max-md:border-b">
           <div className="mb-1 eyebrow text-muted-foreground">You wrote</div>
@@ -461,6 +473,9 @@ function PendingMessage({ pending }: { pending: Pending }) {
           ))
         )}
       </div>
+      {masked?.mode === "classify" && (
+        <CategoryLine categories={masked.categories} summary={masked.summary} className="max-w-[min(42rem,85%)] justify-end" />
+      )}
       {masked && spans.length > 0 && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} transition={{ delay: 0.35 }}
           className="max-w-[min(42rem,85%)] overflow-hidden">

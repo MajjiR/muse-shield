@@ -15,7 +15,8 @@ class SpanOut(BaseModel):
     role: str | None = None
     placeholder: str
     kind: Literal["entity", "context"] = "entity"
-    source: Literal["model", "policy", "user"] = "model"
+    source: Literal["model", "policy", "user", "fallback"] = "model"
+    fallback: str | None = None  # classify mode: the category that made this <SENSITIVE_n> private
 
 
 class ContextOut(BaseModel):
@@ -27,9 +28,13 @@ class ContextOut(BaseModel):
     summary: str = ""
 
 
+MaskMode = Literal["normal", "classify"]
+
+
 class MaskRequest(BaseModel):
     text: str
     chat_id: str | None = None
+    mode: MaskMode = "normal"  # classify: also detect the document's categories and their extra private details
 
 
 class ImageMaskRequest(BaseModel):
@@ -48,6 +53,9 @@ class MaskResponse(BaseModel):
     latency_ms: float = 0.0
     cost_usd: float | None = None
     mask_id: str | None = None
+    mode: MaskMode = "normal"
+    categories: list[str] = Field(default_factory=list)
+    summary: str = ""
 
 
 class UnmaskRequest(BaseModel):
@@ -76,6 +84,7 @@ class ChatRequest(BaseModel):
     mask_id: str | None = None  # from a /mask preview, so Mask & send doesn't analyze twice
     document_ids: list[str] = Field(default_factory=list)  # documents to attach to this turn (message may be "")
     image_ids: list[str] = Field(default_factory=list)  # masked images (POST /images) to attach to this turn
+    mode: MaskMode = "normal"  # used when there's no mask_id preview
 
 
 class ChatResponse(BaseModel):

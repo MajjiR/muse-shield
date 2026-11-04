@@ -130,6 +130,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
                 "analysis_off_reason": off_reason, "chat_off_reason": chat_off,
                 "images": bool(image_masker), "images_off_reason": images_off, "documents": documents.available(),
+                # Classify mode (document categories + their extra private details) needs an entity-resolution analyzer.
+                "classify_mode": hasattr(analyzer, "classify_document"),
                 # Image masking uses two models: Muse Spark reads the picture, SAM 3.1 outlines faces and plates.
                 "image_model": " + ".join(m.model for m in (image_masker.vision, image_masker.sam) if m) if image_masker else None}
 
@@ -140,10 +142,10 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             return {"chat_id": chat_id, "masked_text": body.text, "spans": [], "contexts": [], "analysis_ok": False,
                     "error": off_reason, "latency_ms": 0, "cost_usd": None, "mask_id": None}
         if engine:
-            mask_id, masked = engine.preview(body.text, body.chat_id)
+            mask_id, masked = engine.preview(body.text, body.chat_id, body.mode)
             return {**masked.to_dict(), "mask_id": mask_id}
         chat_id = vault.ensure_chat(body.chat_id)
-        return {**masker.mask(body.text, chat_id).to_dict(), "mask_id": None}
+        return {**masker.mask(body.text, chat_id, mode=body.mode).to_dict(), "mask_id": None}
 
     @app.post("/images/mask")
     def mask_image(body: ImageMaskRequest):
@@ -174,7 +176,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def chat(body: ChatRequest):
         if not engine:
             raise HTTPException(503, off_reason or chat_off or "chat unavailable")
-        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids, body.image_ids).to_dict()
+        return engine.chat(body.message, body.chat_id, body.mask_id, body.document_ids, body.image_ids, body.mode).to_dict()
 
     @app.post("/reveal")
     def reveal(body: RevealRequest):

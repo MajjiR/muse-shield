@@ -308,9 +308,9 @@ class ChatEngine:
         return turn  # if the model chained another tool call, turn.action now holds that one
 
     # -- public ---------------------------------------------------------------
-    def preview(self, text: str, chat_id: str | None) -> tuple[str, Masked]:
+    def preview(self, text: str, chat_id: str | None, mode: str = "normal") -> tuple[str, Masked]:
         chat_id = self.vault.ensure_chat(chat_id)
-        masked = self.masker.mask(text, chat_id)
+        masked = self.masker.mask(text, chat_id, mode=mode)
         mask_id = "k_" + uuid.uuid4().hex[:10]
         self.masks[mask_id] = masked
         return mask_id, masked
@@ -357,7 +357,7 @@ class ChatEngine:
                                                                  "verified": info["verified"], "counts": info["counts"]})
 
     def chat(self, message: str, chat_id: str | None = None, mask_id: str | None = None,
-             document_ids: list[str] | None = None, image_ids: list[str] | None = None) -> Turn:
+             document_ids: list[str] | None = None, image_ids: list[str] | None = None, mode: str = "normal") -> Turn:
         if document_ids or image_ids:
             if not chat_id:
                 return Turn("", error="Not sent: attachments belong to a chat; pass its chat_id")
@@ -378,15 +378,17 @@ class ChatEngine:
             chat_id, masked = cached.chat_id, cached
         else:
             chat_id = self.vault.ensure_chat(chat_id)
-            masked = self.masker.mask(message, chat_id)
+            masked = self.masker.mask(message, chat_id, mode=mode)
         turn = Turn(chat_id, masked=masked, cost_usd=masked.cost_usd or 0.0)
         if not masked.analysis_ok:
             turn.error = f"Not sent: {masked.error}"
             return turn
         # Spans keep offsets and types only: their text is the real value, and meta is stored unencrypted.
         spans = [{k: v for k, v in sp.items() if k != "text"} for sp in masked.spans]
-        self.vault.add_message(chat_id, "user", masked.masked_text, original=message,
-                               meta={"spans": spans, "cost_usd": masked.cost_usd})
+        meta = {"spans": spans, "cost_usd": masked.cost_usd}
+        if masked.mode == "classify":
+            meta.update(mode="classify", categories=masked.categories, summary=masked.summary)
+        self.vault.add_message(chat_id, "user", masked.masked_text, original=message, meta=meta)
         try:
             self._send(chat_id, turn)
         except ChatError as exc:

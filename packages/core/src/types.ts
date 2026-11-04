@@ -11,9 +11,14 @@ export interface Span {
   role?: string | null;
   placeholder: string;
   kind: SpanKind;
-  source: "model" | "policy" | "user";
+  source: "model" | "policy" | "user" | "fallback";
+  /** classify mode: the category that made this <SENSITIVE_n> private */
+  fallback?: string | null;
   in_context?: string | null;
 }
+
+/** normal: one call finds people, values, owners. classify: also detects the document's categories and their extra private details. */
+export type MaskMode = "normal" | "classify";
 
 export interface ContextBlock {
   label: string;
@@ -34,6 +39,9 @@ export interface MaskResult {
   latency_ms: number;
   cost_usd: number | null;
   mask_id: string | null;
+  mode?: MaskMode;
+  categories?: string[];
+  summary?: string;
 }
 
 export interface Ask {
@@ -110,7 +118,7 @@ export interface Message {
   masked_text: string;
   text: string;
   original: string | null;
-  meta: { spans?: Span[]; cost_usd?: number | null; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
+  meta: { spans?: Span[]; cost_usd?: number | null; mode?: MaskMode; categories?: string[]; summary?: string; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
   segments?: Segment[];
   /** role "document": the attached document, shown as a card. */
   document?: DocumentInfo | null;
@@ -146,6 +154,8 @@ export interface Health {
   images_off_reason?: string;
   /** e.g. "muse-spark-1.3 + sam-3.1": the vision model, then the segmentation model */
   image_model?: string | null;
+  /** the analyzer can classify documents (entity-resolution Glimmer) */
+  classify_mode?: boolean;
 }
 
 /** A covered part of an image: a value (kind "text", labelled with its vault placeholder) or a face, code, plate… */

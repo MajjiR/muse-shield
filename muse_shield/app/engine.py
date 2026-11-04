@@ -69,6 +69,10 @@ class Masked:
     # Values the model already saw unmasked earlier in this chat. Chat text keeps them (hiding them now would
     # only trip the pre-send guard), but a masked file copy must still hide them.
     already_sent: list[dict] = field(default_factory=list)
+    # Classify mode: the document's categories (prompt and entity rules combined), a one-line summary.
+    mode: str = "normal"
+    categories: list[str] = field(default_factory=list)
+    summary: str = ""
 
     def replacements(self) -> list[tuple[int, int, str]]:
         """(start, end, label) for every piece of `original` the masked text replaces, in order.
@@ -80,7 +84,7 @@ class Masked:
     def to_dict(self) -> dict:
         return {"chat_id": self.chat_id, "masked_text": self.masked_text, "spans": self.spans, "contexts": self.contexts,
                 "analysis_ok": self.analysis_ok, "error": self.error, "latency_ms": round(self.latency_ms, 1),
-                "cost_usd": self.cost_usd}
+                "cost_usd": self.cost_usd, "mode": self.mode, "categories": self.categories, "summary": self.summary}
 
 
 _TITLES = {"mr", "mrs", "ms", "mx", "dr", "prof", "shri", "smt", "sir", "madam", "adv"}
@@ -170,17 +174,30 @@ class Masker:
                 self.vault.add_edge(chat_id, sa["placeholder"], sb["placeholder"], rel.lower())
 
     def mask(self, text: str, chat_id: str, *, propagate: bool = False, contexts: bool = True, on_progress=None,
-             title: bool = True) -> Masked:
+             title: bool = True, mode: str = "normal") -> Masked:
         """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
         contexts=False (a passage block would swallow most of a page), on_progress(done, total) per analysed
-        unit, and title=False (a document shouldn't name the chat)."""
+        unit, and title=False (a document shouldn't name the chat).
+
+        mode="classify" (entity-resolution analyzers only): a second call to the same model, run alongside the
+        fill, classifies the document (medical, legal, hr, ...) and lists category-specific private details the
+        fill doesn't cover (medications, case numbers, codenames, ratings). Those become <SENSITIVE_n>; the
+        fill's own entities always win on overlap."""
         t0 = time.perf_counter()
         paras = paragraphs(text)
+        classify = mode == "classify" and hasattr(self.analyzer, "classify_document")
+        cls = None
         try:
             if hasattr(self.analyzer, "analyze_document"):  # entity resolution: one call sees the whole text
                 if on_progress:
                     on_progress(0, 1)
-                analyses = self.analyzer.analyze_document(text, paras) if paras else []
+                if classify and paras:
+                    with ThreadPoolExecutor(max_workers=1) as pool:
+                        pending = pool.submit(self.analyzer.classify_document, text)
+                        analyses = self.analyzer.analyze_document(text, paras)
+                        cls = pending.result()
+                else:
+                    analyses = self.analyzer.analyze_document(text, paras) if paras else []
                 if on_progress:
                     on_progress(1, 1)
             else:
@@ -190,10 +207,10 @@ class Masker:
                           latency_ms=(time.perf_counter() - t0) * 1000)
         bad = [a for a in analyses if not a.valid]
         tokens = {"in": 0, "out": 0, "cached_in": 0}
-        for a in analyses:
-            tokens["in"] += a.usage.get("prompt_tokens", 0)
-            tokens["out"] += a.usage.get("completion_tokens", 0)
-            tokens["cached_in"] += a.usage.get("prompt_tokens_details.cached_tokens", 0)
+        for u in [a.usage for a in analyses] + ([cls["usage"]] if cls else []):
+            tokens["in"] += u.get("prompt_tokens", 0)
+            tokens["out"] += u.get("completion_tokens", 0)
+            tokens["cached_in"] += u.get("prompt_tokens_details.cached_tokens", 0)
         elapsed = time.perf_counter() - t0
         cost = run_cost(getattr(self.analyzer, "model", ""), tokens, elapsed)["usd"]
         if bad:
@@ -217,10 +234,19 @@ class Masker:
         relations = [r for a in analyses for r in getattr(a, "relations", [])]
         if propagate:
             entities += self._propagate(text, entities)
+        categories, summary = [], ""
+        if cls is not None:
+            rule_cats = set(getattr(analyses[0], "categories", []) or []) if analyses else set()
+            categories = sorted(set(cls["categories"]) | rule_cats) or ["general"]
+            summary = cls["summary"]
+            for x in cls["extras"]:
+                for m in re.finditer(rf"(?<!\w){re.escape(x['text'])}(?!\w)", text):
+                    entities.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": "SENSITIVE_ATTRIBUTE",
+                                     "role": None, "canonical": None, "owner": None, "fallback": x["category"] or "sensitive"})
 
-        # Longest entity wins on overlap.
+        # The fill's entities first, longest first; classify-mode fallbacks only where nothing else is.
         kept: list[dict] = []
-        for e in sorted(entities, key=lambda e: e["end"] - e["start"], reverse=True):
+        for e in sorted(entities, key=lambda e: (bool(e.get("fallback")), -(e["end"] - e["start"]))):
             if not any(e["start"] < k["end"] and k["start"] < e["end"] for k in kept):
                 kept.append(e)
         kept.sort(key=lambda e: e["start"])
@@ -237,9 +263,10 @@ class Masker:
         known = self._known_people(chat_id) if resolved else {}
         for e in kept:
             value = self._same_person(e, known) if resolved else e["text"]
-            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], value, placeholder_base(e["type"], e["role"]))
+            base = "SENSITIVE" if e.get("fallback") else placeholder_base(e["type"], e["role"])
+            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], value, base)
             spans.append({**e, "placeholder": label, "entity_id": entity_id, "kind": "entity",
-                          "source": "policy" if e["type"] in ALWAYS_MASK else "model"})
+                          "source": "fallback" if e.get("fallback") else "policy" if e["type"] in ALWAYS_MASK else "model"})
         if resolved:
             self._link_resolved(chat_id, spans, relations, known)
         else:
@@ -262,7 +289,8 @@ class Masker:
                              "summary": b["summary"]})
 
         result = Masked(chat_id, text, "", spans=spans, contexts=contexts, cost_usd=cost, tokens=tokens,
-                        already_sent=[{k: e[k] for k in ("start", "end", "text", "type", "role")} for e in already_sent])
+                        already_sent=[{k: e[k] for k in ("start", "end", "text", "type", "role")} for e in already_sent],
+                        mode="classify" if cls is not None else "normal", categories=categories, summary=summary)
         pieces, cursor = [], 0
         for start, end, label in result.replacements():
             pieces += [text[cursor:start], label]
@@ -285,6 +313,7 @@ class Masker:
         self.vault.audit("mask", chat_id, counts)
 
         span_out = [{k: s.get(k) for k in ("start", "end", "text", "type", "role", "placeholder", "kind", "source")} | {"in_context": s.get("in_context")}
+                    | ({"fallback": s["fallback"]} if s.get("fallback") else {})
                     for s in spans]
         span_out += [{"start": c["start"], "end": c["end"], "text": text[c["start"]:c["end"]], "type": c["kind"], "role": None,
                       "placeholder": c["label"], "kind": "context", "source": "model", "in_context": None} for c in contexts]

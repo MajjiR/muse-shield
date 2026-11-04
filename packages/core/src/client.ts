@@ -1,5 +1,5 @@
 // Engine API client: plain fetch, so it works in the browser, Electron and React Native.
-import type { AgentAction, Ask, AuditChain, ChatDetail, ChatSummary, DocumentDetail, DocumentInfo, Graph, ImageInfo, Health, InspectorRecord, LeakAudit, Level, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
+import type { AgentAction, Ask, AuditChain, ChatDetail, ChatSummary, DocumentDetail, DocumentInfo, Graph, ImageInfo, Health, InspectorRecord, LeakAudit, Level, MaskMode, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
 
 export class EngineError extends Error {
   readonly status: number;
@@ -30,7 +30,7 @@ export function createEngine(baseUrl = "") {
   }
   return {
     health: () => call<Health>("/health"),
-    mask: (text: string, chatId?: string | null) => call<MaskResult>("/mask", { text, chat_id: chatId ?? null }),
+    mask: (text: string, chatId?: string | null, mode: MaskMode = "normal") => call<MaskResult>("/mask", { text, chat_id: chatId ?? null, mode }),
     unmask: (text: string, chatId: string) => call<{ text: string; unknown: string[] }>("/unmask", { text, chat_id: chatId }),
     chat: (message: string, chatId?: string | null, maskId?: string | null, documentIds: string[] = [], imageIds: string[] = []) =>
       call<Turn>("/chat", { message, chat_id: chatId ?? null, mask_id: maskId ?? null, document_ids: documentIds, image_ids: imageIds }),

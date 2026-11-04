@@ -1,3 +1,4 @@
+import { CategoryLine } from "@/components/categories"
 import { MaskedText, OriginalText, RestoredText } from "@/components/privacy-text"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
@@ -63,6 +64,7 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
           user ? "rounded-md bg-muted px-4 py-2.5 whitespace-pre-wrap" : "pt-0.5")}>
           {user ? <OriginalText text={m.text} spans={m.meta.spans} /> : <RestoredText segments={m.segments} />}
         </div>
+        {user && m.meta.mode === "classify" && <CategoryLine categories={m.meta.categories} summary={m.meta.summary} className="justify-end" />}
         <AnimatePresence initial={false}>
           {saw && (
             <motion.div

@@ -509,6 +509,65 @@ def aggregate(per_doc: list[dict]) -> dict:
 
 # -- the app's analyzer -----------------------------------------------------------------------
 
+# -- classify mode: document categories and category-specific extras ----------------------------
+
+CATEGORIES = ["medical", "legal", "mergers_acquisitions", "banking_finance", "hr", "insurance", "real_estate",
+              "education", "code", "general"]
+CLASSIFY_PROMPT = """Classify this document for a privacy gateway and find category-specific private details.
+Categories: {cats}. A document can have more than one.
+
+"extras": exact text of private details the document's categories make sensitive that are NOT names,
+organisations, addresses, phone numbers, emails, ID numbers, money amounts or dates. For example:
+medications and doses, vital signs, test results, diagnoses and procedures (medical); case or matter
+numbers, charges and allegations (legal); project codenames, valuations and deal terms (mergers);
+performance ratings, disciplinary findings and resignation reasons (hr); hostnames, internal URLs and
+access tokens (code). Copy each one exactly as written. Only values, never field labels like "Age" or "MRN".
+
+Return ONE JSON object and nothing else:
+{{"categories": ["..."], "summary": "one sentence", "extras": [{{"text": "...", "category": "..."}}]}}
+
+{doc}"""
+# field labels and filler a classifier sometimes returns as "values"
+_LABEL_WORDS = {"age", "dob", "date of birth", "mrn", "employee id", "name", "address", "phone", "email", "pan",
+                "aadhaar", "salary", "id", "date", "height", "weight", "gender", "diagnosis", "blood group",
+                "medical record number", "policy number", "account number", "contact number"}
+
+
+def categories_from_resolution(res: Resolution) -> set[str]:
+    """Categories inferred in code from what the fill found (subtypes, roles, relations)."""
+    subs = {e.subtype for e in res.entities if e.subtype}
+    roles = {e.role for e in res.entities if e.role}
+    rels = {r for _, r, _ in res.relations}
+    types = {e.type for e in res.entities}
+    cats = set()
+    if subs & {"HEALTH", "MEDICAL_RECORD", "BODY_MEASUREMENT", "DISABILITY"} or "TREATS" in rels:
+        cats.add("medical")
+    if "SALARY" in roles or "EMPLOYEE_ID" in subs or "MANAGES" in rels:
+        cats.add("hr")
+    if roles & {"DEAL_VALUE", "REVENUE"} or "PROJECT" in types:
+        cats.add("mergers_acquisitions")
+    if "LOAN" in roles or subs & {"BANK_ACCOUNT", "IFSC", "CARD"} or "GUARANTOR_FOR" in rels:
+        cats.add("banking_finance")
+    if "POLICY" in subs or "NOMINEE_OF" in rels:
+        cats.add("insurance")
+    if rels & {"REPRESENTS", "CLIENT_OF"}:
+        cats.add("legal")
+    if "LANDLORD_OF" in rels:
+        cats.add("real_estate")
+    if "SECRET" in types:
+        cats.add("code")
+    return cats
+
+
+def keep_extra(text: str) -> bool:
+    """Drop labels, verbs and fragments the classifier sometimes returns as private details."""
+    t = text.strip().lower().strip(".,:;")
+    if len(t) < 3 or t in _LABEL_WORDS or t in _REFERENCE_WORDS:
+        return False
+    words = t.split()
+    return not (len(words) == 1 and t.isalpha() and (t.endswith("ed") or t.endswith("ing")))
+
+
 class ResolutionAnalyzer:
     """Call 1 with an entity-resolution model (e.g. Glimmer + er-v2a LoRA) behind the app's Masker.
 
@@ -538,6 +597,24 @@ class ResolutionAnalyzer:
                                {"role": "user", "content": f"That output broke the contract ({err}). Reply with only the corrected JSON object."}]
         return None, usage, 2, err
 
+    def classify_document(self, text: str) -> dict:
+        """Classify mode: categories, a one-line summary and category-specific extras, from the same model."""
+        msg = [{"role": "user", "content": CLASSIFY_PROMPT.format(cats=", ".join(CATEGORIES), doc=text)}]
+        usage = {"prompt_tokens": 0, "completion_tokens": 0}
+        try:
+            raw, u = self.chat._call(msg)
+            for k in usage:
+                usage[k] += u.get(k, 0)
+            data = _loads(raw)
+        except Exception as exc:  # noqa: BLE001 - classify is best effort: the fill still masks
+            return {"categories": [], "summary": "", "extras": [], "usage": usage, "error": f"{exc!s:.120}"}
+        cats = [c for c in (str(x).lower() for x in data.get("categories") or []) if c in CATEGORIES]
+        extras = []
+        for x in data.get("extras") or []:
+            if isinstance(x, dict) and isinstance(x.get("text"), str) and keep_extra(x["text"]) and x["text"] in text:
+                extras.append({"text": x["text"].strip(), "category": str(x.get("category", "")).lower()})
+        return {"categories": cats, "summary": str(data.get("summary") or "")[:300], "extras": extras, "usage": usage, "error": ""}
+
     def analyze_document(self, text: str, paras: list[tuple[int, str]]):
         from muse_shield.analysis import Analysis, Span, split_sentences
         import time as _time
@@ -566,6 +643,7 @@ class ResolutionAnalyzer:
                                                    canonical=ident[e.id][1], owner=owner))
                             break
             out[0].relations = [(ident[a], r, ident[b]) for a, r, b in res.relations if a in ident and b in ident]
+            out[0].categories = sorted(categories_from_resolution(res))
         out[0].usage, out[0].attempts, out[0].latency_ms = usage, attempts, (_time.perf_counter() - t0) * 1000
         return out
 
