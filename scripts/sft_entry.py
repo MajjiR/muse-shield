@@ -1,4 +1,7 @@
-"""Run the Fireworks cookbook SFT loop (serverless) with Muse Shield's settings. Called by robust_train.py.
+"""Run the Fireworks cookbook SFT loop with Muse Shield's settings. Called by robust_train.py.
+
+Serverless (shared pooled trainer, free LoRA SFT promotion) by default. With "training_shape" set in the
+config it provisions a dedicated trainer on that shape instead (billed per GPU-hour, deleted on exit).
 
 Runs with the cookbook venv from the cookbook's `training/` directory:
     /Volumes/MajjiR/ai/venv-fwtrain/bin/python scripts/sft_entry.py --config run.json
@@ -27,9 +30,12 @@ def main() -> int:
     sys.path.insert(0, c["cookbook_training_dir"])
 
     import training.recipes.sft_loop as sft_loop  # noqa: E402
+    from training.utils.config import TrainerConfig  # noqa: E402
 
+    shape = c.get("training_shape") or ""
     cfg = sft_loop.Config(
-        serverless=True,
+        serverless=not shape,
+        trainer=TrainerConfig(training_shape_id=shape) if shape else TrainerConfig(),
         log_path=c["log_path"],
         base_model=c["base_model"],
         tokenizer_model=c["tokenizer_model"],
@@ -48,6 +54,7 @@ def main() -> int:
         warmup_steps=c.get("warmup_steps", 0),
         dcp_save_interval=c["checkpoint_every"],
         sampler_save_interval=c["checkpoint_every"],
+        save_final_checkpoint=c.get("save_final_checkpoint", True),
         init_from_checkpoint=c.get("init_from_checkpoint") or None,
         output_model_id=c.get("output_model_id") or None,
         max_examples=c.get("max_examples"),
