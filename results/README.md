@@ -2,12 +2,14 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$15.70** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$15.88** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261105-042733_v0.0.1+883c180_docs10-pdf-er-v3a-s250-guardfix](document-pii/20261105-042733_v0.0.1+883c180_docs10-pdf-er-v3a-s250-guardfix/report.html) | document-pii | docs10-pdf-er-v3a-s250-guardfix | muse_spark-pdf `accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-er-cmp-er-v3a-s250-1105-0424` | 10 | 0.0% | – | 100.0% | – | 100.0% | $0.00 |
+| [20261105-042009_v0.0.1+883c180_agent-scenarios-er-v3a-s250-guardfix](agent-scenarios/20261105-042009_v0.0.1+883c180_agent-scenarios-er-v3a-s250-guardfix/report.html) | agent-scenarios | agent-scenarios-er-v3a-s250-guardfix | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 100.0% | $0.18 |
 | [20261105-035512_v0.0.1+0b67e80_agent-scenarios-er-v2b](agent-scenarios/20261105-035512_v0.0.1+0b67e80_agent-scenarios-er-v2b/report.html) | agent-scenarios | agent-scenarios-er-v2b | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 100.0% | $0.16 |
 | [20261105-035442_v0.0.1+0b67e80_agent-scenarios-er-v3a-s250](agent-scenarios/20261105-035442_v0.0.1+0b67e80_agent-scenarios-er-v3a-s250/report.html) | agent-scenarios | agent-scenarios-er-v3a-s250 | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 85.0% | $0.13 |
 | [20261105-034240_v0.0.1+0b67e80_conversations6-er-v3a-s250](realistic-conversations/20261105-034240_v0.0.1+0b67e80_conversations6-er-v3a-s250/report.html) | realistic-conversations | conversations6-er-v3a-s250 | muse_spark `accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-er-cmp-er-v3a-s250-1105-0331` | 36 | 3.4% | – | 96.6% | – | 100.0% | $0.00 |

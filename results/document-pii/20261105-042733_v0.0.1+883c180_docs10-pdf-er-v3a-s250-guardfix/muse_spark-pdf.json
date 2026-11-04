@@ -1,0 +1,23 @@
+{
+  "backend": "muse_spark-pdf",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-er-cmp-er-v3a-s250-1105-0424",
+  "docs": 10,
+  "leak_rate": 0.0,
+  "span_recall": 1.0,
+  "valid_rate": 1.0,
+  "must_total": 77,
+  "missed_total": 0,
+  "leaked_total": 0,
+  "not_extracted": 0,
+  "missed_by_type": {},
+  "consistent_misses": [],
+  "units_per_doc": 1.0,
+  "long_doc_units": null,
+  "warnings": {},
+  "cost_usd": 0.0,
+  "cost": {
+    "usd": 0.0,
+    "basis": "tokens"
+  },
+  "seconds": 92.8
+}
