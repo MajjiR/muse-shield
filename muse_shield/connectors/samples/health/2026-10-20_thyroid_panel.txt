@@ -1,0 +1,7 @@
+Lotus Clinic, Indiranagar, Bengaluru
+Patient: Sunita Verma, 41, F
+Referring doctor: Dr. Kavita Rao
+Report date: 20 October 2026
+
+Thyroid panel: TSH 6.8 mIU/L (high; range 0.4 to 4.0). Free T4 0.9 ng/dL (normal).
+Impression: subclinical hypothyroidism. Continue levothyroxine 50 mcg and repeat the panel in 6 weeks.
