@@ -249,7 +249,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         if not engine:
             raise HTTPException(503, "chat unavailable")
         try:
-            return engine.reveal(body.ask_id, body.decision, body.level).to_dict()
+            items = {k: v.model_dump() for k, v in body.items.items()} if body.items else None
+            return engine.reveal(body.ask_id, body.decision, body.level, items).to_dict()
         except ChatError as exc:
             raise HTTPException(404, str(exc)) from exc
 
