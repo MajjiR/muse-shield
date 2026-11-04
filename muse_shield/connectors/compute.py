@@ -16,19 +16,24 @@ import re
 
 from ..app.vault import Vault
 
-SCALE = {"k": 1e3, "thousand": 1e3, "lakh": 1e5, "lakhs": 1e5, "lac": 1e5, "lacs": 1e5, "l": 1e5, "crore": 1e7,
+SCALE = {"k": 1e3, "thousand": 1e3, "lakh": 1e5, "lakhs": 1e5, "lac": 1e5, "lacs": 1e5, "l": 1e5, "lpa": 1e5, "crore": 1e7,
          "crores": 1e7, "cr": 1e7, "million": 1e6, "mn": 1e6, "m": 1e6, "billion": 1e9, "bn": 1e9, "b": 1e9}
 CURRENCY = {"₹": "₹", "rs": "₹", "rs.": "₹", "inr": "₹", "rupees": "₹", "$": "$", "usd": "$", "dollars": "$",
             "€": "€", "eur": "€", "£": "£", "gbp": "£"}
 AMOUNT = re.compile(
-    r"(?P<cur>₹|\$|€|£|\b(?:rs\.?|inr|usd|eur|gbp)\b)?\s*(?P<num>\d[\d,]*(?:\.\d+)?)"
-    r"(?:\s*(?P<scale>lakhs?|lacs?|crores?|cr|thousand|million|mn|billion|bn|[klmb])\b)?"
+    r"(?P<cur>₹|\$|€|£|\b(?:rs\.?|inr|usd|eur|gbp)\b)?\s*(?P<num>\d(?:[\d,]*\d)?(?:\.\d+)?)"
+    r"(?:\s*(?P<scale>lpa|lakhs?|lacs?|crores?|cr|thousand|million|mn|billion|bn|[klmb])\b)?"
     r"(?:\s*(?P<word>rupees|dollars|inr|usd))?", re.I)
 OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv,
        ast.Mod: operator.mod, ast.Pow: operator.pow, ast.USub: operator.neg, ast.UAdd: operator.pos}
 CMP = {ast.Gt: operator.gt, ast.GtE: operator.ge, ast.Lt: operator.lt, ast.LtE: operator.le, ast.Eq: operator.eq,
        ast.NotEq: operator.ne}
 FUNCS = {"min": min, "max": max, "abs": abs, "round": round, "sum": lambda *xs: math.fsum(xs)}
+# A filled-in amount is the text the analysis marked, which can carry its period ("₹1,60,000 a month",
+# "₹4.2 lakh per annum", "$90/hr"): the period isn't part of the number, so it goes before evaluating.
+PERIOD = re.compile(r"\s*(?:/|\bper\b|\ba\b|\beach\b|\bevery\b)\s*(?:month|mo|year|yr|annum|day|week|wk|hour|hr|night)s?\b"
+                    r"|\s*\bp\.?\s?[am]\.?(?=\s|$|[)*/+-])|\s*\b(?:monthly|yearly|annually|weekly|daily)\b", re.I)
+WORD = re.compile(r"[^\W\d_][\w.]*(?:-[^\W\d_][\w.]*)*")  # whole words, hyphens included ("take-home")
 
 
 def to_python(expression: str) -> tuple[str, str]:
@@ -40,9 +45,12 @@ def to_python(expression: str) -> tuple[str, str]:
         cur = (m.group("cur") or m.group("word") or "").lower()
         currency = currency or CURRENCY.get(cur, "")
         value = float(m.group("num").replace(",", "")) * SCALE.get((m.group("scale") or "").lower(), 1.0)
-        return repr(value)
+        return repr(int(value)) if value.is_integer() else repr(value)  # whole stays whole: round(x, 2) needs an int
 
-    expr = AMOUNT.sub(number, expression.replace("×", "*").replace("÷", "/").replace("−", "-"))
+    expr = PERIOD.sub("", expression.replace("×", "*").replace("÷", "/").replace("−", "-"))
+    expr = AMOUNT.sub(number, expr)
+    # any other words left from a filled-in value ("take-home", "net") aren't arithmetic; function names stay
+    expr = WORD.sub(lambda m: m.group(0) if m.group(0) in FUNCS else "", expr)
     return expr, currency
 
 

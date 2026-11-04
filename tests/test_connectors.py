@@ -162,3 +162,17 @@ def test_channel_names_are_never_masked(tmp_path, monkeypatch):
         assert masked.masked_text == "Read #partners-shared now." and masked.spans == []
     finally:
         del NAMES["#partners-shared"]
+
+
+@pytest.mark.parametrize("expr, want", [
+    ("₹38,000 / ₹1,60,000 a month * 100", 23.75),       # seen live: the masked salary carried 'a month'
+    ("(₹38,000 / ₹1,60,000 per month) * 100", 23.75),
+    ("₹1,60,000/month * 12", 1_920_000),
+    ("₹4.2 lakh p.a. - ₹50,000", 370_000),
+    ("₹24 LPA / 12", 200_000),
+    ("max(₹2,40,000, ₹38 lakh)", 3_800_000),             # the comma between arguments isn't part of a number
+    ("₹1,60,000 take-home - ₹38,000", 122_000),         # a hyphenated word must not leave a minus behind
+    ("round(₹1,234.567, 2)", 1234.57),                   # whole numbers stay ints
+])
+def test_compute_reads_amounts_as_the_analysis_marked_them(expr, want):
+    assert evaluate(to_python(expr)[0]) == pytest.approx(want)
