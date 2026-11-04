@@ -1,0 +1,30 @@
+{
+  "run_id": "20261104-083847_v0.0.1+60ad49b-dirty_full500-glimmer-base-rerun",
+  "eval": "nemotron-pii",
+  "tag": "full500-glimmer-base-rerun",
+  "created": "2026-11-04T08:38:47+0530",
+  "version": "0.0.1",
+  "git": "60ad49b-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/tuning/muse_shield/benchmarks/run.py --backends glimmer --n 500 --workers 16 --cache ../../runs/benchmarks --tag full500-glimmer-base-rerun",
+  "dataset": {
+    "name": "nvidia/Nemotron-PII",
+    "split": "test",
+    "docs": 500,
+    "sample_n": 500,
+    "seed": 7,
+    "limit": 0,
+    "sample_file": "nemotron-test-500-s7.jsonl",
+    "sample_sha256": "ccc566fad823cbfb"
+  },
+  "settings": {
+    "glimmer": {
+      "model": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/skpptmp8",
+      "workers": 16,
+      "max_tokens": 1024,
+      "json_mode": true
+    }
+  },
+  "backends": [
+    "glimmer"
+  ]
+}

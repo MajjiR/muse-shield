@@ -1,0 +1,471 @@
+{
+  "base_model": "accounts/fireworks/models/muse-glimmer-30b",
+  "params": {
+    "epochs": 1,
+    "lora_rank": 8,
+    "learning_rate": 0.0001,
+    "batch_size": 16,
+    "max_seq_len": 2048,
+    "holdout_rows": 40
+  },
+  "dataset": {
+    "file": "runs/train/mix-v1/train.jsonl",
+    "total_examples": 5009,
+    "trained_rows": 4719,
+    "holdout_rows": 40,
+    "val_rows_kept_local": 250,
+    "by_source": {
+      "nemotron": 4400,
+      "synthetic": 609
+    },
+    "approx_tokens_total": 5044557,
+    "by_sector": {
+      "Media": {
+        "rows": 218,
+        "approx_tokens": 218665,
+        "pii_spans": 410
+      },
+      "Biotechnology": {
+        "rows": 217,
+        "approx_tokens": 218676,
+        "pii_spans": 373
+      },
+      "Legal": {
+        "rows": 192,
+        "approx_tokens": 190088,
+        "pii_spans": 399
+      },
+      "Agriculture": {
+        "rows": 171,
+        "approx_tokens": 172051,
+        "pii_spans": 342
+      },
+      "Finance": {
+        "rows": 170,
+        "approx_tokens": 169414,
+        "pii_spans": 291
+      },
+      "Education": {
+        "rows": 168,
+        "approx_tokens": 168077,
+        "pii_spans": 338
+      },
+      "Entertainment": {
+        "rows": 162,
+        "approx_tokens": 162765,
+        "pii_spans": 350
+      },
+      "Ecommerce": {
+        "rows": 160,
+        "approx_tokens": 157051,
+        "pii_spans": 297
+      },
+      "Pharmaceuticals": {
+        "rows": 159,
+        "approx_tokens": 163062,
+        "pii_spans": 319
+      },
+      "Cybersecurity": {
+        "rows": 157,
+        "approx_tokens": 162036,
+        "pii_spans": 278
+      },
+      "Construction": {
+        "rows": 156,
+        "approx_tokens": 157805,
+        "pii_spans": 339
+      },
+      "Retail": {
+        "rows": 155,
+        "approx_tokens": 152993,
+        "pii_spans": 286
+      },
+      "Non-Profit": {
+        "rows": 155,
+        "approx_tokens": 157078,
+        "pii_spans": 315
+      },
+      "Automotive": {
+        "rows": 155,
+        "approx_tokens": 150269,
+        "pii_spans": 254
+      },
+      "Insurance": {
+        "rows": 153,
+        "approx_tokens": 149132,
+        "pii_spans": 296
+      },
+      "Telecommunications": {
+        "rows": 150,
+        "approx_tokens": 148656,
+        "pii_spans": 312
+      },
+      "Real Estate": {
+        "rows": 150,
+        "approx_tokens": 148255,
+        "pii_spans": 318
+      },
+      "Civil Rights": {
+        "rows": 149,
+        "approx_tokens": 153600,
+        "pii_spans": 345
+      },
+      "Hospitality": {
+        "rows": 142,
+        "approx_tokens": 141534,
+        "pii_spans": 277
+      },
+      "Chemicals": {
+        "rows": 135,
+        "approx_tokens": 137507,
+        "pii_spans": 285
+      },
+      "Identity Verification Services": {
+        "rows": 132,
+        "approx_tokens": 127868,
+        "pii_spans": 252
+      },
+      "Identity Management": {
+        "rows": 130,
+        "approx_tokens": 128500,
+        "pii_spans": 275
+      },
+      "Manufacturing": {
+        "rows": 126,
+        "approx_tokens": 129452,
+        "pii_spans": 264
+      },
+      "Consumer Goods": {
+        "rows": 123,
+        "approx_tokens": 126086,
+        "pii_spans": 266
+      },
+      "Energy": {
+        "rows": 114,
+        "approx_tokens": 119898,
+        "pii_spans": 305
+      },
+      "synthetic:deal": {
+        "rows": 107,
+        "approx_tokens": 112209,
+        "pii_spans": 428
+      },
+      "Transportation": {
+        "rows": 103,
+        "approx_tokens": 104750,
+        "pii_spans": 260
+      },
+      "Technology": {
+        "rows": 103,
+        "approx_tokens": 108998,
+        "pii_spans": 238
+      },
+      "synthetic:salary_decision": {
+        "rows": 101,
+        "approx_tokens": 104800,
+        "pii_spans": 303
+      },
+      "Logistics": {
+        "rows": 99,
+        "approx_tokens": 101342,
+        "pii_spans": 256
+      },
+      "Healthcare": {
+        "rows": 98,
+        "approx_tokens": 98056,
+        "pii_spans": 266
+      },
+      "Government": {
+        "rows": 98,
+        "approx_tokens": 101654,
+        "pii_spans": 279
+      },
+      "synthetic:negotiation": {
+        "rows": 94,
+        "approx_tokens": 97522,
+        "pii_spans": 282
+      },
+      "synthetic:loan": {
+        "rows": 83,
+        "approx_tokens": 81067,
+        "pii_spans": 249
+      },
+      "synthetic:hr": {
+        "rows": 70,
+        "approx_tokens": 71026,
+        "pii_spans": 140
+      },
+      "synthetic:project": {
+        "rows": 58,
+        "approx_tokens": 59343,
+        "pii_spans": 174
+      },
+      "synthetic:price": {
+        "rows": 52,
+        "approx_tokens": 49558,
+        "pii_spans": 104
+      },
+      "synthetic:plan": {
+        "rows": 40,
+        "approx_tokens": 40057,
+        "pii_spans": 80
+      },
+      "synthetic:negative": {
+        "rows": 4,
+        "approx_tokens": 3657,
+        "pii_spans": 0
+      }
+    }
+  },
+  "benchmark_by_sector_before": {
+    "glimmer_base": {
+      "Life": {
+        "docs": 19,
+        "leak_rate": 0.07081545064377683
+      },
+      "Product": {
+        "docs": 19,
+        "leak_rate": 0.16652385032847758
+      },
+      "Social Science": {
+        "docs": 17,
+        "leak_rate": 0.31065468549422337
+      },
+      "Marketing": {
+        "docs": 18,
+        "leak_rate": 0.27689030883919064
+      },
+      "Insurance": {
+        "docs": 19,
+        "leak_rate": 0.231355252606255
+      },
+      "Healthcare Providers": {
+        "docs": 18,
+        "leak_rate": 0.2667079207920792
+      },
+      "Banking": {
+        "docs": 17,
+        "leak_rate": 0.16610169491525423
+      },
+      "Consulting": {
+        "docs": 18,
+        "leak_rate": 0.2033686837180287
+      },
+      "Public Safety": {
+        "docs": 19,
+        "leak_rate": 0.12173167595370767
+      },
+      "Sports": {
+        "docs": 18,
+        "leak_rate": 0.4158686730506156
+      },
+      "Advertising": {
+        "docs": 17,
+        "leak_rate": 0.28613472858077177
+      },
+      "Fitness": {
+        "docs": 17,
+        "leak_rate": 0.271407110665999
+      },
+      "Services": {
+        "docs": 18,
+        "leak_rate": 0.0928709055876686
+      },
+      "Travel": {
+        "docs": 17,
+        "leak_rate": 0.13388429752066117
+      },
+      "Casualty": {
+        "docs": 17,
+        "leak_rate": 0.15284298382889933
+      },
+      "Property": {
+        "docs": 17,
+        "leak_rate": 0.19458128078817735
+      },
+      "Human Resources": {
+        "docs": 17,
+        "leak_rate": 0.2928529924462522
+      },
+      "Information Technology": {
+        "docs": 17,
+        "leak_rate": 0.44032408850109067
+      },
+      "Disability": {
+        "docs": 18,
+        "leak_rate": 0.26825127334465193
+      },
+      "Mortgage": {
+        "docs": 17,
+        "leak_rate": 0.13855421686746988
+      },
+      "Automobile": {
+        "docs": 17,
+        "leak_rate": 0.1779318313113807
+      },
+      "Credit": {
+        "docs": 17,
+        "leak_rate": 0.054935622317596564
+      },
+      "Brokerage": {
+        "docs": 16,
+        "leak_rate": 0.13712871287128714
+      },
+      "Health": {
+        "docs": 16,
+        "leak_rate": 0.20059435364041606
+      },
+      "Access Control Systems": {
+        "docs": 16,
+        "leak_rate": 0.03336921420882669
+      },
+      "Investment": {
+        "docs": 16,
+        "leak_rate": 0.0971836572788576
+      },
+      "Elections": {
+        "docs": 16,
+        "leak_rate": 0.14490943160524672
+      },
+      "Environmental": {
+        "docs": 16,
+        "leak_rate": 0.34047462096242587
+      },
+      "User Account and Transaction Services": {
+        "docs": 16,
+        "leak_rate": 0.23671497584541062
+      }
+    },
+    "spark_low": {
+      "Life": {
+        "docs": 19,
+        "leak_rate": 0.06509298998569385
+      },
+      "Product": {
+        "docs": 19,
+        "leak_rate": 0.0676949443016281
+      },
+      "Social Science": {
+        "docs": 17,
+        "leak_rate": 0.1258023106546855
+      },
+      "Marketing": {
+        "docs": 18,
+        "leak_rate": 0.13738019169329074
+      },
+      "Insurance": {
+        "docs": 19,
+        "leak_rate": 0.11507618283881316
+      },
+      "Healthcare Providers": {
+        "docs": 18,
+        "leak_rate": 0.12871287128712872
+      },
+      "Banking": {
+        "docs": 17,
+        "leak_rate": 0.1423728813559322
+      },
+      "Consulting": {
+        "docs": 18,
+        "leak_rate": 0.11072988147223956
+      },
+      "Public Safety": {
+        "docs": 19,
+        "leak_rate": 0.26275182168881267
+      },
+      "Sports": {
+        "docs": 18,
+        "leak_rate": 0.15868673050615595
+      },
+      "Advertising": {
+        "docs": 17,
+        "leak_rate": 0.16742969260954874
+      },
+      "Fitness": {
+        "docs": 17,
+        "leak_rate": 0.1702553830746119
+      },
+      "Services": {
+        "docs": 18,
+        "leak_rate": 0.10674373795761079
+      },
+      "Travel": {
+        "docs": 17,
+        "leak_rate": 0.12837465564738293
+      },
+      "Casualty": {
+        "docs": 17,
+        "leak_rate": 0.24830464267083985
+      },
+      "Property": {
+        "docs": 17,
+        "leak_rate": 0.16564039408866996
+      },
+      "Human Resources": {
+        "docs": 17,
+        "leak_rate": 0.08367228355607205
+      },
+      "Information Technology": {
+        "docs": 17,
+        "leak_rate": 0.2090994079152384
+      },
+      "Disability": {
+        "docs": 18,
+        "leak_rate": 0.06168647425014148
+      },
+      "Mortgage": {
+        "docs": 17,
+        "leak_rate": 0.13734939759036144
+      },
+      "Automobile": {
+        "docs": 17,
+        "leak_rate": 0.18139803581744657
+      },
+      "Credit": {
+        "docs": 17,
+        "leak_rate": 0.061802575107296136
+      },
+      "Brokerage": {
+        "docs": 16,
+        "leak_rate": 0.18316831683168316
+      },
+      "Health": {
+        "docs": 16,
+        "leak_rate": 0.10549777117384844
+      },
+      "Access Control Systems": {
+        "docs": 16,
+        "leak_rate": 0.1108719052744887
+      },
+      "Investment": {
+        "docs": 16,
+        "leak_rate": 0.1745339151130504
+      },
+      "Elections": {
+        "docs": 16,
+        "leak_rate": 0.325421611492817
+      },
+      "Environmental": {
+        "docs": 16,
+        "leak_rate": 0.4307844429795649
+      },
+      "User Account and Transaction Services": {
+        "docs": 16,
+        "leak_rate": 0.178743961352657
+      }
+    }
+  },
+  "note": "Nemotron's train and test splits use different sectors (1 of 29 test sectors appears in training), so benchmark gains measure cross-sector generalization.",
+  "cost_usd": {
+    "training": 0.0,
+    "basis": "Muse Glimmer LoRA SFT promotion (jobs started before 2026-12-01T00:00:00-08:00)",
+    "holdout_sampling": "per-token, billed separately (small)"
+  },
+  "run": "glimmer-lora-v1b",
+  "rerun_of": "glimmer-lora-v1 (stopped at step 38 by account suspension)",
+  "surface": "Fireworks Serverless Training API (cookbook muse_glimmer_starter, commit 57968a2)",
+  "timing": {
+    "launch_started_epoch": 1793741160,
+    "status": "training in progress"
+  }
+}

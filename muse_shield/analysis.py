@@ -51,6 +51,8 @@ class Span:
     end: int
     role: str | None = None
     source: str = "model"
+    canonical: str | None = None  # entity resolution: the value this mention's identity is stored under
+    owner: tuple[str, str] | None = None  # entity resolution: (type, canonical value) of whoever it belongs to
 
 
 @dataclass
@@ -74,6 +76,7 @@ class Analysis:
     error: str = ""
     latency_ms: float = 0.0
     usage: dict = field(default_factory=dict)
+    relations: list = field(default_factory=list)  # entity resolution: ((type, canonical), REL, (type, canonical))
 
     def to_dict(self) -> dict:
         return asdict(self)

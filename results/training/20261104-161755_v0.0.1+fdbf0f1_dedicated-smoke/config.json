@@ -1,0 +1,20 @@
+{
+ "cookbook_training_dir": "/Volumes/MajjiR/ai/fw-cookbook",
+ "log_path": "/Users/majjir/muse-shield/.worktrees/tuning/results/training/20261104-161755_v0.0.1+fdbf0f1_dedicated-smoke/trainer",
+ "base_model": "accounts/fireworks/models/muse-glimmer-30b",
+ "tokenizer_model": "meta-models/Muse-Glimmer-30B",
+ "renderer_name": "muse_glimmer",
+ "train_file": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/train.jsonl",
+ "eval_file": "/Users/majjir/muse-shield/.worktrees/tuning/results/training/20261104-161755_v0.0.1+fdbf0f1_dedicated-smoke/val16.jsonl",
+ "lora_rank": 16,
+ "learning_rate": 0.0001,
+ "epochs": 1,
+ "batch_size": 16,
+ "max_seq_len": 2048,
+ "warmup_steps": 0,
+ "checkpoint_every": 0,
+ "save_final_checkpoint": false,
+ "output_model_id": null,
+ "max_examples": 480,
+ "training_shape": "accounts/fireworks/trainingShapes/muse-glimmer-30b-131k-lora"
+}

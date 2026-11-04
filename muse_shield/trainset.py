@@ -1,6 +1,7 @@
 """Fine-tuning data for Muse Glimmer: chat JSONL in exactly the runtime prompt format.
 
     .venv/bin/python -m muse_shield.trainset --n 600 --out runs/train
+    .venv/bin/python -m muse_shield.trainset --mix --out runs/train/mix-v1   # Nemotron train + synthetic
 
 Each row is the same messages GlimmerBackend sends (system prompt, the one
 worked example, the numbered paragraph) plus the gold JSON as the assistant
@@ -13,12 +14,15 @@ Everything is synthetic.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
+import re
 from pathlib import Path
 
-from .analysis import number_sentences, parse
+from .analysis import number_sentences, parse, split_sentences
 from .backends import EXAMPLE_ASSISTANT, EXAMPLE_USER, SYSTEM_PROMPT
+from .benchmarks.nemotron import LABEL_MAP, QUASI, SPLIT_ROWS, Doc, _fetch_page, paragraphs, parse_row
 from .evalset import EVAL_POOLS, Case, Pools, generate
 
 TRAIN_POOLS = Pools(
@@ -68,14 +72,19 @@ def gold_json(case: Case) -> str:
     return json.dumps({"entities": entities, "contexts": contexts}, ensure_ascii=False)
 
 
-def row(case: Case) -> dict:
+def chat_row(sentences: list[str], answer: str) -> dict:
+    """One training row in exactly the message layout GlimmerBackend sends at runtime."""
     return {"messages": [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": EXAMPLE_USER},
         {"role": "assistant", "content": EXAMPLE_ASSISTANT},
-        {"role": "user", "content": f"Known contexts: none\n{number_sentences(case.sentences)}"},
-        {"role": "assistant", "content": gold_json(case)},
+        {"role": "user", "content": f"Known contexts: none\n{number_sentences(sentences)}"},
+        {"role": "assistant", "content": answer},
     ]}
+
+
+def row(case: Case) -> dict:
+    return chat_row(case.sentences, gold_json(case))
 
 
 def build(n: int = 600, seed: int = 101) -> list[dict]:
@@ -88,9 +97,190 @@ def build(n: int = 600, seed: int = 101) -> list[dict]:
         r = row(c)
         a = parse(r["messages"][-1]["content"], c.paragraph, c.sentences)  # every gold row must pass the contract
         assert not a.dropped, c.id
+        r["_meta"] = {"source": "synthetic", "domain": f"synthetic:{c.template}", "approx_tokens": _approx_tokens(r)}
         rows.append(r)
     random.Random(seed).shuffle(rows)
     return rows
+
+
+def _approx_tokens(r: dict) -> int:
+    return sum(len(m["content"]) for m in r["messages"]) // 3  # conservative chars-per-token
+
+
+def benchmark_paragraphs(test_sample: Path) -> set[str]:
+    """Every paragraph of the benchmark's test docs: training must never contain one."""
+    docs = [Doc.from_dict(json.loads(l)) for l in test_sample.read_text().splitlines() if l.strip()]
+    return {p for d in docs for _, p in paragraphs(d.text)}
+
+
+_SPELLED_TIME = re.compile(r"\b(?:quarter|half|twenty|ten|five)\b.*\b(?:past|to)\b|o'clock", re.I)
+_NOT_A_DATE = re.compile(r"(?i)(?:\b(?:date|time)\s*$|^\d+\s?ms$|to be determined|^[A-Z]{2,4}$)")
+
+
+def specific_date(text: str) -> bool:
+    """Policy (user decision 2026-11-04): mask specific calendar dates and clock times only.
+
+    Keeps '2024-03-15', '7:23 am', 'a quarter to four'; drops form field names ('Departure Date'),
+    durations ('120ms'), 'yet to be determined' and bare time zones ('PST').
+    """
+    t = text.strip()
+    if _NOT_A_DATE.search(t):
+        return False
+    return bool(re.search(r"\d", t) or _SPELLED_TIME.search(t))
+
+
+def para_key(paragraph: str) -> str:
+    return hashlib.sha1(paragraph.encode()).hexdigest()[:16]
+
+
+def nemotron_rows(n: int, seed: int, exclude: set[str], fetch=_fetch_page, pages: int = 30,
+                  max_tokens: int = 2048, empty_share: float = 0.15, date_policy: str = "all",
+                  quasi_map: dict[str, list[str]] | None = None) -> list[dict]:
+    """Gold-labelled rows from the Nemotron-PII *train* split, one per paragraph.
+
+    Paragraphs are cut exactly as the benchmark cuts them, and gold labels are mapped onto
+    contract types with the benchmark's LABEL_MAP. Nemotron has no context labels, so
+    `contexts` is empty; the synthetic rows carry contexts. A gold span that crosses a
+    paragraph boundary is skipped rather than guessed.
+    """
+    rng = random.Random(seed)
+    docs = [parse_row(r) for off in rng.sample(range(0, SPLIT_ROWS - 100, 100), pages) for r in fetch(off, split="train")]
+    by_domain: dict[str, list[Doc]] = {}
+    for d in docs:
+        by_domain.setdefault(d.domain, []).append(d)
+    for ds in by_domain.values():
+        rng.shuffle(ds)
+    order = []  # round-robin across domains so no one document type dominates
+    while any(by_domain.values()):
+        for dom in sorted(by_domain):
+            if by_domain[dom]:
+                order.append(by_domain[dom].pop())
+
+    rows, empty, seen_paras = [], 0, set()
+    for d in order:
+        for off, para in paragraphs(d.text):
+            if para in exclude or para in seen_paras:  # boilerplate repeats across documents
+                continue
+            seen_paras.add(para)
+            end = off + len(para)
+            seen, entities = set(), []
+            # Union, not replacement: a coverage check (2026-11-04) showed replacing Nemotron's quasi labels
+            # with the relabel would drop 309 correct spans ("English", "high school", "full-time") while
+            # adding 179. The inconsistency was missing labels, so the relabel only adds.
+            relabelled = quasi_map is not None and para_key(para) in quasi_map
+            for g in sorted(d.spans, key=lambda g: g.start):
+                text = d.text[g.start:g.end]
+                etype = LABEL_MAP[g.label]
+                if etype == "DATE" and date_policy == "specific" and not specific_date(text):
+                    continue
+                if off <= g.start and g.end <= end and text.strip() and (text, etype) not in seen:
+                    seen.add((text, etype))
+                    entities.append({"text": text, "type": etype})
+            if relabelled:
+                for span in quasi_map[para_key(para)]:
+                    if span in para and (span, "SENSITIVE_ATTRIBUTE") not in seen and not any(span in e["text"] for e in entities):
+                        seen.add((span, "SENSITIVE_ATTRIBUTE"))
+                        entities.append({"text": span, "type": "SENSITIVE_ATTRIBUTE"})
+                entities.sort(key=lambda e: para.find(e["text"]))
+            if not entities:
+                if empty >= empty_share * n:
+                    continue
+                empty += 1
+            sentences = split_sentences(para) or [para]
+            r = chat_row(sentences, json.dumps({"entities": entities, "contexts": []}, ensure_ascii=False))
+            if _approx_tokens(r) > max_tokens:
+                continue
+            a = parse(r["messages"][-1]["content"], para, sentences)
+            if a.dropped:  # gold text not findable verbatim: skip rather than teach a mismatch
+                continue
+            r["_meta"] = {"source": "nemotron", "domain": d.domain, "locale": d.locale, "format": d.format,
+                          "uid": d.uid, "approx_tokens": _approx_tokens(r), "para_key": para_key(para), "paragraph": para}
+            rows.append(r)
+            if len(rows) >= n:
+                return rows
+    return rows
+
+
+def build_mix(test_sample: Path, n_nemotron: int = 4000, n_synthetic: int = 1000, seed: int = 101, fetch=_fetch_page) -> list[dict]:
+    rows, seen = [], set()
+    for r in nemotron_rows(n_nemotron, seed, benchmark_paragraphs(test_sample), fetch=fetch) + build(n_synthetic, seed):
+        key = r["messages"][3]["content"]
+        if key not in seen:  # identical prompts would just over-weight one example
+            seen.add(key)
+            rows.append(r)
+    random.Random(seed).shuffle(rows)
+    return rows
+
+
+def build_mix_v2(test_sample: Path, quasi_map_file: Path, spark_train_dir: Path, n_nemotron: int = 4400,
+                 n_template: int = 300, seed: int = 202, fetch=_fetch_page) -> list[dict]:
+    """mix-v2: Nemotron (specific-dates policy, consistent quasi relabel) + Spark-written sector rows
+    (train split only; test docs never enter) + a small share of the template rows.
+
+    Spark rows come from synth.build_scale: only documents recorded as done, deduplicated by prompt.
+    """
+    from .relabel import load_map
+
+    quasi = load_map(quasi_map_file)
+    rows = nemotron_rows(n_nemotron, 101, benchmark_paragraphs(test_sample), fetch=fetch, date_policy="specific", quasi_map=quasi)
+    for r in rows:
+        r["_meta"].pop("paragraph", None)
+    msgs = [json.loads(l) for l in (spark_train_dir / "rows.jsonl").read_text().splitlines() if l.strip()]
+    metas = [json.loads(l) for l in (spark_train_dir / "rows.manifest.jsonl").read_text().splitlines() if l.strip()]
+    for m, meta in zip(msgs, metas):
+        if meta.get("split") == "train":
+            rows.append({"messages": m["messages"], "_meta": {**meta, "approx_tokens": _approx_tokens(m)}})
+    rows += build(n_template, seed)[:n_template]
+    # Hygiene: no training prompt may equal a sector-test prompt or contain a benchmark paragraph,
+    # not even boilerplate ("Dear Clara Kapoor,", signature lines) that recurs across documents.
+    test_dir = spark_train_dir.parent / "test"
+    sector_test = ({json.loads(l)["messages"][3]["content"] for l in (test_dir / "rows.jsonl").read_text().splitlines() if l.strip()}
+                   if (test_dir / "rows.jsonl").exists() else set())
+    bench = [p for p in benchmark_paragraphs(test_sample) if len(p) > 40]
+    out, seen = [], set()
+    for r in rows:
+        key = r["messages"][3]["content"]
+        if key in seen or key in sector_test or any(p in key or p[:120] in key for p in bench):
+            continue
+        seen.add(key)
+        out.append(r)
+    random.Random(seed).shuffle(out)
+    return out
+
+
+def export_mix_v2(out: Path, test_sample: Path, quasi_map_file: Path, spark_train_dir: Path, val_fraction: float = 0.03) -> dict:
+    rows = build_mix_v2(test_sample, quasi_map_file, spark_train_dir)
+    info = _write(out, rows, val_fraction)
+    info["by_source"] = {}
+    for r in rows:
+        src = r.get("_meta", {}).get("source", "?")
+        info["by_source"][src] = info["by_source"].get(src, 0) + 1
+    return info
+
+
+def _write(out: Path, rows: list[dict], val_fraction: float) -> dict:
+    k = max(1, int(len(rows) * val_fraction))
+    out.mkdir(parents=True, exist_ok=True)
+    for name, chunk in (("val", rows[:k]), ("train", rows[k:])):
+        # Training files carry only `messages`; where each row came from goes to a sidecar
+        # manifest (same order), for per-sector stats and per-sector datasets later.
+        with (out / f"{name}.jsonl").open("w") as f, (out / f"{name}.manifest.jsonl").open("w") as m:
+            for r in chunk:
+                f.write(json.dumps({"messages": r["messages"]}, ensure_ascii=False) + "\n")
+                m.write(json.dumps(r.get("_meta", {}), ensure_ascii=False) + "\n")
+    types: dict[str, int] = {}
+    for r in rows:
+        for e in json.loads(r["messages"][-1]["content"])["entities"]:
+            types[e["type"]] = types.get(e["type"], 0) + 1
+    return {"train": len(rows) - k, "val": k, "dir": str(out),
+            "approx_longest_row_tokens": max(_approx_tokens(r) for r in rows),
+            "rows_with_contexts": sum(bool(json.loads(r["messages"][-1]["content"])["contexts"]) for r in rows),
+            "entities_by_type": dict(sorted(types.items()))}
+
+
+def export_mix(out: Path, test_sample: Path, n_nemotron: int = 4000, n_synthetic: int = 1000, seed: int = 101,
+               val_fraction: float = 0.05) -> dict:
+    return _write(out, build_mix(test_sample, n_nemotron, n_synthetic, seed), val_fraction)
 
 
 def export(out: Path, n: int = 600, seed: int = 101, val_fraction: float = 0.1) -> dict:
@@ -100,7 +290,7 @@ def export(out: Path, n: int = 600, seed: int = 101, val_fraction: float = 0.1) 
     for name, chunk in (("val", rows[:k]), ("train", rows[k:])):
         with (out / f"{name}.jsonl").open("w") as f:
             for r in chunk:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                f.write(json.dumps({"messages": r["messages"]}, ensure_ascii=False) + "\n")
     longest = max(sum(len(m["content"]) for m in r["messages"]) for r in rows)
     return {"train": len(rows) - k, "val": k, "dir": str(out), "longest_row_chars": longest,
             "approx_longest_row_tokens": longest // 3}
@@ -111,8 +301,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=101)
     ap.add_argument("--out", type=Path, default=Path("runs/train"))
+    ap.add_argument("--mix", action="store_true", help="Nemotron-PII train paragraphs + synthetic contract rows")
+    ap.add_argument("--nemotron", type=int, default=4000)
+    ap.add_argument("--synthetic", type=int, default=1000)
+    ap.add_argument("--test-sample", type=Path, default=Path("runs/benchmarks/nemotron-test-500-s7.jsonl"),
+                    help="benchmark docs whose paragraphs must never appear in training (required with --mix)")
+    ap.add_argument("--v2", action="store_true", help="mix-v2: fixed Nemotron + Spark sector rows + a few template rows")
+    ap.add_argument("--quasi-map", type=Path, default=Path("runs/train/quasi-relabel-v2.jsonl"))
+    ap.add_argument("--spark-train", type=Path, default=Path("runs/synth/v2/train"))
     args = ap.parse_args(argv)
-    print(json.dumps(export(args.out, args.n, args.seed), indent=2))
+    if args.v2:
+        print(json.dumps(export_mix_v2(args.out, args.test_sample, args.quasi_map, args.spark_train), indent=2))
+    elif args.mix:
+        if not args.test_sample.exists():
+            ap.error(f"--test-sample {args.test_sample} not found: the leakage guard needs it")
+        print(json.dumps(export_mix(args.out, args.test_sample, args.nemotron, args.synthetic, args.seed), indent=2))
+    else:
+        print(json.dumps(export(args.out, args.n, args.seed), indent=2))
     return 0
 
 

@@ -1,0 +1,33 @@
+{
+ "train": 5455,
+ "val": 60,
+ "test": 150,
+ "challenge": 80,
+ "new_documents": 4218,
+ "inserted": {
+  "unknown": 523,
+  "clear": 393
+ },
+ "families": {
+  "hr_investigation": 347,
+  "team_review": 471,
+  "passport_minor": 203,
+  "ma_memo": 242,
+  "insurance_claim": 295,
+  "medical_referral": 385,
+  "payroll_table": 189,
+  "legal_notice": 121,
+  "loan_guarantors": 403,
+  "us_onboarding": 299,
+  "loan_sanction": 302,
+  "meeting_minutes": 209,
+  "kyc_update": 379,
+  "sibling_estate": 266,
+  "generic": 216,
+  "minor_consent": 283,
+  "hr_compensation": 243,
+  "relocation_letter": 292,
+  "email_thread": 233,
+  "family_insurance": 77
+ }
+}

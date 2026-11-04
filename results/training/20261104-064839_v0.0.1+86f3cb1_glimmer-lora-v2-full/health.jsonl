@@ -1,0 +1,9 @@
+{"t": 1793753039.749315, "step": 0, "eval_loss": 0.08283316637146633}
+{"t": 1793754120.93975, "verdict": "ok", "step": 150, "ema": 0.03569098045248418, "improve_over_window": 0.15197070058334972, "flat_windows": 0}
+{"t": 1793754301.201386, "verdict": "ok", "step": 225, "ema": 0.03689956058607195, "improve_over_window": -0.033862340520366775, "flat_windows": 1}
+{"t": 1793754491.456084, "verdict": "ok", "step": 300, "ema": 0.0274892235072674, "improve_over_window": 0.25502572196907314, "flat_windows": 0}
+{"t": 1793754681.76668, "verdict": "ok", "step": 375, "ema": 0.03427813518363408, "improve_over_window": -0.24696629479446303, "flat_windows": 1}
+{"t": 1793755022.362089, "verdict": "plateau", "step": 450, "ema": 0.03809813736449368, "improve_over_window": -0.11144136518498361, "flat_windows": 2, "reason": "smoothed loss improved <2% in each of the last 2 windows of 75 steps"}
+{"t": 1793755659.9134521, "verdict": "ok", "step": 500, "ema": 0.02802985711621117, "improve_over_window": 0.2642722438621329, "flat_windows": 0}
+{"t": 1793756190.627164, "verdict": "ok", "step": 550, "ema": 0.02980706451448815, "improve_over_window": -0.0634040833996662, "flat_windows": 1}
+{"t": 1793756801.480656, "step": 588, "eval_loss": 0.02671745489217726}

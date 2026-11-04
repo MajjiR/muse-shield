@@ -1,0 +1,840 @@
+{
+  "labellers": {
+    "spark-low": "muse-spark-1.3-contributor:low",
+    "spark-medium": "muse-spark-1.3-contributor:medium",
+    "wonder-low": "muse-wonder-1.0:low"
+  },
+  "reports": {
+    "spark-low": {
+      "backend": "spark-low",
+      "model": "muse-spark-1.3-contributor",
+      "docs": 60,
+      "seconds": 570.0,
+      "leak_rate": 0.21202459576406285,
+      "core_leak_rate": 0.18779342723004694,
+      "quasi_leak_rate": 1.0,
+      "span_recall": 0.8138613861386138,
+      "span_precision": 0.844311377245509,
+      "type_accuracy": 0.950354609929078,
+      "recall_by_type": {
+        "ADDRESS": 1.0,
+        "CONTACT": 0.9578947368421052,
+        "DATE": 0.2830188679245283,
+        "ID": 0.8205128205128205,
+        "LOCATION": 0.8947368421052632,
+        "ORG": 1.0,
+        "PERSON": 1.0,
+        "SECRET": 0.7714285714285715,
+        "SENSITIVE_ATTRIBUTE": 0.45161290322580644
+      },
+      "recall_by_label": {
+        "account_number": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "age": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "api_key": {
+          "recall": 1.0,
+          "n": 6
+        },
+        "bank_routing_number": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "biometric_identifier": {
+          "recall": 0.8888888888888888,
+          "n": 9
+        },
+        "blood_type": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "certificate_license_number": {
+          "recall": 1.0,
+          "n": 10
+        },
+        "city": {
+          "recall": 1.0,
+          "n": 12
+        },
+        "company_name": {
+          "recall": 1.0,
+          "n": 61
+        },
+        "coordinate": {
+          "recall": 0.7142857142857143,
+          "n": 7
+        },
+        "country": {
+          "recall": 0.9285714285714286,
+          "n": 14
+        },
+        "county": {
+          "recall": 0.8,
+          "n": 5
+        },
+        "credit_debit_card": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "customer_id": {
+          "recall": 1.0,
+          "n": 11
+        },
+        "cvv": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "date": {
+          "recall": 0.1875,
+          "n": 32
+        },
+        "date_of_birth": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "date_time": {
+          "recall": 0.5,
+          "n": 8
+        },
+        "device_identifier": {
+          "recall": 0.3333333333333333,
+          "n": 6
+        },
+        "education_level": {
+          "recall": 0.0,
+          "n": 4
+        },
+        "email": {
+          "recall": 1.0,
+          "n": 21
+        },
+        "employee_id": {
+          "recall": 1.0,
+          "n": 10
+        },
+        "fax_number": {
+          "recall": 1.0,
+          "n": 9
+        },
+        "first_name": {
+          "recall": 1.0,
+          "n": 27
+        },
+        "gender": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "health_plan_beneficiary_number": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "http_cookie": {
+          "recall": 0.45454545454545453,
+          "n": 11
+        },
+        "ipv4": {
+          "recall": 0.5333333333333333,
+          "n": 15
+        },
+        "ipv6": {
+          "recall": 0.42857142857142855,
+          "n": 7
+        },
+        "language": {
+          "recall": 0.0,
+          "n": 1
+        },
+        "last_name": {
+          "recall": 1.0,
+          "n": 26
+        },
+        "license_plate": {
+          "recall": 0.875,
+          "n": 8
+        },
+        "mac_address": {
+          "recall": 0.25,
+          "n": 4
+        },
+        "medical_record_number": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "occupation": {
+          "recall": 0.0,
+          "n": 11
+        },
+        "password": {
+          "recall": 0.8,
+          "n": 10
+        },
+        "phone_number": {
+          "recall": 1.0,
+          "n": 12
+        },
+        "pin": {
+          "recall": 1.0,
+          "n": 6
+        },
+        "postcode": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "race_ethnicity": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "sexuality": {
+          "recall": 0.875,
+          "n": 8
+        },
+        "state": {
+          "recall": 0.8666666666666667,
+          "n": 15
+        },
+        "street_address": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "swift_bic": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "tax_id": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "time": {
+          "recall": 0.2727272727272727,
+          "n": 11
+        },
+        "unique_id": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "url": {
+          "recall": 0.9047619047619048,
+          "n": 42
+        },
+        "user_name": {
+          "recall": 1.0,
+          "n": 11
+        },
+        "vehicle_identifier": {
+          "recall": 0.9090909090909091,
+          "n": 11
+        }
+      },
+      "calls": 484,
+      "valid_rate": 1.0,
+      "first_try_rate": 1.0,
+      "hallucinated_spans": 0,
+      "errors": 0,
+      "latency_ms_per_doc": {
+        "p50": 48932.27220897097,
+        "p95": 180174.42512500565
+      },
+      "tokens": {
+        "in": 363079,
+        "out": 444140,
+        "cached_in": 301265,
+        "reasoning_out": 425699
+      },
+      "cost_usd": 0.09561193000000001,
+      "cost": {
+        "usd": 0.09561193000000001,
+        "basis": "tokens",
+        "detail": {
+          "usd_per_1m": {
+            "input": 0.1,
+            "cached_input": 0.002,
+            "output": 0.2
+          },
+          "in": 363079,
+          "out": 444140,
+          "cached_in": 301265,
+          "reasoning_out": 425699
+        }
+      },
+      "planted": {
+        "paragraphs": 162,
+        "invalid": 0,
+        "planted": 313,
+        "missed": 0,
+        "planted_recall": 1.0,
+        "missed_examples": [],
+        "tokens_in": 127016,
+        "tokens_out": 230364,
+        "cost_usd": 0.058774400000000004
+      }
+    },
+    "spark-medium": {
+      "backend": "spark-medium",
+      "model": "muse-spark-1.3-contributor",
+      "docs": 60,
+      "seconds": 900.9,
+      "leak_rate": 0.2092917330904122,
+      "core_leak_rate": 0.18497652582159624,
+      "quasi_leak_rate": 1.0,
+      "span_recall": 0.805940594059406,
+      "span_precision": 0.8195020746887967,
+      "type_accuracy": 0.9443037974683545,
+      "recall_by_type": {
+        "ADDRESS": 1.0,
+        "CONTACT": 0.9578947368421052,
+        "DATE": 0.22641509433962265,
+        "ID": 0.8632478632478633,
+        "LOCATION": 0.8947368421052632,
+        "ORG": 1.0,
+        "PERSON": 1.0,
+        "SECRET": 0.7142857142857143,
+        "SENSITIVE_ATTRIBUTE": 0.3225806451612903
+      },
+      "recall_by_label": {
+        "account_number": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "age": {
+          "recall": 0.0,
+          "n": 1
+        },
+        "api_key": {
+          "recall": 1.0,
+          "n": 6
+        },
+        "bank_routing_number": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "biometric_identifier": {
+          "recall": 0.8888888888888888,
+          "n": 9
+        },
+        "blood_type": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "certificate_license_number": {
+          "recall": 0.9,
+          "n": 10
+        },
+        "city": {
+          "recall": 1.0,
+          "n": 12
+        },
+        "company_name": {
+          "recall": 1.0,
+          "n": 61
+        },
+        "coordinate": {
+          "recall": 0.7142857142857143,
+          "n": 7
+        },
+        "country": {
+          "recall": 0.8571428571428571,
+          "n": 14
+        },
+        "county": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "credit_debit_card": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "customer_id": {
+          "recall": 1.0,
+          "n": 11
+        },
+        "cvv": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "date": {
+          "recall": 0.15625,
+          "n": 32
+        },
+        "date_of_birth": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "date_time": {
+          "recall": 0.375,
+          "n": 8
+        },
+        "device_identifier": {
+          "recall": 0.5,
+          "n": 6
+        },
+        "education_level": {
+          "recall": 0.0,
+          "n": 4
+        },
+        "email": {
+          "recall": 1.0,
+          "n": 21
+        },
+        "employee_id": {
+          "recall": 1.0,
+          "n": 10
+        },
+        "fax_number": {
+          "recall": 1.0,
+          "n": 9
+        },
+        "first_name": {
+          "recall": 1.0,
+          "n": 27
+        },
+        "gender": {
+          "recall": 0.6666666666666666,
+          "n": 3
+        },
+        "health_plan_beneficiary_number": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "http_cookie": {
+          "recall": 0.36363636363636365,
+          "n": 11
+        },
+        "ipv4": {
+          "recall": 0.7333333333333333,
+          "n": 15
+        },
+        "ipv6": {
+          "recall": 0.7142857142857143,
+          "n": 7
+        },
+        "language": {
+          "recall": 0.0,
+          "n": 1
+        },
+        "last_name": {
+          "recall": 1.0,
+          "n": 26
+        },
+        "license_plate": {
+          "recall": 0.875,
+          "n": 8
+        },
+        "mac_address": {
+          "recall": 0.5,
+          "n": 4
+        },
+        "medical_record_number": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "occupation": {
+          "recall": 0.0,
+          "n": 11
+        },
+        "password": {
+          "recall": 0.7,
+          "n": 10
+        },
+        "phone_number": {
+          "recall": 1.0,
+          "n": 12
+        },
+        "pin": {
+          "recall": 1.0,
+          "n": 6
+        },
+        "postcode": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "race_ethnicity": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "sexuality": {
+          "recall": 0.625,
+          "n": 8
+        },
+        "state": {
+          "recall": 0.8666666666666667,
+          "n": 15
+        },
+        "street_address": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "swift_bic": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "tax_id": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "time": {
+          "recall": 0.18181818181818182,
+          "n": 11
+        },
+        "unique_id": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "url": {
+          "recall": 0.9047619047619048,
+          "n": 42
+        },
+        "user_name": {
+          "recall": 1.0,
+          "n": 11
+        },
+        "vehicle_identifier": {
+          "recall": 0.8181818181818182,
+          "n": 11
+        }
+      },
+      "calls": 484,
+      "valid_rate": 1.0,
+      "first_try_rate": 1.0,
+      "hallucinated_spans": 0,
+      "errors": 0,
+      "latency_ms_per_doc": {
+        "p50": 88243.69866697816,
+        "p95": 269988.2403330412
+      },
+      "tokens": {
+        "in": 363079,
+        "out": 715790,
+        "cached_in": 298125,
+        "reasoning_out": 697030
+      },
+      "cost_usd": 0.15024965,
+      "cost": {
+        "usd": 0.15024965,
+        "basis": "tokens",
+        "detail": {
+          "usd_per_1m": {
+            "input": 0.1,
+            "cached_input": 0.002,
+            "output": 0.2
+          },
+          "in": 363079,
+          "out": 715790,
+          "cached_in": 298125,
+          "reasoning_out": 697030
+        }
+      },
+      "planted": {
+        "paragraphs": 162,
+        "invalid": 0,
+        "planted": 313,
+        "missed": 0,
+        "planted_recall": 1.0,
+        "missed_examples": [],
+        "tokens_in": 127016,
+        "tokens_out": 403179,
+        "cost_usd": 0.09333740000000001
+      }
+    },
+    "wonder-low": {
+      "backend": "wonder-low",
+      "model": "muse-wonder-1.0",
+      "docs": 60,
+      "seconds": 296.2,
+      "leak_rate": 0.15645638806649967,
+      "core_leak_rate": 0.13051643192488263,
+      "quasi_leak_rate": 1.0,
+      "span_recall": 0.8514851485148515,
+      "span_precision": 0.834319526627219,
+      "type_accuracy": 0.9763593380614657,
+      "recall_by_type": {
+        "ADDRESS": 1.0,
+        "CONTACT": 0.9473684210526315,
+        "DATE": 0.37735849056603776,
+        "ID": 0.9743589743589743,
+        "LOCATION": 0.9298245614035088,
+        "ORG": 1.0,
+        "PERSON": 1.0,
+        "SECRET": 0.8285714285714286,
+        "SENSITIVE_ATTRIBUTE": 0.22580645161290322
+      },
+      "recall_by_label": {
+        "account_number": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "age": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "api_key": {
+          "recall": 1.0,
+          "n": 6
+        },
+        "bank_routing_number": {
+          "recall": 1.0,
+          "n": 1
+        },
+        "biometric_identifier": {
+          "recall": 0.8888888888888888,
+          "n": 9
+        },
+        "blood_type": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "certificate_license_number": {
+          "recall": 1.0,
+          "n": 10
+        },
+        "city": {
+          "recall": 1.0,
+          "n": 12
+        },
+        "company_name": {
+          "recall": 1.0,
+          "n": 61
+        },
+        "coordinate": {
+          "recall": 1.0,
+          "n": 7
+        },
+        "country": {
+          "recall": 0.8571428571428571,
+          "n": 14
+        },
+        "county": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "credit_debit_card": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "customer_id": {
+          "recall": 1.0,
+          "n": 11
+        },
+        "cvv": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "date": {
+          "recall": 0.34375,
+          "n": 32
+        },
+        "date_of_birth": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "date_time": {
+          "recall": 0.625,
+          "n": 8
+        },
+        "device_identifier": {
+          "recall": 0.6666666666666666,
+          "n": 6
+        },
+        "education_level": {
+          "recall": 0.0,
+          "n": 4
+        },
+        "email": {
+          "recall": 1.0,
+          "n": 21
+        },
+        "employee_id": {
+          "recall": 1.0,
+          "n": 10
+        },
+        "fax_number": {
+          "recall": 1.0,
+          "n": 9
+        },
+        "first_name": {
+          "recall": 1.0,
+          "n": 27
+        },
+        "gender": {
+          "recall": 0.6666666666666666,
+          "n": 3
+        },
+        "health_plan_beneficiary_number": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "http_cookie": {
+          "recall": 0.45454545454545453,
+          "n": 11
+        },
+        "ipv4": {
+          "recall": 1.0,
+          "n": 15
+        },
+        "ipv6": {
+          "recall": 1.0,
+          "n": 7
+        },
+        "language": {
+          "recall": 0.0,
+          "n": 1
+        },
+        "last_name": {
+          "recall": 1.0,
+          "n": 26
+        },
+        "license_plate": {
+          "recall": 1.0,
+          "n": 8
+        },
+        "mac_address": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "medical_record_number": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "occupation": {
+          "recall": 0.0,
+          "n": 11
+        },
+        "password": {
+          "recall": 1.0,
+          "n": 10
+        },
+        "phone_number": {
+          "recall": 1.0,
+          "n": 12
+        },
+        "pin": {
+          "recall": 1.0,
+          "n": 6
+        },
+        "postcode": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "race_ethnicity": {
+          "recall": 0.0,
+          "n": 1
+        },
+        "sexuality": {
+          "recall": 0.25,
+          "n": 8
+        },
+        "state": {
+          "recall": 0.8666666666666667,
+          "n": 15
+        },
+        "street_address": {
+          "recall": 1.0,
+          "n": 3
+        },
+        "swift_bic": {
+          "recall": 1.0,
+          "n": 5
+        },
+        "tax_id": {
+          "recall": 1.0,
+          "n": 2
+        },
+        "time": {
+          "recall": 0.18181818181818182,
+          "n": 11
+        },
+        "unique_id": {
+          "recall": 1.0,
+          "n": 4
+        },
+        "url": {
+          "recall": 0.8809523809523809,
+          "n": 42
+        },
+        "user_name": {
+          "recall": 1.0,
+          "n": 11
+        },
+        "vehicle_identifier": {
+          "recall": 1.0,
+          "n": 11
+        }
+      },
+      "calls": 484,
+      "valid_rate": 1.0,
+      "first_try_rate": 1.0,
+      "hallucinated_spans": 0,
+      "errors": 0,
+      "latency_ms_per_doc": {
+        "p50": 22602.429041988216,
+        "p95": 90307.3710000026
+      },
+      "tokens": {
+        "in": 363079,
+        "out": 149551,
+        "cached_in": 296416,
+        "reasoning_out": 130450
+      },
+      "cost_usd": 3.3169551999999998,
+      "cost": {
+        "usd": 3.3169551999999998,
+        "basis": "tokens",
+        "detail": {
+          "usd_per_1m": {
+            "input": 4.0,
+            "cached_input": 0.2,
+            "output": 20.0
+          },
+          "in": 363079,
+          "out": 149551,
+          "cached_in": 296416,
+          "reasoning_out": 130450
+        }
+      },
+      "planted": {
+        "paragraphs": 162,
+        "invalid": 0,
+        "planted": 313,
+        "missed": 0,
+        "planted_recall": 1.0,
+        "missed_examples": [],
+        "tokens_in": 127016,
+        "tokens_out": 97746,
+        "cost_usd": 2.462984
+      }
+    }
+  },
+  "shared_misses": {
+    "spark-low|spark-medium": {
+      "missed_by_a": 78,
+      "also_b": 67
+    },
+    "spark-low|wonder-low": {
+      "missed_by_a": 78,
+      "also_b": 46
+    },
+    "spark-medium|spark-low": {
+      "missed_by_a": 82,
+      "also_b": 67
+    },
+    "spark-medium|wonder-low": {
+      "missed_by_a": 82,
+      "also_b": 50
+    },
+    "wonder-low|spark-low": {
+      "missed_by_a": 59,
+      "also_b": 46
+    },
+    "wonder-low|spark-medium": {
+      "missed_by_a": 59,
+      "also_b": 50
+    }
+  },
+  "core_spans": 489,
+  "missed_by_all": 46,
+  "git": "42e3689-dirty",
+  "seed": 11
+}

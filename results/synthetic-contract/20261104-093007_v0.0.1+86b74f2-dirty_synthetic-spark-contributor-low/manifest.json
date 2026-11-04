@@ -1,0 +1,23 @@
+{
+  "run_id": "20261104-093007_v0.0.1+86b74f2-dirty_synthetic-spark-contributor-low",
+  "eval": "synthetic-contract",
+  "tag": "synthetic-spark-contributor-low",
+  "created": "2026-11-04T09:30:07+0530",
+  "version": "0.0.1",
+  "git": "86b74f2-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/tuning/muse_shield/evals.py --backend muse_spark --n 60 --workers 20 --tag synthetic-spark-contributor-low",
+  "dataset": {
+    "name": "muse_shield.evalset",
+    "docs": 60,
+    "seed": 3
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3-contributor",
+      "workers": 20
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "run": "glimmer-lora-v2",
+  "outcome": "early_stopped",
+  "model": {
+    "promoted": "muse-shield-glimmer-lora-v2",
+    "from_checkpoint": "accounts/rohan-majji/trainingSessions/ts-59fc729aa6164ecd8cecf945a12781a4/checkpoints/run-84d1fe999b0b428a840be83c0f27c324-step-450-c434b2b4",
+    "step": 45043424
+  },
+  "early_stop": {
+    "verdict": "plateau",
+    "step": 450,
+    "ema": 0.03809813736449368,
+    "improve_over_window": -0.11144136518498361,
+    "flat_windows": 2,
+    "reason": "smoothed loss improved <2% in each of the last 2 windows of 75 steps"
+  },
+  "params": {
+    "name": "glimmer-lora-v2",
+    "output_model_id": "",
+    "lr": 0.0001,
+    "batch": 16,
+    "epochs": 1,
+    "rank": 8,
+    "max_seq_len": 2048,
+    "warmup_steps": 0,
+    "max_examples": null,
+    "checkpoint_every": 25,
+    "max_attempts": 5,
+    "plateau_window": 75,
+    "plateau_min_improve": 0.02,
+    "min_steps": 150,
+    "no_early_stop": false,
+    "simulate_crash_at": 0
+  },
+  "train": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v2/train.jsonl",
+  "eval": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v2/val.jsonl",
+  "attempts": [
+    {
+      "n": 1,
+      "start": 1793752609.3631842,
+      "end": 1793755042.0838,
+      "exit": 1,
+      "last_step": 454,
+      "outcome": "early stop (plateau)",
+      "resumed_from": null
+    }
+  ],
+  "timing": {
+    "wall_seconds": 2464.9,
+    "training_seconds": 2432.7
+  },
+  "steps": 452,
+  "loss": {
+    "first5": 0.0762766247616759,
+    "last5": 0.04057034866272961,
+    "min": 0.003136711055818843
+  },
+  "eval_loss": [
+    {
+      "step": 0,
+      "loss": 0.08283316637146633
+    }
+  ],
+  "cost_usd": {
+    "training": 0.0,
+    "basis": "Muse Glimmer LoRA SFT promotion (jobs before 2026-12-01T00:00:00-08:00)"
+  }
+}

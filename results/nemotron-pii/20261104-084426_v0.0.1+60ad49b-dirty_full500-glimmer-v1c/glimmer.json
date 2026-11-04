@@ -1,0 +1,272 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-lora-v1c#accounts/rohan-majji/deployments/ms-eval-v1c",
+  "docs": 500,
+  "seconds": 225.8,
+  "leak_rate": 0.029944762089349743,
+  "core_leak_rate": 0.014331629695979767,
+  "quasi_leak_rate": 0.20855937311633513,
+  "span_recall": 0.9629542790152403,
+  "span_precision": 0.9719140901581308,
+  "type_accuracy": 0.9910150558523555,
+  "recall_by_type": {
+    "ADDRESS": 0.9880952380952381,
+    "CONTACT": 0.9926253687315634,
+    "DATE": 0.9405646359583952,
+    "ID": 0.9986263736263736,
+    "LOCATION": 0.958005249343832,
+    "ORG": 0.9968152866242038,
+    "PERSON": 0.9972183588317107,
+    "SECRET": 0.9927536231884058,
+    "SENSITIVE_ATTRIBUTE": 0.8345454545454546
+  },
+  "recall_by_label": {
+    "account_number": {
+      "recall": 1.0,
+      "n": 80
+    },
+    "age": {
+      "recall": 0.9032258064516129,
+      "n": 31
+    },
+    "api_key": {
+      "recall": 1.0,
+      "n": 24
+    },
+    "bank_routing_number": {
+      "recall": 1.0,
+      "n": 40
+    },
+    "biometric_identifier": {
+      "recall": 1.0,
+      "n": 56
+    },
+    "blood_type": {
+      "recall": 0.9696969696969697,
+      "n": 33
+    },
+    "certificate_license_number": {
+      "recall": 1.0,
+      "n": 14
+    },
+    "city": {
+      "recall": 0.9759036144578314,
+      "n": 83
+    },
+    "company_name": {
+      "recall": 0.9968152866242038,
+      "n": 314
+    },
+    "coordinate": {
+      "recall": 1.0,
+      "n": 47
+    },
+    "country": {
+      "recall": 1.0,
+      "n": 94
+    },
+    "county": {
+      "recall": 0.8076923076923077,
+      "n": 52
+    },
+    "credit_debit_card": {
+      "recall": 1.0,
+      "n": 58
+    },
+    "customer_id": {
+      "recall": 0.9891304347826086,
+      "n": 92
+    },
+    "cvv": {
+      "recall": 1.0,
+      "n": 17
+    },
+    "date": {
+      "recall": 0.9434447300771208,
+      "n": 389
+    },
+    "date_of_birth": {
+      "recall": 1.0,
+      "n": 83
+    },
+    "date_time": {
+      "recall": 0.971830985915493,
+      "n": 71
+    },
+    "device_identifier": {
+      "recall": 1.0,
+      "n": 10
+    },
+    "education_level": {
+      "recall": 0.9302325581395349,
+      "n": 43
+    },
+    "email": {
+      "recall": 0.9854545454545455,
+      "n": 275
+    },
+    "employee_id": {
+      "recall": 1.0,
+      "n": 53
+    },
+    "employment_status": {
+      "recall": 0.9807692307692307,
+      "n": 52
+    },
+    "fax_number": {
+      "recall": 1.0,
+      "n": 30
+    },
+    "first_name": {
+      "recall": 0.9951807228915662,
+      "n": 415
+    },
+    "gender": {
+      "recall": 0.9777777777777777,
+      "n": 45
+    },
+    "health_plan_beneficiary_number": {
+      "recall": 1.0,
+      "n": 67
+    },
+    "http_cookie": {
+      "recall": 1.0,
+      "n": 17
+    },
+    "ipv4": {
+      "recall": 1.0,
+      "n": 29
+    },
+    "ipv6": {
+      "recall": 1.0,
+      "n": 14
+    },
+    "language": {
+      "recall": 0.9230769230769231,
+      "n": 52
+    },
+    "last_name": {
+      "recall": 1.0,
+      "n": 304
+    },
+    "license_plate": {
+      "recall": 1.0,
+      "n": 23
+    },
+    "mac_address": {
+      "recall": 1.0,
+      "n": 14
+    },
+    "medical_record_number": {
+      "recall": 1.0,
+      "n": 57
+    },
+    "national_id": {
+      "recall": 1.0,
+      "n": 15
+    },
+    "occupation": {
+      "recall": 0.5783783783783784,
+      "n": 185
+    },
+    "password": {
+      "recall": 0.9787234042553191,
+      "n": 47
+    },
+    "phone_number": {
+      "recall": 1.0,
+      "n": 110
+    },
+    "pin": {
+      "recall": 1.0,
+      "n": 33
+    },
+    "political_view": {
+      "recall": 1.0,
+      "n": 31
+    },
+    "postcode": {
+      "recall": 1.0,
+      "n": 25
+    },
+    "race_ethnicity": {
+      "recall": 1.0,
+      "n": 27
+    },
+    "religious_belief": {
+      "recall": 1.0,
+      "n": 32
+    },
+    "sexuality": {
+      "recall": 1.0,
+      "n": 19
+    },
+    "ssn": {
+      "recall": 1.0,
+      "n": 26
+    },
+    "state": {
+      "recall": 0.95,
+      "n": 80
+    },
+    "street_address": {
+      "recall": 0.9880952380952381,
+      "n": 84
+    },
+    "swift_bic": {
+      "recall": 1.0,
+      "n": 38
+    },
+    "tax_id": {
+      "recall": 1.0,
+      "n": 6
+    },
+    "time": {
+      "recall": 0.8769230769230769,
+      "n": 130
+    },
+    "unique_id": {
+      "recall": 1.0,
+      "n": 6
+    },
+    "url": {
+      "recall": 0.9947368421052631,
+      "n": 190
+    },
+    "user_name": {
+      "recall": 1.0,
+      "n": 73
+    },
+    "vehicle_identifier": {
+      "recall": 1.0,
+      "n": 30
+    }
+  },
+  "calls": 3310,
+  "valid_rate": 1.0,
+  "first_try_rate": 1.0,
+  "hallucinated_spans": 2,
+  "errors": 0,
+  "latency_ms_per_doc": {
+    "p50": 5573.717916966416,
+    "p95": 16860.995625029318
+  },
+  "tokens": {
+    "in": 2523328,
+    "out": 108821,
+    "cached_in": 2329792,
+    "reasoning_out": 0
+  },
+  "cost_usd": 0.5018323881489535,
+  "cost": {
+    "usd": 0.5018323881489535,
+    "basis": "gpu_time",
+    "detail": {
+      "seconds": 225.8,
+      "gpus": 1,
+      "accelerator": "NVIDIA_H200_141GB",
+      "usd_per_gpu_hour": 8.0,
+      "note": "deployment idle time between runs is billed but not attributed"
+    }
+  }
+}

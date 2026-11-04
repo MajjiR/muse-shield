@@ -1,0 +1,23 @@
+{
+  "run_id": "20261104-085735_v0.0.1+9b4b12c-dirty_synthetic-glimmer-v2",
+  "eval": "synthetic-contract",
+  "tag": "synthetic-glimmer-v2",
+  "created": "2026-11-04T08:57:35+0530",
+  "version": "0.0.1",
+  "git": "9b4b12c-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/tuning/muse_shield/evals.py --backend glimmer --n 60 --workers 16 --tag synthetic-glimmer-v2",
+  "dataset": {
+    "name": "muse_shield.evalset",
+    "docs": 60,
+    "seed": 3
+  },
+  "settings": {
+    "glimmer": {
+      "model": "accounts/rohan-majji/models/muse-shield-glimmer-lora-v2#accounts/rohan-majji/deployments/ms-eval-v2",
+      "workers": 16
+    }
+  },
+  "backends": [
+    "glimmer"
+  ]
+}

@@ -57,6 +57,31 @@ EXAMPLE_ASSISTANT = json.dumps({
 })
 
 
+# Stage-1 "PII only" task: the same entity rules, but no contexts. A separate prompt keeps the stage-1
+# model from learning "contexts are always empty" under the full prompt, which stage 2 trains later.
+PII_SYSTEM_PROMPT = SYSTEM_PROMPT.split("\ncontexts:", 1)[0].replace(
+    "The input is one paragraph with numbered sentences, plus labels of contexts already known in this chat.",
+    "The input is one paragraph with numbered sentences.").replace(
+    """{{"entities": [{{"text": "...", "type": "...", "role": "..."}}],
+  "contexts": [{{"sentences": [1], "kind": "...", "subtype": "...", "refers_to": null, "summary": "..."}}]}}""".replace("{{", "{").replace("}}", "}"),
+    '{"entities": [{"text": "...", "type": "...", "role": "..."}]}').replace(
+    "DATE dates and times tied to a person (birth dates, appointments)", "DATE specific calendar dates and clock times").replace(
+    "SENSITIVE_ATTRIBUTE health conditions, religion,", "SENSITIVE_ATTRIBUTE health conditions, blood type, age, gender, religion,"
+) + '\nIf nothing is sensitive return {"entities": []}.'
+PII_EXAMPLE_USER = EXAMPLE_USER.split("\n", 1)[1]
+PII_EXAMPLE_ASSISTANT = json.dumps({"entities": json.loads(EXAMPLE_ASSISTANT)["entities"]})
+
+
+def task_messages(task: str, sentences: list[str], known: str = "none") -> list[dict]:
+    """The exact message layout for a task ("full" or "pii"); training rows use the same function."""
+    if task == "pii":
+        return [{"role": "system", "content": PII_SYSTEM_PROMPT}, {"role": "user", "content": PII_EXAMPLE_USER},
+                {"role": "assistant", "content": PII_EXAMPLE_ASSISTANT}, {"role": "user", "content": number_sentences(sentences)}]
+    return [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": EXAMPLE_USER},
+            {"role": "assistant", "content": EXAMPLE_ASSISTANT},
+            {"role": "user", "content": f"Known contexts: {known}\n{number_sentences(sentences)}"}]
+
+
 class BackendError(RuntimeError):
     pass
 
@@ -70,6 +95,8 @@ class Backend:
 
 class ChatBackend(Backend):
     """Shared implementation: one chat call per paragraph, one retry on contract violations."""
+
+    task = "full"  # "pii": the stage-1 entities-only prompt (ANALYSIS_TASK=pii)
 
     def __init__(self, base_url: str, model: str, api_key: str, *, client: httpx.Client | None = None,
                  timeout: float = 60.0, max_tokens: int = 1024, retries: int = 1, extra: dict | None = None):
@@ -92,8 +119,16 @@ class ChatBackend(Backend):
     def _call(self, messages: list[dict]) -> tuple[str, dict]:
         try:
             attempt = waited = 0
+            transport_errors = 0
             while True:
-                r = self._post(messages)
+                try:
+                    r = self._post(messages)
+                except httpx.TransportError:  # timeouts, dropped connections: transient under load
+                    transport_errors += 1
+                    if transport_errors > 3:
+                        raise
+                    time.sleep(5 * transport_errors)
+                    continue
                 if r.status_code in (400, 422) and self.json_mode and "response_format" in r.text:
                     self.json_mode = False  # this server doesn't take JSON mode; the prompt still asks for JSON
                     continue
@@ -120,13 +155,7 @@ class ChatBackend(Backend):
 
     def analyze_one(self, paragraph: str, known_labels: list[str] | None = None) -> Analysis:
         sentences = split_sentences(paragraph) or [paragraph]
-        known = ", ".join(known_labels or []) or "none"
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": EXAMPLE_USER},
-            {"role": "assistant", "content": EXAMPLE_ASSISTANT},
-            {"role": "user", "content": f"Known contexts: {known}\n{number_sentences(sentences)}"},
-        ]
+        messages = task_messages(self.task, sentences, ", ".join(known_labels or []) or "none")
         usage: dict = {}
         t0 = time.perf_counter()
         error = ""
@@ -181,6 +210,43 @@ class MetaModelBackend(ChatBackend):
 
 MuseSparkBackend = MetaModelBackend  # backwards-compatible name
 
+
+class DeepSeekBackend(ChatBackend):
+    """DeepSeek's own API (OpenAI-compatible; servers in China). Training-data building and checking only:
+    synthetic or public text, never real user data, never at runtime. DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL."""
+
+    def __init__(self, model: str, *, max_tokens: int = 8192, **kwargs):
+        load_env()
+        self.name = f"deepseek-{model}"
+        super().__init__(os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1").rstrip("/"), model,
+                         os.environ.get("DEEPSEEK_API_KEY", ""), max_tokens=max_tokens, timeout=kwargs.pop("timeout", 240.0), **kwargs)
+
+
+class AzureFoundryBackend(ChatBackend):
+    """A model deployed in Azure AI Foundry (e.g. DeepSeek-V4-Pro), via its OpenAI-compatible v1 API.
+
+    For building and checking training data only (synthetic or public text): never real user data,
+    never at runtime. `model` is the Foundry deployment name; AZURE_OPENAI_ENDPOINT is the resource
+    endpoint, AZURE_OPENAI_API_KEY its key.
+    """
+
+    def __init__(self, deployment: str, *, endpoint: str | None = None, api_key: str | None = None, max_tokens: int = 8192, **kwargs):
+        load_env()
+        self.name = f"azure-{deployment}"
+        endpoint = (endpoint or os.environ.get("AZURE_OPENAI_ENDPOINT", "")).rstrip("/")
+        if not endpoint:
+            raise BackendError("AZURE_OPENAI_ENDPOINT is not set")
+        base = endpoint if endpoint.endswith("/openai/v1") else f"{endpoint}/openai/v1"
+        super().__init__(base, deployment, api_key or os.environ.get("AZURE_OPENAI_API_KEY", ""), max_tokens=max_tokens,
+                         timeout=kwargs.pop("timeout", 240.0), **kwargs)
+
+    def _post(self, messages: list[dict]) -> httpx.Response:
+        payload = {"model": self.model, "messages": messages, "temperature": 0, "max_tokens": self.max_tokens, **self.extra}
+        if self.json_mode:
+            payload["response_format"] = {"type": "json_object"}
+        return self._client.post(f"{self.base_url}/chat/completions", json=payload, timeout=self.timeout,
+                                 headers={"api-key": self.api_key})
+
 META_MODELS = {"muse_spark": ("CLOUD_MODEL", "muse-spark-1.3"), "muse_wonder": ("MUSE_WONDER_MODEL", "muse-wonder-1.0")}
 
 
@@ -194,12 +260,14 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
         deployment = os.environ.get("GLIMMER_DEPLOYMENT", "")
         if deployment and "#" not in model:
             model = f"{model}#{deployment}"
-        return GlimmerBackend(
+        b = GlimmerBackend(
             os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1"),
             model,
             os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", ""),
             client=client,
         )
+        b.task = os.environ.get("ANALYSIS_TASK", "full")
+        return b
     if name in META_MODELS:
         env_var, default = META_MODELS[name]
         synthetic = "1" in (os.environ.get("META_SYNTHETIC_ONLY"), os.environ.get("MUSE_SPARK_SYNTHETIC_ONLY"))
