@@ -192,6 +192,12 @@ MUSE_SHIELD_DEV_RAW_ANALYSIS=1 MUSE_SHIELD_ANALYZER=glimmer PORT=8771 .venv/bin/
 
 A deployment that has scaled to zero takes a few minutes to wake up on the first message.
 
+For an entity-resolution LoRA (`muse-shield-glimmer-er-*`), add `MUSE_SHIELD_GLIMMER_TASK=resolution`. Each message
+or document then goes to the model in one call. Every mention of a person ("Rohan Majji", "Rohan", "Mr. Majji") shares
+one placeholder, also on later turns. Pronouns and descriptions ("his", "the employee") stay readable. Owners
+(whose salary, whose phone) and relations (MANAGES, PARENT_OF, …) become vault links. This mode has no context
+blocks, because the resolution model wasn't trained on them. The contract is in `muse_shield/resolution.py`.
+
 The engine serves the built web app at `/`. To work on the UI with hot reload:
 
 ```bash

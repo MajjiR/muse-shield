@@ -57,6 +57,7 @@ def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | Non
 def glimmer_analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
     """Muse Glimmer 30B with a Muse Shield LoRA, on the user's own Fireworks deployment.
 
+    MUSE_SHIELD_GLIMMER_TASK=resolution uses an entity-resolution LoRA (er-v2a) instead of a stage-1 one.
     MUSE_SHIELD_GLIMMER_MODEL is the full route '<model>#<deployment>', e.g.
     accounts/<a>/models/muse-shield-glimmer-lora-v2-full#accounts/<a>/deployments/<id> (a live-merge
     deployment needs both full paths). Raw text goes to that dedicated deployment, so the same
@@ -73,8 +74,13 @@ def glimmer_analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backe
     key = os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", "")
     if not key:
         return None, "MUSE_SHIELD_ANALYZER=glimmer needs FIREWORKS_API_KEY"
-    return GlimmerBackend(os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1"), model, key,
-                          client=client), ""
+    base = os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1")
+    if os.environ.get("MUSE_SHIELD_GLIMMER_TASK") == "resolution":
+        # An entity-resolution LoRA (er-*): one call per message, one identity per person, owners and relations.
+        # It speaks the resolution contract (muse_shield/resolution.py), not the stage-1 paragraph contract.
+        from ..resolution import ResolutionAnalyzer
+        return ResolutionAnalyzer(GlimmerBackend(base, model, key, client=client, max_tokens=4000, timeout=300.0)), ""
+    return GlimmerBackend(base, model, key, client=client), ""
 
 
 def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel | None, str]:

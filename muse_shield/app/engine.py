@@ -83,6 +83,7 @@ class Masked:
                 "cost_usd": self.cost_usd}
 
 
+_TITLES = {"mr", "mrs", "ms", "mx", "dr", "prof", "shri", "smt", "sir", "madam", "adv"}
 LINK_WINDOW = 80  # a contact or ID this close to a name (same paragraph) identifies that person
 
 
@@ -115,7 +116,8 @@ class Masker:
             pattern = r"\s+".join(re.escape(w) for w in value.split())
             for m in re.finditer(rf"(?<!\w){pattern}(?!\w)", text, re.IGNORECASE):
                 if "\n\n" not in m.group(0):
-                    out.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": e["type"], "role": e["role"]})
+                    out.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": e["type"], "role": e["role"],
+                                "canonical": e.get("canonical"), "owner": e.get("owner")})
         return out
 
     def _link_contacts(self, text: str, chat_id: str, spans: list[dict]) -> None:
@@ -132,6 +134,41 @@ class Masker:
                 self.vault.add_edge(chat_id, c["placeholder"], best["placeholder"], "identifies")
                 self.vault.link_entities(c["entity_id"], best["entity_id"], "identifies")
 
+    def _known_people(self, chat_id: str) -> dict[str, str]:
+        """PERSON values already in this chat: label -> value (to keep "Rohan" on turn 2 as Rohan Majji's label)."""
+        return {label: value for label, value in self.vault.mapping(chat_id).items() if label.strip("<>").startswith("PERSON_")}
+
+    @staticmethod
+    def _same_person(e: dict, known: dict[str, str]) -> str:
+        """The value to store this mention under: its resolved identity, or an earlier person in the chat whose
+        full name contains it ("Rohan" or "Mr. Majji" after "Rohan Majji"), if exactly one matches."""
+        value = e.get("canonical") or e["text"]
+        if e["type"] != "PERSON":
+            return value
+        words = {w for w in re.findall(r"[\w']+", value.lower()) if w not in _TITLES}
+        if not words or value in known.values():
+            return value
+        matches = {v for v in known.values() if words < set(re.findall(r"[\w']+", v.lower()))}
+        return matches.pop() if len(matches) == 1 else value
+
+    def _link_resolved(self, chat_id: str, spans: list[dict], relations: list, known: dict[str, str]) -> None:
+        """Owners and relations from an entity-resolution model, as vault edges (instead of the distance heuristic)."""
+        by_identity = {}
+        for s in spans:
+            by_identity.setdefault((s["type"], s.get("canonical") or s["text"]), s)
+        for s in spans:
+            owner = by_identity.get(tuple(s["owner"])) if s.get("owner") else None
+            if not owner:
+                continue
+            rel = "identifies" if s["type"] in ("CONTACT", "ID") else "belongs_to"
+            self.vault.add_edge(chat_id, s["placeholder"], owner["placeholder"], rel)
+            if rel == "identifies":
+                self.vault.link_entities(s["entity_id"], owner["entity_id"], "identifies")
+        for a, rel, b in relations:
+            sa, sb = by_identity.get(tuple(a)), by_identity.get(tuple(b))
+            if sa and sb:
+                self.vault.add_edge(chat_id, sa["placeholder"], sb["placeholder"], rel.lower())
+
     def mask(self, text: str, chat_id: str, *, propagate: bool = False, contexts: bool = True, on_progress=None,
              title: bool = True) -> Masked:
         """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
@@ -140,7 +177,14 @@ class Masker:
         t0 = time.perf_counter()
         paras = paragraphs(text)
         try:
-            analyses = self._analyze(paras, on_progress)
+            if hasattr(self.analyzer, "analyze_document"):  # entity resolution: one call sees the whole text
+                if on_progress:
+                    on_progress(0, 1)
+                analyses = self.analyzer.analyze_document(text, paras) if paras else []
+                if on_progress:
+                    on_progress(1, 1)
+            else:
+                analyses = self._analyze(paras, on_progress)
         except BackendError as exc:
             return Masked(chat_id, text, text, analysis_ok=False, error=f"analysis failed: {exc}",
                           latency_ms=(time.perf_counter() - t0) * 1000)
@@ -168,7 +212,9 @@ class Masker:
                     continue  # overlapping blocks: keep the first
                 blocks.append({"start": start, "end": end, "kind": c.kind, "subtype": c.subtype, "summary": c.summary})
             for s in a.entities:
-                entities.append({"start": off + s.start, "end": off + s.end, "text": s.text, "type": s.type, "role": s.role})
+                entities.append({"start": off + s.start, "end": off + s.end, "text": s.text, "type": s.type, "role": s.role,
+                                 "canonical": getattr(s, "canonical", None), "owner": getattr(s, "owner", None)})
+        relations = [r for a in analyses for r in getattr(a, "relations", [])]
         if propagate:
             entities += self._propagate(text, entities)
 
@@ -187,11 +233,17 @@ class Masker:
         kept = [e for e in kept if e not in already_sent]
 
         spans: list[dict] = []
+        resolved = any(e.get("canonical") for e in kept)
+        known = self._known_people(chat_id) if resolved else {}
         for e in kept:
-            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], e["text"], placeholder_base(e["type"], e["role"]))
+            value = self._same_person(e, known) if resolved else e["text"]
+            label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], value, placeholder_base(e["type"], e["role"]))
             spans.append({**e, "placeholder": label, "entity_id": entity_id, "kind": "entity",
                           "source": "policy" if e["type"] in ALWAYS_MASK else "model"})
-        self._link_contacts(text, chat_id, spans)
+        if resolved:
+            self._link_resolved(chat_id, spans, relations, known)
+        else:
+            self._link_contacts(text, chat_id, spans)
 
         contexts = []
         for b in sorted(blocks, key=lambda b: b["start"]):
