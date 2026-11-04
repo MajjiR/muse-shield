@@ -275,7 +275,7 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
     if name in META_MODELS:
         env_var, default = META_MODELS[name]
         synthetic = "1" in (os.environ.get("META_SYNTHETIC_ONLY"), os.environ.get("MUSE_SPARK_SYNTHETIC_ONLY"))
-        return MetaModelBackend(
+        b = MetaModelBackend(
             os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"),
             os.environ.get(env_var, default),
             os.environ.get("MODEL_API_KEY", ""),
@@ -283,4 +283,8 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
             reasoning_effort=os.environ.get("META_REASONING_EFFORT", "low"),
             max_tokens=int(os.environ.get("META_MAX_TOKENS", "4096")),
         )
+        if os.environ.get("ANALYSIS_TASK") == "resolution":  # the same entity-resolution contract as er-* (benchmarks)
+            from .resolution import ResolutionAnalyzer
+            return ResolutionAnalyzer(b)
+        return b
     raise BackendError(f"unknown ENGINE_BACKEND {name!r} (expected glimmer, muse_spark or muse_wonder)")

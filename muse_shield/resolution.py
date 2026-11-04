@@ -626,11 +626,16 @@ class ResolutionAnalyzer:
     name = "glimmer-resolution"
 
     def __init__(self, chat_backend):
+        import os
         self.chat, self.model = chat_backend, chat_backend.model
-        self.version = prompt_version(self.model)
+        # MUSE_SHIELD_ER_PROMPT=v3 gives a model that wasn't trained on it (Muse Spark, base Glimmer) the same v3
+        # instructions as er-v3, for like-for-like benchmarks; MUSE_SHIELD_ER_EXAMPLE=1 adds the worked example for a
+        # model that wasn't fine-tuned on the contract. The app's fine-tunes run without it (they were trained so).
+        self.version = os.environ.get("MUSE_SHIELD_ER_PROMPT") or prompt_version(self.model)
+        self.example = os.environ.get("MUSE_SHIELD_ER_EXAMPLE") == "1"
 
     def _call(self, text: str):
-        msgs, usage, err = messages(text, example=False, version=self.version), {"prompt_tokens": 0, "completion_tokens": 0}, ""
+        msgs, usage, err = messages(text, example=self.example, version=self.version), {"prompt_tokens": 0, "completion_tokens": 0}, ""
         for attempt in (1, 2):
             raw, u = self.chat._call(msgs)
             for k in usage:

@@ -112,9 +112,10 @@ def score(run_dir: Path, docs: pd.DataFrame) -> dict:
 def svg_chart(rows: dict) -> str:
     metrics = [("ER_di", "Direct identifiers protected"), ("ER_qi", "Quasi identifiers protected"),
                ("token_recall", "Identifier words masked"), ("precision", "Masked words that needed it")]
-    colors = ["#1f6f5c", "#4a5bdc", "#b9b9b9"]
-    W, row_h, bar_h, left = 760, 74, 16, 230
+    colors = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]
+    W, row_h, bar_h, left = 760, 20 + 20 * len(rows), 16, 230
     H = 60 + row_h * len(metrics) + 30
+    W = max(W, 60 + 230 * len(rows))
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" font-family="Inter, Helvetica, Arial, sans-serif">',
            f'<rect width="{W}" height="{H}" fill="#ffffff"/>',
            '<text x="20" y="30" font-size="17" font-weight="600" fill="#111">TAB: real court judgments, human-labelled (127 docs, all annotators)</text>']
@@ -135,14 +136,27 @@ def svg_chart(rows: dict) -> str:
     return "\n".join(out)
 
 
-def main() -> int:
+OFFICIAL_V3 = {"Muse Glimmer + er-v3a (ours)": "official-tab-er-v3a", "Muse Spark (same instructions)": "official-tab-spark-v3prompt",
+               "Base Muse Glimmer (same instructions)": "official-tab-base-v3prompt", "Muse Glimmer + er-v2b (previous)": "er-v2b"}
+
+
+def main(argv=None) -> int:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--set", choices=["v2b", "v3"], default="v2b", help="v3: the er-v3 official round")
+    a = ap.parse_args(argv)
+    runs, out_tag = (OFFICIAL_V3, "er-v3-official") if a.set == "v3" else (RUNS, "er-v2b-vs-spark")
     docs = pd.read_parquet(SRC)
     rows = {}
-    for name, tag in RUNS.items():
-        run = sorted((RESULTS / "entity-resolution").glob(f"*_{tag}"))[-1]
-        rows[name] = score(run, docs) | {"run": run.name}
+    for name, tag in runs.items():
+        hits = sorted((RESULTS / "entity-resolution").glob(f"*_{tag}")) or sorted(Path("/Users/majjir/muse-shield/results/entity-resolution").glob(f"*_{tag}"))
+        hits = [h for h in hits if (h / "tab.preds.jsonl").exists()]
+        if not hits:
+            print(f"skip {name}: no TAB predictions tagged {tag}")
+            continue
+        rows[name] = score(hits[-1], docs) | {"run": hits[-1].name}
     started = time.time()
-    out = RESULTS / "tab-official" / new_run_id("er-v2b-vs-spark", started, git_version())
+    out = RESULTS / "tab-official" / new_run_id(out_tag, started, git_version())
     out.mkdir(parents=True, exist_ok=True)
     pct = lambda v: "—" if v is None else f"{v * 100:.1f}%"  # noqa: E731
     lines = ["# TAB anonymisation metrics: our fine-tuned Glimmer vs Muse Spark", "",
@@ -164,7 +178,7 @@ def main() -> int:
     (out / "report.json").write_text(json.dumps(rows, indent=1))
     (out / "chart.svg").write_text(svg_chart(rows))
     (out / "manifest.json").write_text(json.dumps({"run_id": out.name, "eval": "tab-official", "dataset": str(SRC),
-                                                   "window_chars": 6000, "runs": {k: r["run"] for k, r in rows.items()},
+                                                   "window_chars": 6000, "runs": {k: r["run"] for k, r in rows.items()}, "set": a.set,
                                                    "script": "scripts/tab_official.py"}, indent=1))
     print(md)
     print(f"recorded {out}")

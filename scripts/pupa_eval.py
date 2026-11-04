@@ -19,6 +19,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -101,18 +102,33 @@ def main(argv=None) -> int:
     ap.add_argument("--er", default="", help="entity-resolution Glimmer route '<model>#<deployment>'")
     ap.add_argument("--pii", default="", help="stage-1 Glimmer route (PII + context)")
     ap.add_argument("--spark", action="store_true", help="also run cloud Muse Spark (public data only)")
+    ap.add_argument("--spark-er", action="store_true",
+                    help="Muse Spark through the entity-resolution contract (set MUSE_SHIELD_ER_PROMPT=v3 for er-v3's instructions)")
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--tag", default="pupa-sample")
+    ap.add_argument("--prompts", type=Path, default=None,
+                    help="use these prompts instead of the seed-7 sample (e.g. runs/er/v3/pupa-test.jsonl: the held-out half)")
+    ap.add_argument("--er-name", default="Muse Glimmer + er-v2b (ours)")
+    ap.add_argument("--er2", default="", help="a second entity-resolution route, named by --er2-name")
+    ap.add_argument("--er2-name", default="Muse Glimmer + er-v2b (ours)")
     a = ap.parse_args(argv)
     load_env()
-    prompts = sample(a.n, a.max_chars)
+    prompts = [json.loads(l) for l in a.prompts.read_text().splitlines() if l.strip()] if a.prompts else sample(a.n, a.max_chars)
     started, git = time.time(), git_version()
     key = os.environ["FIREWORKS_API_KEY"]
     models = {}
-    if a.er:
-        models["Muse Glimmer + er-v2b (ours)"] = ResolutionAnalyzer(GlimmerBackend(FW, a.er, key, max_tokens=4000, timeout=300.0))
+    for route, name in ((a.er, a.er_name), (a.er2, a.er2_name)):
+        if route:
+            models[name] = ResolutionAnalyzer(GlimmerBackend(FW, route, key, max_tokens=4000, timeout=300.0))
+            models[name].example = "Base" in name  # base Glimmer wasn't fine-tuned on the contract: it gets the worked example
     if a.pii:
         models["Muse Glimmer + v2 (ours, PII + context)"] = GlimmerBackend(FW, a.pii, key, timeout=300.0)
+    if a.spark_er:
+        models["Muse Spark (same instructions)"] = ResolutionAnalyzer(MetaModelBackend(
+            os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"), "muse-spark-1.3", os.environ.get("MODEL_API_KEY", ""),
+            name="muse_spark", synthetic_only=True, reasoning_effort=os.environ.get("MUSE_SHIELD_ANALYSIS_EFFORT", "minimal"),
+            max_tokens=8000))
+        models["Muse Spark (same instructions)"].example = True
     if a.spark:
         models["Muse Spark"] = MetaModelBackend(os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"), "muse-spark-1.3",
                                                 os.environ.get("MODEL_API_KEY", ""), name="muse_spark", synthetic_only=True,
@@ -138,11 +154,12 @@ def main(argv=None) -> int:
     (out / "report.md").write_text(md)
     (out / "report.json").write_text(json.dumps({k: {x: y for x, y in v.items() if x != "rows"} for k, v in results.items()}, indent=1))
     for name, r in results.items():
-        slug = "spark" if "Spark" in name else ("er-v2b" if "er-v2b" in name else "v2")
+        slug = ("spark-er" if "same instructions" in name else "spark") if "Spark" in name else ("base" if "Base" in name else None) or (re.search(r"er-v\w+", name).group(0) if re.search(r"er-v\w+", name) else "v2")
         (out / f"{slug}.rows.jsonl").write_text("".join(json.dumps({k: v for k, v in x.items() if k != "masked"}, ensure_ascii=False) + "\n"
                                                         for x in r["rows"]))
     (out / "manifest.json").write_text(json.dumps({"run_id": out.name, "eval": "pupa", "dataset": "Columbia-NLP/PUPA (PUPA_New.csv, PUPA_TNB.csv)",
                                                    "n": len(prompts), "max_chars": a.max_chars, "seed": 7,
+                                                   "prompts_file": str(a.prompts) if a.prompts else None,
                                                    "models": {k: v["model"] for k, v in results.items()}}, indent=1))
     print(md)
     print(f"recorded {out}")
