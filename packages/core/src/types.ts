@@ -144,6 +144,8 @@ export interface Health {
   documents?: boolean;
   images?: boolean;
   images_off_reason?: string;
+  /** e.g. "muse-spark-1.3 + sam-3.1": the vision model, then the segmentation model */
+  image_model?: string | null;
 }
 
 /** A covered part of an image: a value (kind "text", labelled with its vault placeholder) or a face, code, plate… */

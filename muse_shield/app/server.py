@@ -97,7 +97,9 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         return {"ok": True, "version": __version__, "analysis": bool(masker), "chat": bool(engine),
                 "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
                 "analysis_off_reason": off_reason, "chat_off_reason": chat_off,
-                "images": bool(image_masker), "images_off_reason": images_off, "documents": documents.available()}
+                "images": bool(image_masker), "images_off_reason": images_off, "documents": documents.available(),
+                # Image masking uses two models: Muse Spark reads the picture, SAM 3.1 outlines faces and plates.
+                "image_model": " + ".join(m.model for m in (image_masker.vision, image_masker.sam) if m) if image_masker else None}
 
     @app.post("/mask")
     def mask(body: MaskRequest):

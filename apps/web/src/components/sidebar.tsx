@@ -87,6 +87,9 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
           <>
             <Status ok={h.analysis} label="Masking" value={h.analysis_model ?? "off"} />
             <Status ok={h.chat} label="Answers" value={h.chat_model ?? "off"} />
+            {/* image_model is "<vision> + <segmentation>": Spark reads the picture, SAM outlines faces and plates */}
+            <Status ok={!!h.images} label="Images" value={h.image_model?.split(" + ")[0] ?? "off"} />
+            {h.image_model?.includes(" + ") && <Status ok label="Faces" value={h.image_model.split(" + ")[1]} />}
           </>
         )}
         <div className="flex items-center justify-between border-t pt-2 text-muted-foreground">
