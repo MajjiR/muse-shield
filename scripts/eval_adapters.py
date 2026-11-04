@@ -66,7 +66,7 @@ def wait_serving(client: Fireworks, dep_id: str, route: str, key: str, limit_s: 
     raise RuntimeError(f"{dep_id} READY but probe failed: {r.status_code} {r.text[:200]}")
 
 
-def run_evals(name: str, route: str, env: dict) -> list[tuple[str, int]]:
+def run_evals(name: str, route: str, env: dict, only: set[str] | None = None) -> list[tuple[str, int]]:
     e = {**env, "GLIMMER_MODEL": route, "GLIMMER_DEPLOYMENT": ""}
     jobs = [
         ("nemotron", [PY, "-m", "muse_shield.benchmarks.run", "--backends", "glimmer", "--n", "500", "--workers", "16",
@@ -78,6 +78,8 @@ def run_evals(name: str, route: str, env: dict) -> list[tuple[str, int]]:
     ]
     out = []
     for label, cmd in jobs:
+        if only and label not in only:
+            continue
         t0 = time.monotonic()
         logf = REPO / "runs" / "adapter-evals" / f"{name}-{label}.log"
         logf.parent.mkdir(parents=True, exist_ok=True)
@@ -93,11 +95,15 @@ def main(argv: list[str]) -> int:
     key = env["FIREWORKS_API_KEY"]
     os.environ["FIREWORKS_API_KEY"] = key
     client = Fireworks(account_id=ACCOUNT)
+    only = None
+    if argv and argv[0].startswith("--only="):  # e.g. --only=sectors
+        only, argv = set(argv[0].split("=", 1)[1].split(",")), argv[1:]
     failed = 0
     for spec in argv:
         name, model_id = spec.split(":", 1)
         model = model_id if "/" in model_id else f"accounts/{ACCOUNT}/models/{model_id}"
-        dep_id = f"ms-eval-{name}".replace(".", "-")[:60]
+        # deleted deployments keep their id reserved, so every run gets a fresh one
+        dep_id = f"ms-eval-{name}-{time.strftime('%m%d-%H%M')}".replace(".", "-").replace("_", "-")[:60]
         route = f"{model}#accounts/{ACCOUNT}/deployments/{dep_id}"
         t0 = time.monotonic()
         try:
@@ -111,7 +117,7 @@ def main(argv: list[str]) -> int:
                                           min_replica_count=0, max_replica_count=1, display_name=f"muse-shield eval {name}")
             wait_serving(client, dep_id, route, key)
             t_ready = time.monotonic()
-            res = run_evals(name, route, env)
+            res = run_evals(name, route, env, only)
             failed += sum(code != 0 for _, code in res)
             log(f"{name}: evals took {time.monotonic() - t_ready:.0f}s on GPU (startup {t_ready - t0:.0f}s, not billed)")
         except Exception as exc:  # noqa: BLE001

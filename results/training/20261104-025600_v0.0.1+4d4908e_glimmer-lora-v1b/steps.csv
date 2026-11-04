@@ -1,0 +1,2 @@
+step,epoch,loss,grad_norm,grad_norm_rms,grad_norm_post_clip,observed_utc,elapsed_s,backfilled
+1,1,0.0808,908.0,0.031360043601869364,0.9999999988986784,2026-11-03T21:30:18Z,150.6,False

@@ -39,9 +39,17 @@ def run_dir(eval_name: str, tag: str) -> Path:
     return Path(hits[-1])
 
 
+def one_file(d: Path, suffix: str) -> Path:
+    """The run's single backend file (glimmer.json, muse_spark.preds.jsonl, ...)."""
+    hits = [p for p in d.glob(f"*{suffix}") if p.name != "manifest.json" and (suffix != ".json" or not p.name.endswith(".preds.json"))]
+    if len(hits) != 1:
+        raise SystemExit(f"expected one *{suffix} in {d}, found {[h.name for h in hits]}")
+    return hits[0]
+
+
 def nemotron_per_doc(tag: str, docs: dict[str, Doc]) -> dict[str, tuple[int, int, int, int]]:
     out = {}
-    for line in (run_dir("nemotron-pii", tag) / "glimmer.preds.jsonl").read_text().splitlines():
+    for line in one_file(run_dir("nemotron-pii", tag), ".preds.jsonl").read_text().splitlines():
         p = json.loads(line)
         doc = docs[p["uid"]]
         masked = {i for q in p["predictions"] for i in range(q["start"], q["end"])}
@@ -57,7 +65,7 @@ def nemotron_per_doc(tag: str, docs: dict[str, Doc]) -> dict[str, tuple[int, int
 
 
 def sector_per_case(tag: str, gold: dict[str, tuple[int, int]]) -> dict[str, tuple[int, int, int, int, int]]:
-    rep = json.loads((run_dir("sector-test", tag) / "glimmer.json").read_text())
+    rep = json.loads(one_file(run_dir("sector-test", tag), ".json").read_text())
     rep = rep[0] if isinstance(rep, list) else rep
     if "per_case" not in rep:
         raise SystemExit(f"{tag} has no per_case counts (recorded before they were saved); rerun it")
