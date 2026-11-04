@@ -1,0 +1,414 @@
+2026-11-04 12:29:36,715 INFO fireworks.training.sdk._core.lib.public_interfaces.service_client ServiceClient initialized for session ts-2471eda3b47d42039a60b2304c1ca2f3
+2026-11-04 12:29:42,684 INFO fireworks.training.sdk.client Created model run-3ae33b189bfd44bbb59217963a11fcfe:train:0 (lora_rank=16)
+2026-11-04 12:29:46,671 INFO fireworks.training.sdk._rest_client Auto-resolved account ID: rohan-majji
+2026-11-04 12:29:46,672 INFO fireworks.training.sdk.client FiretitanTrainingClient session_id: 008d387b
+2026-11-04 12:29:47,086 INFO fireworks.training.sdk._rest_client Auto-resolved account ID: rohan-majji
+2026-11-04 12:29:47,086 INFO training.utils.serverless Serverless training session ts-2471eda3b47d42039a60b2304c1ca2f3, run run-3ae33b189bfd44bbb59217963a11fcfe. To continue from one of this run's checkpoints in a new process, pass init_from_checkpoint='rohan-majji/run-3ae33b189bfd44bbb59217963a11fcfe/<checkpoint>' with the same log_path.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 12:29:47,436 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 12:29:52,585 INFO training.renderer._supervised Weight reduction: 'mean' (token-mean loss)
+2026-11-04 12:29:52,814 INFO training.recipes.sft_loop Loaded 197 eval examples from /Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/val.jsonl
+2026-11-04 12:29:52,814 INFO training.utils.resource_autosizing Auto-selected 4 render workers: cpu=11 (quota=0 affinity=0 host=11) max=16 tasks=14461 cgroup=0.0/0.0 GiB host_available=0.0/0.0 GiB base=8.0 GiB reserve=8.0 GiB per_worker=10.0 GiB
+2026-11-04 12:29:52,814 INFO training.recipes.sft_loop Dataset: 14461 examples from /Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/train.jsonl (renderer=muse_glimmer, train_on_what=last_assistant_turn, workers=4, seed=0) -> ~904 batches/epoch x 1 epochs + 197 eval examples
+2026-11-04 12:29:54,204 INFO training.utils.checkpoints Starting at step 0 from base model (no checkpoint)
+2026-11-04 12:29:54,543 INFO training.recipes.sft_loop [Eval] Running evaluation (197 examples)...
+2026-11-04 12:32:19,422 INFO training.recipes.sft_loop [Eval] Pre-training | Loss: 0.0839 | PPL: 1.09 | Tokens: 10296
+{"type": "metrics", "step": 0, "eval_loss": 0.08391618889216475, "eval_ppl": 1.0875377422461325}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-11-04 12:32:40,823 INFO training.recipes.sft_loop Step 1/904 | Loss: 0.1205 | PPL: 1.13 | tok/s: 463 | tokens: 9898 | depth: 4
+{"type": "metrics", "step": 1, "ce_loss": 0.12048158376247964, "ppl": 1.1280399665225154, "tokens_per_sec": 462.53590000935094, "lr": 0.0001}
+2026-11-04 12:32:49,354 INFO training.recipes.sft_loop Step 2/904 | Loss: 0.0792 | PPL: 1.08 | tok/s: 636 | tokens: 9135 | depth: 4
+{"type": "metrics", "step": 2, "ce_loss": 0.079204251155259, "ppl": 1.08242538612885, "tokens_per_sec": 635.908937417388, "lr": 0.0001}
+2026-11-04 12:32:59,138 INFO training.recipes.sft_loop Step 3/904 | Loss: 0.0895 | PPL: 1.09 | tok/s: 704 | tokens: 8930 | depth: 4
+{"type": "metrics", "step": 3, "ce_loss": 0.08948208794203666, "ppl": 1.093607744371606, "tokens_per_sec": 704.1117410161133, "lr": 0.0001}
+2026-11-04 12:33:00,716 INFO training.recipes.sft_loop Step 4/904 | Loss: 0.0430 | PPL: 1.04 | tok/s: 915 | tokens: 9828 | depth: 4
+{"type": "metrics", "step": 4, "ce_loss": 0.042961844206128114, "ppl": 1.0438980633313881, "tokens_per_sec": 915.2201151974346, "lr": 0.0001}
+2026-11-04 12:33:03,422 INFO training.recipes.sft_loop Step 5/904 | Loss: 0.0469 | PPL: 1.05 | tok/s: 1070 | tokens: 9272 | depth: 4
+{"type": "metrics", "step": 5, "ce_loss": 0.04687745031148856, "ppl": 1.047993569924171, "tokens_per_sec": 1069.6513916208798, "lr": 0.0001}
+2026-11-04 12:33:05,532 INFO training.recipes.sft_loop Step 6/904 | Loss: 0.0142 | PPL: 1.01 | tok/s: 1227 | tokens: 9492 | depth: 4
+{"type": "metrics", "step": 6, "ce_loss": 0.01418238161761784, "ppl": 1.0142834287228888, "tokens_per_sec": 1226.5741250721724, "lr": 0.0001}
+2026-11-04 12:33:24,751 INFO training.recipes.sft_loop Step 7/904 | Loss: 0.0606 | PPL: 1.06 | tok/s: 1014 | tokens: 9671 | depth: 4
+{"type": "metrics", "step": 7, "ce_loss": 0.06060215662882954, "ppl": 1.0624761310062811, "tokens_per_sec": 1013.7582652681211, "lr": 0.0001}
+2026-11-04 12:33:25,806 INFO training.recipes.sft_loop Step 8/904 | Loss: 0.0236 | PPL: 1.02 | tok/s: 1154 | tokens: 10405 | depth: 4
+{"type": "metrics", "step": 8, "ce_loss": 0.02362182855287383, "ppl": 1.0239030337733406, "tokens_per_sec": 1154.3981033739303, "lr": 0.0001}
+2026-11-04 12:33:42,852 INFO training.recipes.sft_loop Step 9/904 | Loss: 0.0845 | PPL: 1.09 | tok/s: 1033 | tokens: 9530 | depth: 4
+{"type": "metrics", "step": 9, "ce_loss": 0.08452267407321426, "ppl": 1.0881975178224683, "tokens_per_sec": 1032.7541320225816, "lr": 0.0001}
+2026-11-04 12:33:45,053 INFO training.recipes.sft_loop Step 10/904 | Loss: 0.0302 | PPL: 1.03 | tok/s: 1118 | tokens: 9604 | depth: 4
+{"type": "metrics", "step": 10, "ce_loss": 0.03022718683069094, "ppl": 1.0306886662481367, "tokens_per_sec": 1118.3677191183342, "lr": 0.0001}
+2026-11-04 12:34:03,057 INFO training.recipes.sft_loop Step 11/904 | Loss: 0.0085 | PPL: 1.01 | tok/s: 1021 | tokens: 10089 | depth: 4
+{"type": "metrics", "step": 11, "ce_loss": 0.008547899838377808, "ppl": 1.008584537451347, "tokens_per_sec": 1021.431870682115, "lr": 0.0001}
+2026-11-04 12:34:03,930 INFO training.recipes.sft_loop Step 12/904 | Loss: 0.0248 | PPL: 1.03 | tok/s: 1108 | tokens: 9929 | depth: 4
+{"type": "metrics", "step": 12, "ce_loss": 0.024801291792526745, "ppl": 1.0251114022356524, "tokens_per_sec": 1107.9061629596627, "lr": 0.0001}
+2026-11-04 12:34:20,703 INFO training.recipes.sft_loop Step 13/904 | Loss: 0.0255 | PPL: 1.03 | tok/s: 1032 | tokens: 9325 | depth: 4
+{"type": "metrics", "step": 13, "ce_loss": 0.02552117421382206, "ppl": 1.0258496275998417, "tokens_per_sec": 1031.5730304082504, "lr": 0.0001}
+2026-11-04 12:34:22,450 INFO training.recipes.sft_loop Step 14/904 | Loss: 0.0658 | PPL: 1.07 | tok/s: 1100 | tokens: 10166 | depth: 4
+{"type": "metrics", "step": 14, "ce_loss": 0.06580326821135742, "ppl": 1.068016583683895, "tokens_per_sec": 1099.55563713902, "lr": 0.0001}
+2026-11-04 12:34:27,701 INFO training.recipes.sft_loop Step 15/904 | Loss: 0.0694 | PPL: 1.07 | tok/s: 1131 | tokens: 9760 | depth: 4
+{"type": "metrics", "step": 15, "ce_loss": 0.06939679472831226, "ppl": 1.0718614337457193, "tokens_per_sec": 1130.633793533086, "lr": 0.0001}
+2026-11-04 12:34:30,143 INFO training.recipes.sft_loop Step 16/904 | Loss: 0.0273 | PPL: 1.03 | tok/s: 1179 | tokens: 9051 | depth: 4
+{"type": "metrics", "step": 16, "ce_loss": 0.027323001356982495, "ppl": 1.027699697556251, "tokens_per_sec": 1178.74636655954, "lr": 0.0001}
+2026-11-04 12:34:47,177 INFO training.recipes.sft_loop Step 17/904 | Loss: 0.0229 | PPL: 1.02 | tok/s: 1107 | tokens: 9492 | depth: 4
+{"type": "metrics", "step": 17, "ce_loss": 0.022914651642604512, "ppl": 1.023179209155695, "tokens_per_sec": 1107.0986457579272, "lr": 0.0001}
+2026-11-04 12:34:48,344 INFO training.recipes.sft_loop Step 18/904 | Loss: 0.0141 | PPL: 1.01 | tok/s: 1164 | tokens: 9774 | depth: 4
+{"type": "metrics", "step": 18, "ce_loss": 0.014061062635206033, "ppl": 1.0141603843533988, "tokens_per_sec": 1164.0571754157481, "lr": 0.0001}
+2026-11-04 12:35:05,681 INFO training.recipes.sft_loop Step 19/904 | Loss: 0.0231 | PPL: 1.02 | tok/s: 1104 | tokens: 10221 | depth: 4
+{"type": "metrics", "step": 19, "ce_loss": 0.023087409982790245, "ppl": 1.0233559871670797, "tokens_per_sec": 1104.145034684175, "lr": 0.0001}
+2026-11-04 12:35:06,725 INFO training.recipes.sft_loop Step 20/904 | Loss: 0.0216 | PPL: 1.02 | tok/s: 1159 | tokens: 10277 | depth: 4
+{"type": "metrics", "step": 20, "ce_loss": 0.021644670420253007, "ppl": 1.0218806155422557, "tokens_per_sec": 1158.6807237834366, "lr": 0.0001}
+2026-11-04 12:35:09,644 INFO training.recipes.sft_loop Step 21/904 | Loss: 0.0245 | PPL: 1.02 | tok/s: 1200 | tokens: 10429 | depth: 4
+{"type": "metrics", "step": 21, "ce_loss": 0.024514594911999147, "ppl": 1.0248175481199802, "tokens_per_sec": 1200.0826278660452, "lr": 0.0001}
+2026-11-04 12:35:24,814 INFO training.recipes.sft_loop Step 22/904 | Loss: 0.0295 | PPL: 1.03 | tok/s: 1151 | tokens: 9148 | depth: 4
+{"type": "metrics", "step": 22, "ce_loss": 0.029479118089717916, "ppl": 1.0299179285935574, "tokens_per_sec": 1151.2245956367665, "lr": 0.0001}
+2026-11-04 12:35:26,476 INFO training.recipes.sft_loop Step 23/904 | Loss: 0.0087 | PPL: 1.01 | tok/s: 1191 | tokens: 9405 | depth: 4
+{"type": "metrics", "step": 23, "ce_loss": 0.008716439214420231, "ppl": 1.0087545379854645, "tokens_per_sec": 1191.2789469150753, "lr": 0.0001}
+2026-11-04 12:35:43,625 INFO training.recipes.sft_loop Step 24/904 | Loss: 0.0786 | PPL: 1.08 | tok/s: 1138 | tokens: 9485 | depth: 4
+{"type": "metrics", "step": 24, "ce_loss": 0.07859938325861206, "ppl": 1.0817708597332227, "tokens_per_sec": 1137.6801666161382, "lr": 0.0001}
+2026-11-04 12:35:45,346 INFO training.recipes.sft_loop Step 25/904 | Loss: 0.0385 | PPL: 1.04 | tok/s: 1176 | tokens: 9859 | depth: 4
+{"type": "metrics", "step": 25, "ce_loss": 0.038476832048550666, "ppl": 1.0392266513264745, "tokens_per_sec": 1176.050179233522, "lr": 0.0001}
+2026-11-04 12:35:48,075 INFO training.recipes.sft_loop Step 26/904 | Loss: 0.0181 | PPL: 1.02 | tok/s: 1204 | tokens: 9076 | depth: 4
+{"type": "metrics", "step": 26, "ce_loss": 0.018076821049035754, "ppl": 1.0182411957421373, "tokens_per_sec": 1204.1664213792162, "lr": 0.0001}
+2026-11-04 12:36:07,520 INFO training.recipes.sft_loop Step 27/904 | Loss: 0.0663 | PPL: 1.07 | tok/s: 1144 | tokens: 9646 | depth: 4
+{"type": "metrics", "step": 27, "ce_loss": 0.06625999939065892, "ppl": 1.0685044915705653, "tokens_per_sec": 1143.8067312488547, "lr": 0.0001}
+2026-11-04 12:36:09,461 INFO training.recipes.sft_loop Step 28/904 | Loss: 0.0286 | PPL: 1.03 | tok/s: 1178 | tokens: 9989 | depth: 4
+{"type": "metrics", "step": 28, "ce_loss": 0.02857449604858639, "ppl": 1.028986663419804, "tokens_per_sec": 1177.5745830782455, "lr": 0.0001}
+2026-11-04 12:36:12,128 INFO training.recipes.sft_loop Step 29/904 | Loss: 0.0374 | PPL: 1.04 | tok/s: 1207 | tokens: 9995 | depth: 4
+{"type": "metrics", "step": 29, "ce_loss": 0.037360882961377545, "ppl": 1.038067574149407, "tokens_per_sec": 1207.0314305740226, "lr": 0.0001}
+2026-11-04 12:36:14,850 INFO training.recipes.sft_loop Step 30/904 | Loss: 0.0407 | PPL: 1.04 | tok/s: 1234 | tokens: 9650 | depth: 4
+{"type": "metrics", "step": 30, "ce_loss": 0.040738605419888566, "ppl": 1.0415798066420914, "tokens_per_sec": 1234.066151949124, "lr": 0.0001}
+2026-11-04 12:36:33,572 INFO training.recipes.sft_loop Step 31/904 | Loss: 0.0705 | PPL: 1.07 | tok/s: 1180 | tokens: 9480 | depth: 4
+{"type": "metrics", "step": 31, "ce_loss": 0.07047859712258112, "ppl": 1.0730216034350986, "tokens_per_sec": 1180.4565987379722, "lr": 0.0001}
+2026-11-04 12:36:35,269 INFO training.recipes.sft_loop Step 32/904 | Loss: 0.0397 | PPL: 1.04 | tok/s: 1209 | tokens: 9226 | depth: 4
+{"type": "metrics", "step": 32, "ce_loss": 0.03971726286309819, "ppl": 1.0405165399314729, "tokens_per_sec": 1208.6897048480566, "lr": 0.0001}
+2026-11-04 12:36:52,377 INFO training.recipes.sft_loop Step 33/904 | Loss: 0.0158 | PPL: 1.02 | tok/s: 1169 | tokens: 9878 | depth: 4
+{"type": "metrics", "step": 33, "ce_loss": 0.01581948348623251, "ppl": 1.0159452739531623, "tokens_per_sec": 1169.1213249805462, "lr": 0.0001}
+2026-11-04 12:36:54,324 INFO training.recipes.sft_loop Step 34/904 | Loss: 0.0247 | PPL: 1.02 | tok/s: 1195 | tokens: 9485 | depth: 4
+{"type": "metrics", "step": 34, "ce_loss": 0.024653332034026608, "ppl": 1.0249597382205042, "tokens_per_sec": 1195.3424308529193, "lr": 0.0001}
+2026-11-04 12:37:10,426 INFO training.recipes.sft_loop Step 35/904 | Loss: 0.1058 | PPL: 1.11 | tok/s: 1160 | tokens: 9101 | depth: 4
+{"type": "metrics", "step": 35, "ce_loss": 0.10576251412189781, "ppl": 1.111557865862536, "tokens_per_sec": 1160.4773176987999, "lr": 0.0001}
+2026-11-04 12:37:12,149 INFO training.recipes.sft_loop Step 36/904 | Loss: 0.0540 | PPL: 1.06 | tok/s: 1187 | tokens: 9774 | depth: 4
+{"type": "metrics", "step": 36, "ce_loss": 0.05403232548210704, "ppl": 1.0555187217551645, "tokens_per_sec": 1187.034340721372, "lr": 0.0001}
+2026-11-04 12:37:16,869 INFO training.recipes.sft_loop Step 37/904 | Loss: 0.0205 | PPL: 1.02 | tok/s: 1201 | tokens: 9828 | depth: 4
+{"type": "metrics", "step": 37, "ce_loss": 0.020497208443446213, "ppl": 1.0207087188731028, "tokens_per_sec": 1201.2389625915484, "lr": 0.0001}
+2026-11-04 12:37:17,713 INFO training.recipes.sft_loop Step 38/904 | Loss: 0.0111 | PPL: 1.01 | tok/s: 1229 | tokens: 9442 | depth: 4
+{"type": "metrics", "step": 38, "ce_loss": 0.011131267577906494, "ppl": 1.0111934506481355, "tokens_per_sec": 1229.495099216726, "lr": 0.0001}
+2026-11-04 12:37:20,086 INFO training.recipes.sft_loop Step 39/904 | Loss: 0.0144 | PPL: 1.01 | tok/s: 1253 | tokens: 9971 | depth: 4
+{"type": "metrics", "step": 39, "ce_loss": 0.014447737156469256, "ppl": 1.014552610161479, "tokens_per_sec": 1252.953745957603, "lr": 0.0001}
+2026-11-04 12:37:38,018 INFO training.recipes.sft_loop Step 40/904 | Loss: 0.0251 | PPL: 1.03 | tok/s: 1212 | tokens: 9375 | depth: 4
+{"type": "metrics", "step": 40, "ce_loss": 0.025066012556241146, "ppl": 1.0253828064305226, "tokens_per_sec": 1211.857268711675, "lr": 0.0001}
+2026-11-04 12:37:39,245 INFO training.recipes.sft_loop Step 41/904 | Loss: 0.0216 | PPL: 1.02 | tok/s: 1239 | tokens: 10126 | depth: 4
+{"type": "metrics", "step": 41, "ce_loss": 0.021647039489300225, "ppl": 1.0218830364508598, "tokens_per_sec": 1238.8709085024814, "lr": 0.0001}
+2026-11-04 12:37:58,619 INFO training.recipes.sft_loop Step 42/904 | Loss: 0.0351 | PPL: 1.04 | tok/s: 1197 | tokens: 9754 | depth: 4
+{"type": "metrics", "step": 42, "ce_loss": 0.03513061456365975, "ppl": 1.0357549846503113, "tokens_per_sec": 1196.8670165920753, "lr": 0.0001}
+2026-11-04 12:38:00,382 INFO training.recipes.sft_loop Step 43/904 | Loss: 0.0264 | PPL: 1.03 | tok/s: 1218 | tokens: 9441 | depth: 4
+{"type": "metrics", "step": 43, "ce_loss": 0.026440733182519417, "ppl": 1.0267933906818363, "tokens_per_sec": 1218.365946368432, "lr": 0.0001}
+2026-11-04 12:38:02,886 INFO training.recipes.sft_loop Step 44/904 | Loss: 0.0215 | PPL: 1.02 | tok/s: 1238 | tokens: 9638 | depth: 4
+{"type": "metrics", "step": 44, "ce_loss": 0.02146339465739089, "ppl": 1.0216953901430643, "tokens_per_sec": 1237.5471693970492, "lr": 0.0001}
+2026-11-04 12:38:19,670 INFO training.recipes.sft_loop Step 45/904 | Loss: 0.0325 | PPL: 1.03 | tok/s: 1210 | tokens: 10831 | depth: 4
+{"type": "metrics", "step": 45, "ce_loss": 0.03252116298563604, "ppl": 1.0330557554567499, "tokens_per_sec": 1209.9546609278786, "lr": 0.0001}
+2026-11-04 12:38:21,608 INFO training.recipes.sft_loop Step 46/904 | Loss: 0.0272 | PPL: 1.03 | tok/s: 1230 | tokens: 9683 | depth: 4
+{"type": "metrics", "step": 46, "ce_loss": 0.027156137161707256, "ppl": 1.027528225579898, "tokens_per_sec": 1230.2149211623753, "lr": 0.0001}
+2026-11-04 12:38:40,926 INFO training.recipes.sft_loop Step 47/904 | Loss: 0.0154 | PPL: 1.02 | tok/s: 1191 | tokens: 8794 | depth: 4
+{"type": "metrics", "step": 47, "ce_loss": 0.01544587684047801, "ppl": 1.0155657809420602, "tokens_per_sec": 1190.9709292996833, "lr": 0.0001}
+2026-11-04 12:38:42,653 INFO training.recipes.sft_loop Step 48/904 | Loss: 0.0312 | PPL: 1.03 | tok/s: 1211 | tokens: 9826 | depth: 4
+{"type": "metrics", "step": 48, "ce_loss": 0.031205559607945733, "ppl": 1.031697557436379, "tokens_per_sec": 1211.243089793533, "lr": 0.0001}
+2026-11-04 12:38:45,644 INFO training.recipes.sft_loop Step 49/904 | Loss: 0.0138 | PPL: 1.01 | tok/s: 1227 | tokens: 9625 | depth: 4
+{"type": "metrics", "step": 49, "ce_loss": 0.013841338015190859, "ppl": 1.0139375728277975, "tokens_per_sec": 1226.7833812844062, "lr": 0.0001}
+2026-11-04 12:39:01,724 INFO training.recipes.sft_loop Saving intermediate checkpoint at step 50 (dcp=True, sampler=True)
+2026-11-04 12:39:01,727 INFO training.utils.checkpoints Saving DCP checkpoint 'step-50'...
+2026-11-04 12:39:05,218 INFO training.utils.checkpoints DCP checkpoint 'step-50' saved (3.5s)
+2026-11-04 12:39:24,614 INFO training.utils.checkpoints Saving sampler checkpoint 'step-50'...
+2026-11-04 12:39:44,369 INFO training.utils.checkpoints Sampler checkpoint 'step-50' saved (19.8s)
+2026-11-04 12:39:45,760 INFO training.utils.checkpoints Sampler server-stored name 'run-3ae33b189bfd44bbb59217963a11fcfe-step-50-008d387b' differs from caller name 'step-50'; using control-plane row for subsequent promotion.
+2026-11-04 12:39:45,761 INFO training.recipes.sft_loop Step 50/904 | Loss: 0.0367 | PPL: 1.04 | tok/s: 1203 | tokens: 9982 | depth: 4
+{"type": "metrics", "step": 50, "ce_loss": 0.036701290561689845, "ppl": 1.037383098429443, "tokens_per_sec": 1202.5620793587198, "lr": 0.0001}
+2026-11-04 12:40:03,444 INFO training.recipes.sft_loop Step 51/904 | Loss: 0.0375 | PPL: 1.04 | tok/s: 1064 | tokens: 9721 | depth: 4
+{"type": "metrics", "step": 51, "ce_loss": 0.03749811377094538, "ppl": 1.0382100387780382, "tokens_per_sec": 1063.5576370144736, "lr": 0.0001}
+2026-11-04 12:40:04,639 INFO training.recipes.sft_loop Step 52/904 | Loss: 0.0138 | PPL: 1.01 | tok/s: 1081 | tokens: 9540 | depth: 4
+{"type": "metrics", "step": 52, "ce_loss": 0.013843670647190274, "ppl": 1.013939937973784, "tokens_per_sec": 1081.331303764919, "lr": 0.0001}
+2026-11-04 12:40:22,267 INFO training.recipes.sft_loop Step 53/904 | Loss: 0.0265 | PPL: 1.03 | tok/s: 1063 | tokens: 10008 | depth: 4
+{"type": "metrics", "step": 53, "ce_loss": 0.0265089896954609, "ppl": 1.0268634784101403, "tokens_per_sec": 1062.5809016111364, "lr": 0.0001}
+2026-11-04 12:40:23,760 INFO training.recipes.sft_loop Step 54/904 | Loss: 0.0045 | PPL: 1.00 | tok/s: 1079 | tokens: 9344 | depth: 4
+{"type": "metrics", "step": 54, "ce_loss": 0.004469457437679959, "ppl": 1.004479460359566, "tokens_per_sec": 1078.5983906306872, "lr": 0.0001}
+2026-11-04 12:40:41,780 INFO training.recipes.sft_loop Step 55/904 | Loss: 0.0143 | PPL: 1.01 | tok/s: 1058 | tokens: 9124 | depth: 4
+{"type": "metrics", "step": 55, "ce_loss": 0.014320611677823912, "ppl": 1.0144236428729891, "tokens_per_sec": 1058.0694902214173, "lr": 0.0001}
+2026-11-04 12:40:45,265 INFO training.recipes.sft_loop Step 56/904 | Loss: 0.0176 | PPL: 1.02 | tok/s: 1069 | tokens: 9071 | depth: 4
+{"type": "metrics", "step": 56, "ce_loss": 0.017626277389474396, "ppl": 1.0177825369581535, "tokens_per_sec": 1068.7136800316916, "lr": 0.0001}
+2026-11-04 12:41:03,239 INFO training.recipes.sft_loop Step 57/904 | Loss: 0.0046 | PPL: 1.00 | tok/s: 1050 | tokens: 9464 | depth: 4
+{"type": "metrics", "step": 57, "ce_loss": 0.004584892734679005, "ppl": 1.0045954194371585, "tokens_per_sec": 1050.1083038533627, "lr": 0.0001}
+2026-11-04 12:41:03,960 INFO training.recipes.sft_loop Step 58/904 | Loss: 0.0288 | PPL: 1.03 | tok/s: 1068 | tokens: 10133 | depth: 4
+{"type": "metrics", "step": 58, "ce_loss": 0.028794680723279065, "ppl": 1.029213255458684, "tokens_per_sec": 1067.982785096137, "lr": 0.0001}
+2026-11-04 12:41:19,470 INFO training.recipes.sft_loop Step 59/904 | Loss: 0.0356 | PPL: 1.04 | tok/s: 1055 | tokens: 9547 | depth: 4
+{"type": "metrics", "step": 59, "ce_loss": 0.035624332094011904, "ppl": 1.036266481300424, "tokens_per_sec": 1054.9894867259402, "lr": 0.0001}
+2026-11-04 12:41:21,571 INFO training.recipes.sft_loop Step 60/904 | Loss: 0.0422 | PPL: 1.04 | tok/s: 1069 | tokens: 9892 | depth: 4
+{"type": "metrics", "step": 60, "ce_loss": 0.04218723638805736, "ppl": 1.0430897648278488, "tokens_per_sec": 1069.1474418860314, "lr": 0.0001}
+2026-11-04 12:41:39,532 INFO training.recipes.sft_loop Step 61/904 | Loss: 0.0627 | PPL: 1.06 | tok/s: 1052 | tokens: 9696 | depth: 4
+{"type": "metrics", "step": 61, "ce_loss": 0.0627056714683329, "ppl": 1.0647134175722595, "tokens_per_sec": 1052.1732671383252, "lr": 0.0001}
+2026-11-04 12:41:40,899 INFO training.recipes.sft_loop Step 62/904 | Loss: 0.0560 | PPL: 1.06 | tok/s: 1067 | tokens: 9527 | depth: 4
+{"type": "metrics", "step": 62, "ce_loss": 0.05604396091248317, "ppl": 1.0576441777177799, "tokens_per_sec": 1066.5799296968269, "lr": 0.0001}
+2026-11-04 12:41:58,643 INFO training.recipes.sft_loop Step 63/904 | Loss: 0.0181 | PPL: 1.02 | tok/s: 1050 | tokens: 9323 | depth: 4
+{"type": "metrics", "step": 63, "ce_loss": 0.01808150921010799, "ppl": 1.0182459694320631, "tokens_per_sec": 1050.0020684665672, "lr": 0.0001}
+2026-11-04 12:42:00,842 INFO training.recipes.sft_loop Step 64/904 | Loss: 0.0391 | PPL: 1.04 | tok/s: 1062 | tokens: 9372 | depth: 4
+{"type": "metrics", "step": 64, "ce_loss": 0.039072578782849435, "ppl": 1.0398459516649592, "tokens_per_sec": 1062.1497294589076, "lr": 0.0001}
+2026-11-04 12:42:03,810 INFO training.recipes.sft_loop Step 65/904 | Loss: 0.0177 | PPL: 1.02 | tok/s: 1074 | tokens: 9947 | depth: 4
+{"type": "metrics", "step": 65, "ce_loss": 0.017665513131726155, "ppl": 1.0178224711948616, "tokens_per_sec": 1073.7764711235836, "lr": 0.0001}
+2026-11-04 12:42:22,156 INFO training.recipes.sft_loop Step 66/904 | Loss: 0.0225 | PPL: 1.02 | tok/s: 1057 | tokens: 9361 | depth: 4
+{"type": "metrics", "step": 66, "ce_loss": 0.02247295549054449, "ppl": 1.0227273746302747, "tokens_per_sec": 1056.6236026876145, "lr": 0.0001}
+2026-11-04 12:42:23,654 INFO training.recipes.sft_loop Step 67/904 | Loss: 0.0096 | PPL: 1.01 | tok/s: 1070 | tokens: 9581 | depth: 4
+{"type": "metrics", "step": 67, "ce_loss": 0.009623396555040168, "ppl": 1.0096698503304566, "tokens_per_sec": 1069.8605507140473, "lr": 0.0001}
+2026-11-04 12:42:26,564 INFO training.recipes.sft_loop Step 68/904 | Loss: 0.0321 | PPL: 1.03 | tok/s: 1080 | tokens: 9528 | depth: 4
+{"type": "metrics", "step": 68, "ce_loss": 0.03213937378462358, "ppl": 1.0326614212063419, "tokens_per_sec": 1080.4277057218326, "lr": 0.0001}
+2026-11-04 12:42:42,972 INFO training.recipes.sft_loop Step 69/904 | Loss: 0.0162 | PPL: 1.02 | tok/s: 1067 | tokens: 9362 | depth: 4
+{"type": "metrics", "step": 69, "ce_loss": 0.016206607830311026, "ppl": 1.0163386472382359, "tokens_per_sec": 1067.0099222060144, "lr": 0.0001}
+2026-11-04 12:42:44,551 INFO training.recipes.sft_loop Step 70/904 | Loss: 0.0091 | PPL: 1.01 | tok/s: 1080 | tokens: 9706 | depth: 4
+{"type": "metrics", "step": 70, "ce_loss": 0.00913062249150873, "ppl": 1.0091724337825365, "tokens_per_sec": 1079.8410980768808, "lr": 0.0001}
+2026-11-04 12:43:02,776 INFO training.recipes.sft_loop Step 71/904 | Loss: 0.0086 | PPL: 1.01 | tok/s: 1064 | tokens: 9749 | depth: 4
+{"type": "metrics", "step": 71, "ce_loss": 0.008595914582764229, "ppl": 1.0086329655427266, "tokens_per_sec": 1064.4047415752818, "lr": 0.0001}
+2026-11-04 12:43:07,504 INFO training.recipes.sft_loop Step 72/904 | Loss: 0.0038 | PPL: 1.00 | tok/s: 1071 | tokens: 9170 | depth: 4
+{"type": "metrics", "step": 72, "ce_loss": 0.003754253334063193, "ppl": 1.0037613093703974, "tokens_per_sec": 1070.7899278777907, "lr": 0.0001}
+2026-11-04 12:43:23,008 INFO training.recipes.sft_loop Step 73/904 | Loss: 0.0255 | PPL: 1.03 | tok/s: 1060 | tokens: 9570 | depth: 4
+{"type": "metrics", "step": 73, "ce_loss": 0.02547851394249934, "ppl": 1.02580586550985, "tokens_per_sec": 1060.1932946707063, "lr": 0.0001}
+2026-11-04 12:43:24,637 INFO training.recipes.sft_loop Step 74/904 | Loss: 0.0255 | PPL: 1.03 | tok/s: 1074 | tokens: 10759 | depth: 4
+{"type": "metrics", "step": 74, "ce_loss": 0.02550144592108413, "ppl": 1.0258293895377153, "tokens_per_sec": 1073.7708968800205, "lr": 0.0001}
+2026-11-04 12:43:43,542 INFO training.recipes.sft_loop Step 75/904 | Loss: 0.0665 | PPL: 1.07 | tok/s: 1058 | tokens: 9848 | depth: 4
+{"type": "metrics", "step": 75, "ce_loss": 0.06654829414077625, "ppl": 1.0688125802139972, "tokens_per_sec": 1058.4928843362472, "lr": 0.0001}
+2026-11-04 12:43:47,378 INFO training.recipes.sft_loop Step 76/904 | Loss: 0.0053 | PPL: 1.01 | tok/s: 1066 | tokens: 9320 | depth: 4
+{"type": "metrics", "step": 76, "ce_loss": 0.005319970919279581, "ppl": 1.0053341470923647, "tokens_per_sec": 1066.1381895179738, "lr": 0.0001}
+2026-11-04 12:44:02,821 INFO training.recipes.sft_loop Step 77/904 | Loss: 0.0648 | PPL: 1.07 | tok/s: 1056 | tokens: 9285 | depth: 4
+{"type": "metrics", "step": 77, "ce_loss": 0.06481161354816728, "ppl": 1.0669580050173049, "tokens_per_sec": 1055.9314161914444, "lr": 0.0001}
+2026-11-04 12:44:04,770 INFO training.recipes.sft_loop Step 78/904 | Loss: 0.0061 | PPL: 1.01 | tok/s: 1067 | tokens: 10148 | depth: 4
+{"type": "metrics", "step": 78, "ce_loss": 0.006076430868485732, "ppl": 1.0060949298247641, "tokens_per_sec": 1067.400769816056, "lr": 0.0001}
+2026-11-04 12:44:23,014 INFO training.recipes.sft_loop Step 79/904 | Loss: 0.0314 | PPL: 1.03 | tok/s: 1054 | tokens: 9714 | depth: 4
+{"type": "metrics", "step": 79, "ce_loss": 0.031403923749238886, "ppl": 1.0319022295355655, "tokens_per_sec": 1053.913174257481, "lr": 0.0001}
+2026-11-04 12:44:24,952 INFO training.recipes.sft_loop Step 80/904 | Loss: 0.0141 | PPL: 1.01 | tok/s: 1065 | tokens: 9746 | depth: 4
+{"type": "metrics", "step": 80, "ce_loss": 0.014050397664385053, "ppl": 1.0141495684201678, "tokens_per_sec": 1064.5311622743054, "lr": 0.0001}
+2026-11-04 12:44:27,665 INFO training.recipes.sft_loop Step 81/904 | Loss: 0.0127 | PPL: 1.01 | tok/s: 1074 | tokens: 9644 | depth: 4
+{"type": "metrics", "step": 81, "ce_loss": 0.012656676812521766, "ppl": 1.0127371115336965, "tokens_per_sec": 1073.8081871862933, "lr": 0.0001}
+2026-11-04 12:44:46,081 INFO training.recipes.sft_loop Step 82/904 | Loss: 0.0055 | PPL: 1.01 | tok/s: 1061 | tokens: 9845 | depth: 4
+{"type": "metrics", "step": 82, "ce_loss": 0.005518924519759405, "ppl": 1.0055341818387706, "tokens_per_sec": 1060.5092062832834, "lr": 0.0001}
+2026-11-04 12:44:47,570 INFO training.recipes.sft_loop Step 83/904 | Loss: 0.0478 | PPL: 1.05 | tok/s: 1071 | tokens: 9275 | depth: 4
+{"type": "metrics", "step": 83, "ce_loss": 0.04779571916812549, "ppl": 1.0489563517600229, "tokens_per_sec": 1070.795415896032, "lr": 0.0001}
+2026-11-04 12:44:50,136 INFO training.recipes.sft_loop Step 84/904 | Loss: 0.0456 | PPL: 1.05 | tok/s: 1080 | tokens: 9972 | depth: 4
+{"type": "metrics", "step": 84, "ce_loss": 0.045634911603147484, "ppl": 1.0466922060123962, "tokens_per_sec": 1080.4187028709086, "lr": 0.0001}
+2026-11-04 12:45:07,755 INFO training.recipes.sft_loop Step 85/904 | Loss: 0.0102 | PPL: 1.01 | tok/s: 1069 | tokens: 9982 | depth: 4
+{"type": "metrics", "step": 85, "ce_loss": 0.010213794289880954, "ppl": 1.0102661331277147, "tokens_per_sec": 1068.6350072226282, "lr": 0.0001}
+2026-11-04 12:45:09,509 INFO training.recipes.sft_loop Step 86/904 | Loss: 0.0134 | PPL: 1.01 | tok/s: 1079 | tokens: 10191 | depth: 4
+{"type": "metrics", "step": 86, "ce_loss": 0.013379900435703666, "ppl": 1.0134698118579855, "tokens_per_sec": 1079.433880857397, "lr": 0.0001}
+2026-11-04 12:45:25,677 INFO training.recipes.sft_loop Step 87/904 | Loss: 0.0048 | PPL: 1.00 | tok/s: 1069 | tokens: 9580 | depth: 4
+{"type": "metrics", "step": 87, "ce_loss": 0.00478385882559156, "ppl": 1.0047953197467447, "tokens_per_sec": 1069.421474590373, "lr": 0.0001}
+2026-11-04 12:45:27,407 INFO training.recipes.sft_loop Step 88/904 | Loss: 0.0370 | PPL: 1.04 | tok/s: 1079 | tokens: 9612 | depth: 4
+{"type": "metrics", "step": 88, "ce_loss": 0.037010255947964005, "ppl": 1.0377036634183563, "tokens_per_sec": 1079.272013390513, "lr": 0.0001}
+2026-11-04 12:45:45,137 INFO training.recipes.sft_loop Step 89/904 | Loss: 0.0568 | PPL: 1.06 | tok/s: 1067 | tokens: 9635 | depth: 4
+{"type": "metrics", "step": 89, "ce_loss": 0.056767633070163075, "ppl": 1.0584098423736084, "tokens_per_sec": 1067.480945837749, "lr": 0.0001}
+2026-11-04 12:45:47,174 INFO training.recipes.sft_loop Step 90/904 | Loss: 0.0194 | PPL: 1.02 | tok/s: 1077 | tokens: 9601 | depth: 4
+{"type": "metrics", "step": 90, "ce_loss": 0.019405308005535585, "ppl": 1.0195948148228169, "tokens_per_sec": 1076.6749777989892, "lr": 0.0001}
+2026-11-04 12:46:05,353 INFO training.recipes.sft_loop Step 91/904 | Loss: 0.0190 | PPL: 1.02 | tok/s: 1065 | tokens: 9553 | depth: 4
+{"type": "metrics", "step": 91, "ce_loss": 0.018968646918744673, "ppl": 1.0191496946332954, "tokens_per_sec": 1064.5426864802803, "lr": 0.0001}
+2026-11-04 12:46:07,253 INFO training.recipes.sft_loop Step 92/904 | Loss: 0.0820 | PPL: 1.09 | tok/s: 1074 | tokens: 9790 | depth: 4
+{"type": "metrics", "step": 92, "ce_loss": 0.08202291102026617, "ppl": 1.0854806790144942, "tokens_per_sec": 1073.9252560150699, "lr": 0.0001}
+2026-11-04 12:46:25,054 INFO training.recipes.sft_loop Step 93/904 | Loss: 0.0072 | PPL: 1.01 | tok/s: 1062 | tokens: 9335 | depth: 4
+{"type": "metrics", "step": 93, "ce_loss": 0.007242338170951207, "ppl": 1.0072686273287113, "tokens_per_sec": 1062.3584980325222, "lr": 0.0001}
+2026-11-04 12:46:27,259 INFO training.recipes.sft_loop Step 94/904 | Loss: 0.0324 | PPL: 1.03 | tok/s: 1072 | tokens: 10349 | depth: 4
+{"type": "metrics", "step": 94, "ce_loss": 0.032382797836363726, "ppl": 1.0329128264313654, "tokens_per_sec": 1071.8013097081746, "lr": 0.0001}
+2026-11-04 12:46:44,673 INFO training.recipes.sft_loop Step 95/904 | Loss: 0.0286 | PPL: 1.03 | tok/s: 1061 | tokens: 9508 | depth: 4
+{"type": "metrics", "step": 95, "ce_loss": 0.028596876245292856, "ppl": 1.0290096926014374, "tokens_per_sec": 1061.219869432769, "lr": 0.0001}
+2026-11-04 12:46:46,583 INFO training.recipes.sft_loop Step 96/904 | Loss: 0.0146 | PPL: 1.01 | tok/s: 1070 | tokens: 9310 | depth: 4
+{"type": "metrics", "step": 96, "ce_loss": 0.014587674877199728, "ppl": 1.014694594275541, "tokens_per_sec": 1069.618045133633, "lr": 0.0001}
+2026-11-04 12:46:49,827 INFO training.recipes.sft_loop Step 97/904 | Loss: 0.0181 | PPL: 1.02 | tok/s: 1077 | tokens: 9475 | depth: 4
+{"type": "metrics", "step": 97, "ce_loss": 0.01813194622579166, "ppl": 1.0182973280151693, "tokens_per_sec": 1076.516791025581, "lr": 0.0001}
+2026-11-04 12:47:05,882 INFO training.recipes.sft_loop Step 98/904 | Loss: 0.0020 | PPL: 1.00 | tok/s: 1068 | tokens: 10147 | depth: 4
+{"type": "metrics", "step": 98, "ce_loss": 0.002011160866107793, "ppl": 1.0020131846065843, "tokens_per_sec": 1068.466452447794, "lr": 0.0001}
+2026-11-04 12:47:07,528 INFO training.recipes.sft_loop Step 99/904 | Loss: 0.0200 | PPL: 1.02 | tok/s: 1077 | tokens: 9359 | depth: 4
+{"type": "metrics", "step": 99, "ce_loss": 0.01997852838735354, "ppl": 1.0201794348939315, "tokens_per_sec": 1077.024429381039, "lr": 0.0001}
+2026-11-04 12:47:25,191 INFO training.recipes.sft_loop Saving intermediate checkpoint at step 100 (dcp=True, sampler=True)
+2026-11-04 12:47:25,193 INFO training.utils.checkpoints Saving DCP checkpoint 'step-100'...
+2026-11-04 12:47:29,370 INFO training.utils.checkpoints DCP checkpoint 'step-100' saved (4.2s)
+2026-11-04 12:47:48,465 INFO training.utils.checkpoints Saving sampler checkpoint 'step-100'...
+2026-11-04 12:48:05,597 INFO training.utils.checkpoints Sampler checkpoint 'step-100' saved (17.1s)
+2026-11-04 12:48:07,332 INFO training.utils.checkpoints Sampler server-stored name 'run-3ae33b189bfd44bbb59217963a11fcfe-step-100-008d387b' differs from caller name 'step-100'; using control-plane row for subsequent promotion.
+2026-11-04 12:48:07,332 INFO training.recipes.sft_loop Step 100/904 | Loss: 0.0069 | PPL: 1.01 | tok/s: 1066 | tokens: 9053 | depth: 4
+{"type": "metrics", "step": 100, "ce_loss": 0.006929875742526084, "ppl": 1.0069539428934313, "tokens_per_sec": 1066.0170320791594, "lr": 0.0001}
+2026-11-04 12:48:10,653 INFO training.recipes.sft_loop Step 101/904 | Loss: 0.0647 | PPL: 1.07 | tok/s: 1025 | tokens: 9260 | depth: 4
+{"type": "metrics", "step": 101, "ce_loss": 0.06474219904587321, "ppl": 1.0668839452288592, "tokens_per_sec": 1024.8030785911499, "lr": 0.0001}
+2026-11-04 12:48:27,638 INFO training.recipes.sft_loop Step 102/904 | Loss: 0.0590 | PPL: 1.06 | tok/s: 1017 | tokens: 9815 | depth: 4
+{"type": "metrics", "step": 102, "ce_loss": 0.05900745346455419, "ppl": 1.060783147220281, "tokens_per_sec": 1016.9626563814062, "lr": 0.0001}
+2026-11-04 12:48:29,183 INFO training.recipes.sft_loop Step 103/904 | Loss: 0.0451 | PPL: 1.05 | tok/s: 1025 | tokens: 9569 | depth: 4
+{"type": "metrics", "step": 103, "ce_loss": 0.04511191395437849, "ppl": 1.0461449315737636, "tokens_per_sec": 1025.2101112601838, "lr": 0.0001}
+2026-11-04 12:48:46,071 INFO training.recipes.sft_loop Step 104/904 | Loss: 0.0273 | PPL: 1.03 | tok/s: 1018 | tokens: 10036 | depth: 4
+{"type": "metrics", "step": 104, "ce_loss": 0.02732149859485988, "ppl": 1.0276981531692324, "tokens_per_sec": 1017.8336253854961, "lr": 0.0001}
+2026-11-04 12:48:47,878 INFO training.recipes.sft_loop Step 105/904 | Loss: 0.0342 | PPL: 1.03 | tok/s: 1025 | tokens: 9347 | depth: 4
+{"type": "metrics", "step": 105, "ce_loss": 0.034158167487334905, "ppl": 1.0347482573175595, "tokens_per_sec": 1025.4295345990681, "lr": 0.0001}
+2026-11-04 12:49:05,252 INFO training.recipes.sft_loop Step 106/904 | Loss: 0.0214 | PPL: 1.02 | tok/s: 1018 | tokens: 10189 | depth: 4
+{"type": "metrics", "step": 106, "ce_loss": 0.021436362482578266, "ppl": 1.0216677718679654, "tokens_per_sec": 1017.8470868468393, "lr": 0.0001}
+2026-11-04 12:49:07,153 INFO training.recipes.sft_loop Step 107/904 | Loss: 0.0655 | PPL: 1.07 | tok/s: 1025 | tokens: 9608 | depth: 4
+{"type": "metrics", "step": 107, "ce_loss": 0.06552856546913487, "ppl": 1.0677232368930467, "tokens_per_sec": 1025.4610221866915, "lr": 0.0001}
+2026-11-04 12:49:23,084 INFO training.recipes.sft_loop Step 108/904 | Loss: 0.0232 | PPL: 1.02 | tok/s: 1019 | tokens: 9516 | depth: 4
+{"type": "metrics", "step": 108, "ce_loss": 0.02319399655141145, "ppl": 1.0234650689834548, "tokens_per_sec": 1018.7976993348187, "lr": 0.0001}
+2026-11-04 12:49:24,947 INFO training.recipes.sft_loop Step 109/904 | Loss: 0.0175 | PPL: 1.02 | tok/s: 1026 | tokens: 9260 | depth: 4
+{"type": "metrics", "step": 109, "ce_loss": 0.01748588911036681, "ppl": 1.0176396622484862, "tokens_per_sec": 1025.976362220595, "lr": 0.0001}
+2026-11-04 12:49:42,835 INFO training.recipes.sft_loop Step 110/904 | Loss: 0.0390 | PPL: 1.04 | tok/s: 1018 | tokens: 9557 | depth: 4
+{"type": "metrics", "step": 110, "ce_loss": 0.039040408481580934, "ppl": 1.0398125000454985, "tokens_per_sec": 1017.5468407934302, "lr": 0.0001}
+2026-11-04 12:49:44,857 INFO training.recipes.sft_loop Step 111/904 | Loss: 0.0314 | PPL: 1.03 | tok/s: 1025 | tokens: 9391 | depth: 4
+{"type": "metrics", "step": 111, "ce_loss": 0.03144729197019197, "ppl": 1.0319469822698741, "tokens_per_sec": 1024.5616666267558, "lr": 0.0001}
+2026-11-04 12:49:47,280 INFO training.recipes.sft_loop Step 112/904 | Loss: 0.0617 | PPL: 1.06 | tok/s: 1031 | tokens: 9597 | depth: 4
+{"type": "metrics", "step": 112, "ce_loss": 0.061695072462355206, "ppl": 1.0636379627691184, "tokens_per_sec": 1031.3510455079397, "lr": 0.0001}
+2026-11-04 12:49:50,051 INFO training.recipes.sft_loop Step 113/904 | Loss: 0.0336 | PPL: 1.03 | tok/s: 1037 | tokens: 9299 | depth: 4
+{"type": "metrics", "step": 113, "ce_loss": 0.03362496006645266, "ppl": 1.0341966689365905, "tokens_per_sec": 1037.4825334521954, "lr": 0.0001}
+2026-11-04 12:49:51,994 INFO training.recipes.sft_loop Step 114/904 | Loss: 0.0392 | PPL: 1.04 | tok/s: 1045 | tokens: 9657 | depth: 4
+{"type": "metrics", "step": 114, "ce_loss": 0.03917725335411655, "ppl": 1.0399548027910066, "tokens_per_sec": 1044.7419621944175, "lr": 0.0001}
+2026-11-04 12:50:10,106 INFO training.recipes.sft_loop Step 115/904 | Loss: 0.0190 | PPL: 1.02 | tok/s: 1036 | tokens: 9351 | depth: 4
+{"type": "metrics", "step": 115, "ce_loss": 0.019021957880042868, "ppl": 1.0192040279314905, "tokens_per_sec": 1035.8024710658538, "lr": 0.0001}
+2026-11-04 12:50:12,017 INFO training.recipes.sft_loop Step 116/904 | Loss: 0.0126 | PPL: 1.01 | tok/s: 1042 | tokens: 9086 | depth: 4
+{"type": "metrics", "step": 116, "ce_loss": 0.012572185628443327, "ppl": 1.0126515477907247, "tokens_per_sec": 1042.4283141170251, "lr": 0.0001}
+2026-11-04 12:50:29,402 INFO training.recipes.sft_loop Step 117/904 | Loss: 0.0499 | PPL: 1.05 | tok/s: 1034 | tokens: 9296 | depth: 4
+{"type": "metrics", "step": 117, "ce_loss": 0.04993912284917552, "ppl": 1.0512070999349128, "tokens_per_sec": 1034.3297252005216, "lr": 0.0001}
+2026-11-04 12:50:31,345 INFO training.recipes.sft_loop Step 118/904 | Loss: 0.0381 | PPL: 1.04 | tok/s: 1042 | tokens: 9890 | depth: 4
+{"type": "metrics", "step": 118, "ce_loss": 0.0380562579017514, "ppl": 1.038789671361941, "tokens_per_sec": 1041.547039959429, "lr": 0.0001}
+2026-11-04 12:50:48,987 INFO training.recipes.sft_loop Step 119/904 | Loss: 0.0680 | PPL: 1.07 | tok/s: 1034 | tokens: 9628 | depth: 4
+{"type": "metrics", "step": 119, "ce_loss": 0.06798660323664057, "ppl": 1.0703509691440791, "tokens_per_sec": 1033.6638433790183, "lr": 0.0001}
+2026-11-04 12:50:50,739 INFO training.recipes.sft_loop Step 120/904 | Loss: 0.0208 | PPL: 1.02 | tok/s: 1040 | tokens: 9231 | depth: 4
+{"type": "metrics", "step": 120, "ce_loss": 0.0208197395768983, "ppl": 1.0210379823091256, "tokens_per_sec": 1040.3404488093079, "lr": 0.0001}
+2026-11-04 12:51:07,621 INFO training.recipes.sft_loop Step 121/904 | Loss: 0.0263 | PPL: 1.03 | tok/s: 1034 | tokens: 9969 | depth: 4
+{"type": "metrics", "step": 121, "ce_loss": 0.02625912581101385, "ppl": 1.0266069343645086, "tokens_per_sec": 1033.6097458782745, "lr": 0.0001}
+2026-11-04 12:51:09,610 INFO training.recipes.sft_loop Step 122/904 | Loss: 0.0358 | PPL: 1.04 | tok/s: 1040 | tokens: 9281 | depth: 4
+{"type": "metrics", "step": 122, "ce_loss": 0.0358220412222105, "ppl": 1.0364713808976165, "tokens_per_sec": 1040.001729693112, "lr": 0.0001}
+2026-11-04 12:51:12,763 INFO training.recipes.sft_loop Step 123/904 | Loss: 0.0344 | PPL: 1.03 | tok/s: 1046 | tokens: 10093 | depth: 4
+{"type": "metrics", "step": 123, "ce_loss": 0.03436195550774239, "ppl": 1.0349591481043166, "tokens_per_sec": 1046.0147064329333, "lr": 0.0001}
+2026-11-04 12:51:29,777 INFO training.recipes.sft_loop Step 124/904 | Loss: 0.0301 | PPL: 1.03 | tok/s: 1039 | tokens: 9611 | depth: 4
+{"type": "metrics", "step": 124, "ce_loss": 0.030062521340536313, "ppl": 1.0305189613663646, "tokens_per_sec": 1038.8982643120387, "lr": 0.0001}
+2026-11-04 12:51:31,861 INFO training.recipes.sft_loop Step 125/904 | Loss: 0.0101 | PPL: 1.01 | tok/s: 1046 | tokens: 9960 | depth: 4
+{"type": "metrics", "step": 125, "ce_loss": 0.010125138196241073, "ppl": 1.0101765708489945, "tokens_per_sec": 1045.6626661570313, "lr": 0.0001}
+2026-11-04 12:51:49,438 INFO training.recipes.sft_loop Step 126/904 | Loss: 0.0254 | PPL: 1.03 | tok/s: 1038 | tokens: 9742 | depth: 4
+{"type": "metrics", "step": 126, "ce_loss": 0.02544342436292281, "ppl": 1.025769871044821, "tokens_per_sec": 1038.279913081905, "lr": 0.0001}
+2026-11-04 12:51:51,619 INFO training.recipes.sft_loop Step 127/904 | Loss: 0.0173 | PPL: 1.02 | tok/s: 1045 | tokens: 9628 | depth: 4
+{"type": "metrics", "step": 127, "ce_loss": 0.017334076902897025, "ppl": 1.0174851838511014, "tokens_per_sec": 1044.5617955053171, "lr": 0.0001}
+2026-11-04 12:52:09,437 INFO training.recipes.sft_loop Step 128/904 | Loss: 0.0137 | PPL: 1.01 | tok/s: 1038 | tokens: 10272 | depth: 4
+{"type": "metrics", "step": 128, "ce_loss": 0.013676321477038232, "ppl": 1.0137702701638596, "tokens_per_sec": 1037.5529388793059, "lr": 0.0001}
+2026-11-04 12:52:11,106 INFO training.recipes.sft_loop Step 129/904 | Loss: 0.0313 | PPL: 1.03 | tok/s: 1045 | tokens: 10097 | depth: 4
+{"type": "metrics", "step": 129, "ce_loss": 0.03131827072120269, "ppl": 1.0318138477701055, "tokens_per_sec": 1044.5727215482455, "lr": 0.0001}
+2026-11-04 12:52:28,437 INFO training.recipes.sft_loop Step 130/904 | Loss: 0.0174 | PPL: 1.02 | tok/s: 1038 | tokens: 9870 | depth: 4
+{"type": "metrics", "step": 130, "ce_loss": 0.01742104524527803, "ppl": 1.0175736766989205, "tokens_per_sec": 1037.7632648205604, "lr": 0.0001}
+2026-11-04 12:52:30,077 INFO training.recipes.sft_loop Step 131/904 | Loss: 0.0416 | PPL: 1.04 | tok/s: 1044 | tokens: 9147 | depth: 4
+{"type": "metrics", "step": 131, "ce_loss": 0.041555301167170024, "ppl": 1.0424308078978828, "tokens_per_sec": 1043.912991266127, "lr": 0.0001}
+2026-11-04 12:52:51,856 INFO training.recipes.sft_loop Step 132/904 | Loss: 0.0246 | PPL: 1.02 | tok/s: 1033 | tokens: 9691 | depth: 4
+{"type": "metrics", "step": 132, "ce_loss": 0.024557615220362854, "ppl": 1.0248616370352694, "tokens_per_sec": 1033.3285332221305, "lr": 0.0001}
+2026-11-04 12:52:53,945 INFO training.recipes.sft_loop Step 133/904 | Loss: 0.0140 | PPL: 1.01 | tok/s: 1039 | tokens: 9429 | depth: 4
+{"type": "metrics", "step": 133, "ce_loss": 0.014001663231625794, "ppl": 1.0141001456205236, "tokens_per_sec": 1039.217541411347, "lr": 0.0001}
+2026-11-04 12:52:55,341 INFO training.recipes.sft_loop Step 134/904 | Loss: 0.0374 | PPL: 1.04 | tok/s: 1046 | tokens: 9458 | depth: 4
+{"type": "metrics", "step": 134, "ce_loss": 0.037434531031807355, "ppl": 1.038144028638547, "tokens_per_sec": 1045.6962184166205, "lr": 0.0001}
+2026-11-04 12:52:55,945 INFO training.recipes.sft_loop Step 135/904 | Loss: 0.0068 | PPL: 1.01 | tok/s: 1053 | tokens: 9648 | depth: 4
+{"type": "metrics", "step": 135, "ce_loss": 0.006832842644875184, "ppl": 1.0068562397734555, "tokens_per_sec": 1052.9883659868735, "lr": 0.0001}
+2026-11-04 12:53:11,427 INFO training.recipes.sft_loop Step 136/904 | Loss: 0.0369 | PPL: 1.04 | tok/s: 1048 | tokens: 9642 | depth: 4
+{"type": "metrics", "step": 136, "ce_loss": 0.03686844118710314, "ppl": 1.0375565121558412, "tokens_per_sec": 1047.6681701201146, "lr": 0.0001}
+2026-11-04 12:53:13,354 INFO training.recipes.sft_loop Step 137/904 | Loss: 0.0146 | PPL: 1.01 | tok/s: 1054 | tokens: 9780 | depth: 4
+{"type": "metrics", "step": 137, "ce_loss": 0.014636252248766236, "ppl": 1.0147438866691114, "tokens_per_sec": 1053.857628742025, "lr": 0.0001}
+2026-11-04 12:53:30,808 INFO training.recipes.sft_loop Step 138/904 | Loss: 0.0310 | PPL: 1.03 | tok/s: 1047 | tokens: 10086 | depth: 4
+{"type": "metrics", "step": 138, "ce_loss": 0.0309525080077847, "ppl": 1.0314365177482359, "tokens_per_sec": 1047.3229593488209, "lr": 0.0001}
+2026-11-04 12:53:32,046 INFO training.recipes.sft_loop Step 139/904 | Loss: 0.0268 | PPL: 1.03 | tok/s: 1054 | tokens: 9655 | depth: 4
+{"type": "metrics", "step": 139, "ce_loss": 0.026842642395820942, "ppl": 1.0272061513463093, "tokens_per_sec": 1053.8908710124979, "lr": 0.0001}
+2026-11-04 12:53:35,078 INFO training.recipes.sft_loop Step 140/904 | Loss: 0.0284 | PPL: 1.03 | tok/s: 1059 | tokens: 9935 | depth: 4
+{"type": "metrics", "step": 140, "ce_loss": 0.02836476301729754, "ppl": 1.028770873557651, "tokens_per_sec": 1059.1741844208734, "lr": 0.0001}
+2026-11-04 12:53:51,307 INFO training.recipes.sft_loop Step 141/904 | Loss: 0.0541 | PPL: 1.06 | tok/s: 1053 | tokens: 9327 | depth: 4
+{"type": "metrics", "step": 141, "ce_loss": 0.05405353570068154, "ppl": 1.055541109775389, "tokens_per_sec": 1053.0885668733351, "lr": 0.0001}
+2026-11-04 12:53:52,857 INFO training.recipes.sft_loop Step 142/904 | Loss: 0.0062 | PPL: 1.01 | tok/s: 1059 | tokens: 9609 | depth: 4
+{"type": "metrics", "step": 142, "ce_loss": 0.0061845841693942685, "ppl": 1.006203748196879, "tokens_per_sec": 1059.2554343712102, "lr": 0.0001}
+2026-11-04 12:54:12,497 INFO training.recipes.sft_loop Step 143/904 | Loss: 0.0141 | PPL: 1.01 | tok/s: 1051 | tokens: 10021 | depth: 4
+{"type": "metrics", "step": 143, "ce_loss": 0.014145091025573752, "ppl": 1.0142456061985479, "tokens_per_sec": 1051.0433797707494, "lr": 0.0001}
+2026-11-04 12:54:14,343 INFO training.recipes.sft_loop Step 144/904 | Loss: 0.0359 | PPL: 1.04 | tok/s: 1057 | tokens: 9339 | depth: 4
+{"type": "metrics", "step": 144, "ce_loss": 0.03594670068965557, "ppl": 1.0366005949216897, "tokens_per_sec": 1056.67024368801, "lr": 0.0001}
+2026-11-04 12:54:16,942 INFO training.recipes.sft_loop Step 145/904 | Loss: 0.0187 | PPL: 1.02 | tok/s: 1061 | tokens: 8956 | depth: 4
+{"type": "metrics", "step": 145, "ce_loss": 0.018652420397852715, "ppl": 1.018827463422806, "tokens_per_sec": 1061.3837482291262, "lr": 0.0001}
+2026-11-04 12:54:19,658 INFO training.recipes.sft_loop Step 146/904 | Loss: 0.0176 | PPL: 1.02 | tok/s: 1066 | tokens: 9580 | depth: 4
+{"type": "metrics", "step": 146, "ce_loss": 0.01757197263481284, "ppl": 1.0177272680278817, "tokens_per_sec": 1066.4560785424503, "lr": 0.0001}
+2026-11-04 12:54:21,681 INFO training.recipes.sft_loop Step 147/904 | Loss: 0.0325 | PPL: 1.03 | tok/s: 1072 | tokens: 9199 | depth: 4
+{"type": "metrics", "step": 147, "ce_loss": 0.032527074823029925, "ppl": 1.0330618627324475, "tokens_per_sec": 1071.7819480249868, "lr": 0.0001}
+2026-11-04 12:54:38,988 INFO training.recipes.sft_loop Step 148/904 | Loss: 0.0439 | PPL: 1.04 | tok/s: 1065 | tokens: 9489 | depth: 4
+{"type": "metrics", "step": 148, "ce_loss": 0.043859866439576935, "ppl": 1.0448359280503707, "tokens_per_sec": 1065.0177552433956, "lr": 0.0001}
+2026-11-04 12:54:41,134 INFO training.recipes.sft_loop Step 149/904 | Loss: 0.0052 | PPL: 1.01 | tok/s: 1071 | tokens: 9699 | depth: 4
+{"type": "metrics", "step": 149, "ce_loss": 0.005169954293037586, "ppl": 1.0051833415673228, "tokens_per_sec": 1070.5431476284223, "lr": 0.0001}
+2026-11-04 12:55:00,204 INFO training.recipes.sft_loop Saving intermediate checkpoint at step 150 (dcp=True, sampler=True)
+2026-11-04 12:55:00,205 INFO training.utils.checkpoints Saving DCP checkpoint 'step-150'...
+2026-11-04 12:55:03,792 INFO training.utils.checkpoints DCP checkpoint 'step-150' saved (3.6s)
+2026-11-04 12:55:22,817 INFO training.utils.checkpoints Saving sampler checkpoint 'step-150'...
+2026-11-04 12:55:28,086 INFO training.utils.checkpoints Sampler checkpoint 'step-150' saved (5.3s)
+2026-11-04 12:55:29,367 INFO training.utils.checkpoints Sampler server-stored name 'run-3ae33b189bfd44bbb59217963a11fcfe-step-150-008d387b' differs from caller name 'step-150'; using control-plane row for subsequent promotion.
+2026-11-04 12:55:29,368 INFO training.recipes.sft_loop Step 150/904 | Loss: 0.0232 | PPL: 1.02 | tok/s: 1063 | tokens: 9602 | depth: 4
+{"type": "metrics", "step": 150, "ce_loss": 0.02320493115710047, "ppl": 1.0234762602316063, "tokens_per_sec": 1062.597510315534, "lr": 0.0001}
+2026-11-04 12:55:48,440 INFO training.recipes.sft_loop Step 151/904 | Loss: 0.0101 | PPL: 1.01 | tok/s: 1033 | tokens: 9577 | depth: 4
+{"type": "metrics", "step": 151, "ce_loss": 0.010068641289624036, "ppl": 1.0101195006097659, "tokens_per_sec": 1033.0172735606538, "lr": 0.0001}
+2026-11-04 12:55:49,673 INFO training.recipes.sft_loop Step 152/904 | Loss: 0.0255 | PPL: 1.03 | tok/s: 1039 | tokens: 9493 | depth: 4
+{"type": "metrics", "step": 152, "ce_loss": 0.025454860863863966, "ppl": 1.025781602329999, "tokens_per_sec": 1038.8453380774727, "lr": 0.0001}
+2026-11-04 12:56:05,659 INFO training.recipes.sft_loop Step 153/904 | Loss: 0.0154 | PPL: 1.02 | tok/s: 1034 | tokens: 9202 | depth: 4
+{"type": "metrics", "step": 153, "ce_loss": 0.015431152711298121, "ppl": 1.0155508277303977, "tokens_per_sec": 1033.6534418941633, "lr": 0.0001}
+2026-11-04 12:56:07,475 INFO training.recipes.sft_loop Step 154/904 | Loss: 0.1257 | PPL: 1.13 | tok/s: 1039 | tokens: 9320 | depth: 4
+{"type": "metrics", "step": 154, "ce_loss": 0.12567037113217866, "ppl": 1.1339083377521562, "tokens_per_sec": 1038.8651534753055, "lr": 0.0001}
+2026-11-04 12:56:24,949 INFO training.recipes.sft_loop Step 155/904 | Loss: 0.0518 | PPL: 1.05 | tok/s: 1033 | tokens: 9280 | depth: 4
+{"type": "metrics", "step": 155, "ce_loss": 0.0517845136565838, "ppl": 1.053148778881027, "tokens_per_sec": 1032.7275492439294, "lr": 0.0001}
+2026-11-04 12:56:26,814 INFO training.recipes.sft_loop Step 156/904 | Loss: 0.0160 | PPL: 1.02 | tok/s: 1038 | tokens: 10204 | depth: 4
+{"type": "metrics", "step": 156, "ce_loss": 0.016011662709389588, "ppl": 1.0161405362887617, "tokens_per_sec": 1038.4461544517899, "lr": 0.0001}
+2026-11-04 12:56:42,776 INFO training.recipes.sft_loop Step 157/904 | Loss: 0.0241 | PPL: 1.02 | tok/s: 1034 | tokens: 10177 | depth: 4
+{"type": "metrics", "step": 157, "ce_loss": 0.024141351400094508, "ppl": 1.024435112994413, "tokens_per_sec": 1034.0744446896626, "lr": 0.0001}
+2026-11-04 12:56:44,465 INFO training.recipes.sft_loop Step 158/904 | Loss: 0.0473 | PPL: 1.05 | tok/s: 1039 | tokens: 9657 | depth: 4
+{"type": "metrics", "step": 158, "ce_loss": 0.047334374183507506, "ppl": 1.0484725326204034, "tokens_per_sec": 1039.4729815927867, "lr": 0.0001}
+2026-11-04 12:56:47,509 INFO training.recipes.sft_loop Step 159/904 | Loss: 0.0258 | PPL: 1.03 | tok/s: 1044 | tokens: 9703 | depth: 4
+{"type": "metrics", "step": 159, "ce_loss": 0.02580418780056104, "ppl": 1.0261399980698596, "tokens_per_sec": 1043.9272204501465, "lr": 0.0001}
+2026-11-04 12:56:49,353 INFO training.recipes.sft_loop Step 160/904 | Loss: 0.0348 | PPL: 1.04 | tok/s: 1050 | tokens: 10168 | depth: 4
+{"type": "metrics", "step": 160, "ce_loss": 0.03482686972146351, "ppl": 1.035440427190966, "tokens_per_sec": 1049.5346214235794, "lr": 0.0001}
+2026-11-04 12:56:52,092 INFO training.recipes.sft_loop Step 161/904 | Loss: 0.0317 | PPL: 1.03 | tok/s: 1054 | tokens: 10062 | depth: 4
+{"type": "metrics", "step": 161, "ce_loss": 0.031686472724892105, "ppl": 1.0321938336477767, "tokens_per_sec": 1054.4152046957697, "lr": 0.0001}
+2026-11-04 12:57:08,906 INFO training.recipes.sft_loop Step 162/904 | Loss: 0.0142 | PPL: 1.01 | tok/s: 1049 | tokens: 9917 | depth: 4
+{"type": "metrics", "step": 162, "ce_loss": 0.014237039245437406, "ppl": 1.0143388685641308, "tokens_per_sec": 1049.1712271482063, "lr": 0.0001}
+2026-11-04 12:57:10,930 INFO training.recipes.sft_loop Step 163/904 | Loss: 0.0196 | PPL: 1.02 | tok/s: 1054 | tokens: 9730 | depth: 4
+{"type": "metrics", "step": 163, "ce_loss": 0.01960467157477404, "ppl": 1.019798105147946, "tokens_per_sec": 1054.2707043379683, "lr": 0.0001}
+2026-11-04 12:57:29,457 INFO training.recipes.sft_loop Step 164/904 | Loss: 0.0135 | PPL: 1.01 | tok/s: 1048 | tokens: 10014 | depth: 4
+{"type": "metrics", "step": 164, "ce_loss": 0.013494652738241708, "ppl": 1.0135861165254356, "tokens_per_sec": 1047.9672774754893, "lr": 0.0001}
+2026-11-04 12:57:31,529 INFO training.recipes.sft_loop Step 165/904 | Loss: 0.0096 | PPL: 1.01 | tok/s: 1053 | tokens: 9963 | depth: 4
+{"type": "metrics", "step": 165, "ce_loss": 0.009618974625433326, "ppl": 1.0096653856513238, "tokens_per_sec": 1053.120222476313, "lr": 0.0001}
+2026-11-04 12:57:33,918 INFO training.recipes.sft_loop Step 166/904 | Loss: 0.0207 | PPL: 1.02 | tok/s: 1058 | tokens: 9549 | depth: 4
+{"type": "metrics", "step": 166, "ce_loss": 0.020739896963269645, "ppl": 1.0209564632223957, "tokens_per_sec": 1057.7639965951294, "lr": 0.0001}
+2026-11-04 12:57:50,782 INFO training.recipes.sft_loop Step 167/904 | Loss: 0.0309 | PPL: 1.03 | tok/s: 1052 | tokens: 9595 | depth: 4
+{"type": "metrics", "step": 167, "ce_loss": 0.030902377393010654, "ppl": 1.0313848124975196, "tokens_per_sec": 1052.3812376027527, "lr": 0.0001}
+2026-11-04 12:57:52,790 INFO training.recipes.sft_loop Step 168/904 | Loss: 0.0094 | PPL: 1.01 | tok/s: 1057 | tokens: 9787 | depth: 4
+{"type": "metrics", "step": 168, "ce_loss": 0.009390155351366619, "ppl": 1.0094343811808741, "tokens_per_sec": 1057.3852435282752, "lr": 0.0001}
+2026-11-04 12:57:55,094 INFO training.recipes.sft_loop Step 169/904 | Loss: 0.0459 | PPL: 1.05 | tok/s: 1062 | tokens: 9924 | depth: 4
+{"type": "metrics", "step": 169, "ce_loss": 0.04590034230791061, "ppl": 1.0469700671371138, "tokens_per_sec": 1062.2611915872005, "lr": 0.0001}
+2026-11-04 12:58:14,889 INFO training.recipes.sft_loop Step 170/904 | Loss: 0.0131 | PPL: 1.01 | tok/s: 1055 | tokens: 9631 | depth: 4
+{"type": "metrics", "step": 170, "ce_loss": 0.013103727080198493, "ppl": 1.0131899571453278, "tokens_per_sec": 1054.934640316129, "lr": 0.0001}
+2026-11-04 12:58:16,742 INFO training.recipes.sft_loop Step 171/904 | Loss: 0.0178 | PPL: 1.02 | tok/s: 1060 | tokens: 9721 | depth: 4
+{"type": "metrics", "step": 171, "ce_loss": 0.017791682309606895, "ppl": 1.017950897120807, "tokens_per_sec": 1059.921567385299, "lr": 0.0001}
+2026-11-04 12:58:33,146 INFO training.recipes.sft_loop Step 172/904 | Loss: 0.0056 | PPL: 1.01 | tok/s: 1055 | tokens: 9511 | depth: 4
+{"type": "metrics", "step": 172, "ce_loss": 0.005624780721667571, "ppl": 1.0056406295021223, "tokens_per_sec": 1054.916643183673, "lr": 0.0001}
+2026-11-04 12:58:35,221 INFO training.recipes.sft_loop Step 173/904 | Loss: 0.0256 | PPL: 1.03 | tok/s: 1060 | tokens: 10650 | depth: 4
+{"type": "metrics", "step": 173, "ce_loss": 0.02556612272236622, "ppl": 1.0258957390469057, "tokens_per_sec": 1060.2860756132143, "lr": 0.0001}
+2026-11-04 12:58:38,112 INFO training.recipes.sft_loop Step 174/904 | Loss: 0.0514 | PPL: 1.05 | tok/s: 1064 | tokens: 9530 | depth: 4
+{"type": "metrics", "step": 174, "ce_loss": 0.051394523899659185, "ppl": 1.0527381417220933, "tokens_per_sec": 1064.381176927343, "lr": 0.0001}
+2026-11-04 12:58:40,056 INFO training.recipes.sft_loop Step 175/904 | Loss: 0.0159 | PPL: 1.02 | tok/s: 1069 | tokens: 10120 | depth: 4
+{"type": "metrics", "step": 175, "ce_loss": 0.015852731058464894, "ppl": 1.0159790522285619, "tokens_per_sec": 1069.4748974403462, "lr": 0.0001}
+2026-11-04 12:58:57,513 INFO training.recipes.sft_loop Step 176/904 | Loss: 0.0330 | PPL: 1.03 | tok/s: 1064 | tokens: 9576 | depth: 4
+{"type": "metrics", "step": 176, "ce_loss": 0.03301024486217482, "ppl": 1.0335611278783703, "tokens_per_sec": 1063.783982520408, "lr": 0.0001}
+2026-11-04 12:58:59,641 INFO training.recipes.sft_loop Step 177/904 | Loss: 0.0374 | PPL: 1.04 | tok/s: 1068 | tokens: 9535 | depth: 4
+{"type": "metrics", "step": 177, "ce_loss": 0.037356525746200415, "ppl": 1.038063051075472, "tokens_per_sec": 1068.3279800544979, "lr": 0.0001}
+2026-11-04 12:59:16,784 INFO training.recipes.sft_loop Step 178/904 | Loss: 0.0119 | PPL: 1.01 | tok/s: 1063 | tokens: 9139 | depth: 4
+{"type": "metrics", "step": 178, "ce_loss": 0.011946215210655477, "ppl": 1.0120178562350566, "tokens_per_sec": 1062.6552470114764, "lr": 0.0001}
+2026-11-04 12:59:18,830 INFO training.recipes.sft_loop Step 179/904 | Loss: 0.0206 | PPL: 1.02 | tok/s: 1067 | tokens: 9426 | depth: 4
+{"type": "metrics", "step": 179, "ce_loss": 0.020559898911879614, "ppl": 1.020772709586606, "tokens_per_sec": 1067.1330929187313, "lr": 0.0001}
+2026-11-04 12:59:36,773 INFO training.recipes.sft_loop Step 180/904 | Loss: 0.0077 | PPL: 1.01 | tok/s: 1062 | tokens: 10251 | depth: 4
+{"type": "metrics", "step": 180, "ce_loss": 0.007747714645717503, "ppl": 1.007777805849319, "tokens_per_sec": 1061.6995135333664, "lr": 0.0001}
+2026-11-04 12:59:38,682 INFO training.recipes.sft_loop Step 181/904 | Loss: 0.0580 | PPL: 1.06 | tok/s: 1066 | tokens: 9322 | depth: 4
+{"type": "metrics", "step": 181, "ce_loss": 0.058006821694253086, "ppl": 1.059722224786641, "tokens_per_sec": 1066.1502465735255, "lr": 0.0001}
+2026-11-04 12:59:55,980 INFO training.recipes.sft_loop Step 182/904 | Loss: 0.0370 | PPL: 1.04 | tok/s: 1061 | tokens: 10136 | depth: 4
+{"type": "metrics", "step": 182, "ce_loss": 0.03698020295931706, "ppl": 1.0376724777905535, "tokens_per_sec": 1061.1357593677724, "lr": 0.0001}
+2026-11-04 12:59:57,195 INFO training.recipes.sft_loop Step 183/904 | Loss: 0.0328 | PPL: 1.03 | tok/s: 1066 | tokens: 9898 | depth: 4
+{"type": "metrics", "step": 183, "ce_loss": 0.032829138551302574, "ppl": 1.033373960384558, "tokens_per_sec": 1066.3290633733525, "lr": 0.0001}
+2026-11-04 13:00:14,528 INFO training.recipes.sft_loop Step 184/904 | Loss: 0.1126 | PPL: 1.12 | tok/s: 1061 | tokens: 9601 | depth: 4
+{"type": "metrics", "step": 184, "ce_loss": 0.11262207886749127, "ppl": 1.1192088803257916, "tokens_per_sec": 1061.0265332415518, "lr": 0.0001}
+2026-11-04 13:00:16,352 INFO training.recipes.sft_loop Step 185/904 | Loss: 0.0148 | PPL: 1.01 | tok/s: 1066 | tokens: 9858 | depth: 4
+{"type": "metrics", "step": 185, "ce_loss": 0.014813879988576384, "ppl": 1.0149241493415382, "tokens_per_sec": 1065.7508519013443, "lr": 0.0001}
+2026-11-04 13:00:19,129 INFO training.recipes.sft_loop Step 186/904 | Loss: 0.0264 | PPL: 1.03 | tok/s: 1070 | tokens: 9341 | depth: 4
+{"type": "metrics", "step": 186, "ce_loss": 0.026396120007876597, "ppl": 1.0267475831907922, "tokens_per_sec": 1069.5503785824994, "lr": 0.0001}
+2026-11-04 13:00:24,366 WARNING training.recipes.sft_loop Received SIGTERM — raising SystemExit for cleanup
+2026-11-04 13:00:25,353 WARNING training.recipes.sft_loop pipeline drain: DataLoader worker (pid 96210) is killed by signal: Terminated: 15. 
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:224: UserWarning: resource_tracker: There appear to be 20 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

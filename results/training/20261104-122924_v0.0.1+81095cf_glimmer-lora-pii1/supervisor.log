@@ -1,0 +1,11 @@
+12:29:24 attempt 1 starting, fresh start
+12:29:44 session accounts/rohan-majji/trainingSessions/ts-2471eda3b47d42039a60b2304c1ca2f3
+12:29:44 run run-3ae33b189bfd44bbb59217963a11fcfe
+12:32:24 eval loss at step 0: 0.0839
+12:35:55 step 25 loss 0.0385 ema 0.0426
+12:39:55 step 50 loss 0.0367 ema 0.0298
+12:43:45 step 75 loss 0.0665 ema 0.0267
+12:48:15 step 100 loss 0.0069 ema 0.0221
+12:51:35 step 125 loss 0.0101 ema 0.0318
+12:55:36 step 150 loss 0.0232 ema 0.0252
+12:58:46 step 175 loss 0.0159 ema 0.0249
