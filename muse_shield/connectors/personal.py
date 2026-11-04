@@ -1,4 +1,5 @@
-"""Contacts (vCard), calendar (iCalendar), files (a folder), bank statement (CSV) and health records (a folder).
+"""Contacts (vCard), calendar (iCalendar), bank statement (CSV), health records (a folder) and team chat.
+Your documents folder is its own connector (folder.py).
 
 Reads return {"status": ..., "<records>": [...]} with each record's text in one field, ready for masking.
 """
@@ -113,30 +114,6 @@ def reschedule_event(vault: Vault, chat_id: str, args: dict) -> dict:
                                                                "from": found[0]["start"], "start": args["start"],
                                                                "end": args.get("end", "")})
     return {"status": "event moved", "event": found[0]["event"], "start": args["start"], "outbox_id": outbox_id}
-
-
-# -- files -----------------------------------------------------------------------------------
-def _files() -> list[Path]:
-    folder = data_path("files", "MUSE_SHIELD_FILES")
-    return sorted(p for p in folder.iterdir() if p.suffix.lower() in (".md", ".txt") and p.is_file())
-
-
-def search_files(vault: Vault, chat_id: str, args: dict) -> dict:
-    out = []
-    for p in _files():
-        text = p.read_text()
-        if matches(args.get("query"), p.stem.replace("_", " "), text):
-            out.append({"id": opaque_id(p.name), "name": p.stem.replace("_", " "), "excerpt": text[:400]})
-    return {"status": f"{len(out[:MAX_RECORDS])} files", "files": out[:MAX_RECORDS]}
-
-
-def read_file(vault: Vault, chat_id: str, args: dict) -> dict:
-    for p in _files():
-        if opaque_id(p.name) == args["file_id"]:
-            text = p.read_text()
-            return {"status": "read" + (" (trimmed)" if len(text) > MAX_TEXT else ""), "id": args["file_id"],
-                    "name": p.stem.replace("_", " "), "text": text[:MAX_TEXT]}
-    raise ValueError(f"no file with id {args['file_id']}")
 
 
 # -- bank statement --------------------------------------------------------------------------

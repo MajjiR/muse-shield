@@ -27,7 +27,8 @@ from .runners import RUNNERS
 from .tools import TOOLS
 
 SKIP_KEYS = {"id", "status", "date", "start", "end", "ts", "channel", "shared_outside", "outbox_id", "note_id",
-             "message_id"}  # structure, not content
+             "message_id", "kind", "items", "columns", "rows", "count",
+             "value", "result"}  # structure, not content; computed totals are already <RESULT_n> placeholders
 
 
 @dataclass

@@ -1,0 +1,12 @@
+date,description,amount (₹),type,balance (₹)
+2026-09-01,Acme Corp payroll,200000.00,credit,302610.00
+2026-09-01,Rent to Suresh Kulkarni,38000.00,debit,264610.00
+2026-09-04,Swiggy,910.00,debit,263700.00
+2026-09-05,Home loan EMI HDFC,22500.00,debit,241200.00
+2026-09-08,BigBasket,2875.00,debit,238325.00
+2026-09-11,BESCOM electricity,1980.00,debit,236345.00
+2026-09-12,Mutual fund SIP,15000.00,debit,221345.00
+2026-09-16,Zomato,1340.00,debit,220005.00
+2026-09-20,Uber,690.00,debit,219315.00
+2026-09-25,Apollo Pharmacy,1260.00,debit,218055.00
+2026-09-28,Netflix,649.00,debit,217406.00

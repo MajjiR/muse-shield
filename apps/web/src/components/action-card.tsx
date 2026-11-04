@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { ActionStatus, AgentAction } from "@muse-shield/core"
 import {
-  ArrowRight, Calculator, CalendarClock, CalendarDays, CalendarPlus, Check, ChevronRight, Contact, FileText, Globe, HeartPulse,
+  ArrowRight, Calculator, FolderOpen, Sheet, CalendarClock, CalendarDays, CalendarPlus, Check, ChevronRight, Contact, FileText, Globe, HeartPulse,
   Inbox, Landmark, Loader2, Mail, MessagesSquare, NotebookPen, Send, ShieldAlert, ShieldX, Wrench, X,
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
@@ -17,7 +17,9 @@ const TOOLS: Record<string, { icon: typeof Mail; wants: string; run: string; don
   search_contacts: { icon: Contact, wants: "look up your contacts", run: "Search", done: "Contacts" },
   list_events: { icon: CalendarDays, wants: "read your calendar", run: "Read", done: "Calendar" },
   reschedule_event: { icon: CalendarClock, wants: "move a calendar event", run: "Move event", done: "Event" },
+  list_folder: { icon: FolderOpen, wants: "open your documents folder", run: "Open", done: "Folder" },
   search_files: { icon: FileText, wants: "search your documents", run: "Search", done: "Documents" },
+  query_table: { icon: Sheet, wants: "calculate over a table on your device", run: "Calculate", done: "Table" },
   read_file: { icon: FileText, wants: "read a document", run: "Read", done: "Document" },
   read_transactions: { icon: Landmark, wants: "read your bank statement", run: "Read", done: "Statement" },
   read_health_records: { icon: HeartPulse, wants: "read your medical reports", run: "Read", done: "Health records" },
@@ -31,7 +33,8 @@ export const toolMeta = (tool: string) => TOOLS[tool] ?? { icon: Wrench, wants: 
 const FIELD_LABEL: Record<string, string> = {
   to: "To", attendees: "Invite", subject: "Subject", title: "Title", body: "Body", start: "When",
   duration_minutes: "Minutes", location: "Where", query: "Query", channel: "Channel", text: "Message", event_id: "Event",
-  file_id: "File", expression: "Sum", unit: "Shown as",
+  file_id: "File", expression: "Sum", unit: "Shown as", folder_id: "Folder", source_id: "Table", operation: "Operation",
+  column: "Column", contains: "Rows containing", contains_column: "In column", month: "Month", group_by: "Per",
 }
 
 const show = (v: unknown) => (Array.isArray(v) ? v.join(", ") : v == null ? "" : String(v))
@@ -194,7 +197,7 @@ export function ActionStep({ action }: { action: AgentAction }) {
 }
 
 type Rec = Record<string, unknown>
-const QUIET = new Set(["from", "date", "start", "end", "ts"]) // shown small, above the record
+const QUIET = new Set(["from", "date", "start", "end", "ts", "kind", "count", "items"]) // shown small, above the record
 const TITLE = new Set(["subject", "name", "event"])
 const HIDDEN = new Set(["id", "status", "outbox_id", "note_id", "shared_outside", "channel"])
 
@@ -222,7 +225,8 @@ function ReadResult({ action }: { action: AgentAction }) {
         ))}
       </ul>
       <p className="mt-1.5 text-[11.5px] text-muted-foreground">
-        {action.tool === "compute" ? "Worked out on your device with the real amounts; Muse Spark only got the placeholder."
+        {action.tool === "compute" || action.tool === "query_table"
+          ? "Worked out on your device with the real amounts; Muse Spark only got the placeholders."
           : <>Read on your device and masked before Muse Spark saw it{action.mask_cost_usd ? ` · masking $${action.mask_cost_usd.toFixed(4)}` : ""}.{" "}
             {trusted ? "Your own address book counts as you, so these addresses can be recipients."
               : "Addresses found here can’t be used as recipients unless you write them yourself."}</>}
