@@ -119,7 +119,11 @@ def run(backend: Backend, cases: list[Case], workers: int = 4) -> dict:
             case_tp += tp; case_fp += fp; case_fn += fn
         by_template[case.template].append(_prf(case_tp, case_fp, case_fn)["f1"])
         per_case.append({"id": case.id, "valid": True, "tp": case_tp, "fp": case_fp, "fn": case_fn,
-                         "ctx": list(s["contexts"]), "roles": list(s["roles"])})
+                         "ctx": list(s["contexts"]), "roles": list(s["roles"]),
+                         # the model's own output, for error analysis
+                         "pred": [[x.text, x.type, getattr(x, "role", None)] for x in a.entities],
+                         "pred_ctx": [[list(c.sentences), c.kind, getattr(c, "subtype", None)] for c in a.contexts],
+                         "dropped": [d["text"] for d in a.dropped]})
         roles[0] += s["roles"][0]; roles[1] += s["roles"][1]
         for i in range(3):
             ctx[i] += s["contexts"][i]

@@ -96,7 +96,7 @@ def main(argv: list[str]) -> int:
     failed = 0
     for spec in argv:
         name, model_id = spec.split(":", 1)
-        model = f"accounts/{ACCOUNT}/models/{model_id}"
+        model = model_id if "/" in model_id else f"accounts/{ACCOUNT}/models/{model_id}"
         dep_id = f"ms-eval-{name}".replace(".", "-")[:60]
         route = f"{model}#accounts/{ACCOUNT}/deployments/{dep_id}"
         t0 = time.monotonic()
