@@ -1,6 +1,6 @@
 """Evaluate a backend on the held-out sector test documents (Spark-written, double-labelled, verified).
 
-    .venv/bin/python -m muse_shield.sector_eval --backend glimmer --dir runs/synth/v2/test --tag sectors-glimmer-base
+    .venv/bin/python -m muse_shield.sector_eval --backend glimmer --dir data/synth-v2/test --tag sectors-glimmer-base
 
 Each test row becomes an eval Case (its numbered sentences, gold entities with roles, gold
 contexts), so the same scoring as the synthetic contract eval applies: JSON validity, entity
@@ -45,7 +45,7 @@ def load_cases(test_dir: Path, limit: int = 0) -> list[Case]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m muse_shield.sector_eval")
     ap.add_argument("--backend", default=None, help="glimmer | muse_spark")
-    ap.add_argument("--dir", type=Path, default=Path("runs/synth/v2/test"))
+    ap.add_argument("--dir", type=Path, default=Path("data/synth-v2/test"))
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--tag", default="sectors")
