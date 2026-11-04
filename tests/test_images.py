@@ -134,11 +134,12 @@ def test_contributor_models_are_refused():
 
 def test_endpoint_off_by_default_and_masks_with_models(vault):
     off = TestClient(create_app(vault, analyzer=None, chat_model=None))
-    assert off.get("/health").json()["images"] is False
+    assert off.get("/health").json()["images"] is False and off.get("/health").json()["image_model"] is None
     assert off.post("/images/mask", json={"image": "x"}).status_code == 503
 
     vision, sam, _ = fake_meta(find=FIND, recheck={"text": "", "items": [], "visual": []})
     c = TestClient(create_app(vault, image_masker=ImageMasker(vault, vision, sam, refine=False)))
+    assert c.get("/health").json()["image_model"] == "muse-spark-1.3 + sam-3.1"
     assert c.post("/images/mask", json={"image": "not base64!"}).status_code == 400
     assert c.post("/images/mask", json={"image": base64.b64encode(b"not an image").decode()}).status_code == 400
     r = c.post("/images/mask", json={"image": "data:image/png;base64," + base64.b64encode(picture()).decode()})
