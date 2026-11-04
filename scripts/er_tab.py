@@ -33,6 +33,7 @@ def main(limit_chars: int = 6000) -> int:
         cut = cut if cut > 1000 else min(len(text), limit_chars)
         text = text[:cut]
         clusters: dict[str, dict] = {}
+        no_mask: set[tuple[int, int]] = set()
         for m in r.entity_mentions:
             et = TYPES.get(m["entity_type"])
             if not et or m["end_offset"] > cut:
@@ -41,11 +42,14 @@ def main(limit_chars: int = 6000) -> int:
                 continue
             c = clusters.setdefault(m["entity_id"], {"type": et, "mentions": []})
             c["mentions"].append((int(m["start_offset"]), int(m["end_offset"])))
+            if m["identifier_type"] == "NO_MASK":  # in a cluster for coreference, but not a leak if left visible
+                no_mask.add((int(m["start_offset"]), int(m["end_offset"])))
         ents, counts = [], {}
         for c in sorted(clusters.values(), key=lambda c: min(s for s, _ in c["mentions"])):
             counts[c["type"]] = counts.get(c["type"], 0) + 1
             ents.append({"id": f"{c['type']}_{counts[c['type']]}", "type": c["type"], "mentions": sorted(set(c["mentions"]))})
-        out.append({"uid": r.doc_id, "family": "tab", "doc_type": "court judgment", "text": text, "entities": ents, "relations": []})
+        out.append({"uid": r.doc_id, "family": "tab", "doc_type": "court judgment", "text": text, "entities": ents, "relations": [],
+                    "no_mask": sorted(no_mask)})
     dst = REPO / "runs/er/tab"
     dst.mkdir(parents=True, exist_ok=True)
     (dst / "tab.docs.jsonl").write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in out))

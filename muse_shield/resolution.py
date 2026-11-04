@@ -334,6 +334,9 @@ def target_json(text: str, gold: dict) -> str:
 
 # -- scoring ----------------------------------------------------------------------------------
 
+_TITLE_PREFIX = re.compile(r"(?:(?:Mr|Mrs|Ms|Mx|Dr|Prof|Judge|Justice|Lord|Lady|Sir|Dame)\.?\s+)+")
+
+
 def _f1(tp: int, fp: int, fn: int) -> dict:
     p = tp / (tp + fp) if tp + fp else 1.0
     r = tp / (tp + fn) if tp + fn else 1.0
@@ -370,13 +373,17 @@ def score_doc(gold: dict, res: Resolution | None, relaxed: bool = False) -> dict
             if not m.reference:
                 for i in range(m.start, m.end):
                     covered[i] = True
-    leaks = {"all": [0, 0], "core": [0, 0]}
+    leaks = {"all": [0, 0], "core": [0, 0], "person": [0, 0]}
+    no_mask = {tuple(x) for x in gold.get("no_mask", [])}  # gold says these needn't be hidden (TAB's NO_MASK)
     for e in g_ent:
         for s, t in e["mentions"]:
-            if is_reference(text[s:t]) and e["type"] in ("PERSON", "ORG"):
+            if is_reference(text[s:t]) and e["type"] in ("PERSON", "ORG") or (s, t) in no_mask:
                 continue
-            leaked = not all(covered[s:t])
-            for k in ("all",) + (("core",) if e["type"] in CORE_TYPES else ()):
+            if relaxed:  # a leading title ("Mr", "Judge") isn't identifying: only the rest must be masked
+                m = _TITLE_PREFIX.match(text, s, t)
+                s = m.end() if m and m.end() < t else s
+            leaked = not all(covered[i] for i in range(s, t) if text[i].isalnum())
+            for k in ("all",) + (("core",) if e["type"] in CORE_TYPES else ()) + (("person",) if e["type"] == "PERSON" else ()):
                 leaks[k][0] += leaked
                 leaks[k][1] += 1
 
@@ -480,12 +487,14 @@ def aggregate(per_doc: list[dict]) -> dict:
         return n / t if t else None
 
     leak_all, leak_core = tot(("leaks", "all")), tot(("leaks", "core"))
+    leak_person = tot(("leaks", "person"))
     persons = tot(("persons",))
     return {
         "docs": len(per_doc),
         "valid": sum(d["valid"] for d in per_doc) / max(len(per_doc), 1),
         "leak": leak_all[0] / leak_all[1] if leak_all[1] else 0.0,
         "core_leak": leak_core[0] / leak_core[1] if leak_core[1] else 0.0,
+        "person_leak": leak_person[0] / leak_person[1] if leak_person[1] else 0.0,
         "mention": _f1(*tot(("mention",))),
         "coref": _f1(*tot(("coref",))),
         "owner_acc": ratio("owner"),

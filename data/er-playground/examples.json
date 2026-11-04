@@ -1,0 +1,129 @@
+[
+  {
+    "id": "hr-salary-revision",
+    "sector": "HR",
+    "title": "Salary revision email thread",
+    "text": "From: Ritika Sharma <ritika.sharma@helixsoft.in>\nTo: Aman Verma\nCc: Neha Kulkarni\nSubject: Revised compensation – FY27\n\nHi Aman,\n\nFollowing your appraisal discussion with Neha, I'm happy to confirm that your revised annual CTC is ₹28,40,000, effective 1 April 2027. Your employee ID HS-20417 and PAN BKRPV4821L stay the same in our payroll system.\n\nNeha has also asked us to note that her own revision is still pending with the committee, so please don't share these numbers with the team.\n\nAs part of the update, please confirm your emergency contact. We currently have your mother, Sunita Verma, on +91 98201 44317. If that has changed, reply to this email.\n\nRegards,\nRitika\nHR Business Partner, HelixSoft Technologies\n\n---\nFrom: Aman Verma\nTo: Ritika Sharma\n\nThanks Ritika. Mom's number is still correct. I also moved last month — my new address is Flat 12B, Prestige Lakeside, Varthur Road, Bengaluru 560087.\n\nAman",
+    "check": [
+      "Aman Verma = one person across 'Aman', 'your', 'I' (second-person is not annotated, names and 'Aman' must link)",
+      "₹28,40,000 is SALARY owned by Aman; HS-20417 (EMPLOYEE_ID) and BKRPV4821L (PAN) owned by Aman",
+      "Sunita Verma: role mother; PARENT_OF Aman and EMERGENCY_CONTACT_OF Aman; the phone number belongs to Sunita, not Aman",
+      "Neha Kulkarni is a separate person (appraiser / manager); 'her own revision' refers to Neha",
+      "The new address belongs to Aman; HelixSoft Technologies is the employer"
+    ]
+  },
+  {
+    "id": "bank-loan-restructure",
+    "sector": "Banking",
+    "title": "Home loan restructuring email",
+    "text": "Dear Mr. Rajesh Iyer and Mrs. Kavitha Iyer,\n\nThis is with reference to your joint home loan account 50100388192746 with Sahyadri Co-operative Bank. As discussed with Mr. Iyer at our branch on 14 October 2026, the outstanding arrears of ₹1,86,400 will be added to the principal, and your monthly EMI will be revised to ₹42,750 from November.\n\nMrs. Iyer, as co-applicant, will need to sign the revised agreement. Please bring her PAN card (CQLPI7730K) and Mr. Iyer's Aadhaar (5821 9034 6617) for KYC.\n\nPayments will continue to be debited from the savings account linked to IFSC SAHY0004127. If you have questions, please call me on +91 99001 23876.\n\nWarm regards,\nPrakash Menon\nRelationship Manager, Sahyadri Co-operative Bank",
+    "check": [
+      "Rajesh Iyer and Kavitha Iyer are two different people even though both are 'Iyer'; 'Mr. Iyer' -> Rajesh, 'Mrs. Iyer' and 'her' -> Kavitha",
+      "Kavitha is SPOUSE_OF Rajesh (co-applicant)",
+      "Arrears ₹1,86,400 and EMI ₹42,750 are LOAN amounts (owner: the borrowers)",
+      "PAN CQLPI7730K belongs to Kavitha; Aadhaar 5821 9034 6617 belongs to Rajesh",
+      "The phone number belongs to Prakash Menon (relationship manager), employed by the bank"
+    ]
+  },
+  {
+    "id": "hospital-discharge",
+    "sector": "Healthcare",
+    "title": "Discharge summary with a family caregiver",
+    "text": "DISCHARGE SUMMARY – Lumina Multispeciality Hospital\n\nPatient: Mohan Das          MRN: LMH-2026-55812\nAge: 71 years               DOB: 3 February 1955\nAdmitted: 28 October 2026   Discharged: 2 November 2026\n\nMr. Das was admitted under Dr. Farah Siddiqui with an acute exacerbation of COPD and uncontrolled type 2 diabetes. He responded well to nebulisation and insulin titration. His weight on discharge was 64 kg.\n\nHis daughter, Ananya Das, has been trained on the inhaler technique and blood-sugar monitoring and will be his primary caregiver at home. She can be reached at +91 90081 66245. Dr. Siddiqui has asked that she bring her father for review in two weeks.\n\nDischarge medication and diet advice were explained to both the patient and his daughter.\n\nDr. Farah Siddiqui\nConsultant Pulmonologist",
+    "check": [
+      "Mohan Das: 'Mr. Das', 'He', 'His', 'her father', 'the patient' all refer to him",
+      "Ananya Das is a different person with the same surname; 'She', 'her' -> Ananya; Mohan PARENT_OF Ananya",
+      "COPD / type 2 diabetes (HEALTH), 71 years (AGE), 64 kg (BODY_MEASUREMENT), MRN and DOB all owned by Mohan",
+      "The phone number belongs to Ananya",
+      "Dr. Farah Siddiqui TREATS Mohan; the hospital is an ORG"
+    ]
+  },
+  {
+    "id": "legal-notice",
+    "sector": "Legal",
+    "title": "Advocate's notice for recovery of dues",
+    "text": "LEGAL NOTICE\n\nTo: Mr. Vikram Malhotra, 44 Shanti Vihar, Sector 21, Gurugram 122016\n\nUnder instructions from my client, Ms. Pooja Arora, proprietor of Arora Interiors, I hereby serve you this notice.\n\nMy client completed the interior work at your residence in March 2026 against a contract value of ₹9,60,000. Despite repeated reminders, you have paid only ₹4,00,000, leaving ₹5,60,000 outstanding. You are hereby called upon to pay the balance within 15 days of receipt of this notice, failing which my client will initiate recovery proceedings at your cost.\n\nA copy of this notice is retained in my office for record. My professional fee of ₹25,000 for this notice is also recoverable from you.\n\nAdv. Sameer Khanna\nKhanna & Associates\nPhone: +91 98112 70345",
+    "check": [
+      "Three people: Vikram Malhotra (opposing party, addressed as 'you'), Pooja Arora (client), Sameer Khanna (advocate, 'I', 'my')",
+      "Sameer Khanna REPRESENTS Pooja Arora; Pooja is linked to Arora Interiors",
+      "The Gurugram address belongs to Vikram",
+      "₹5,60,000 outstanding is owed by Vikram to Pooja (owner Pooja or Vikram is debatable: check the model's choice is consistent)",
+      "₹25,000 is a FEE (the advocate's); the phone belongs to Sameer"
+    ]
+  },
+  {
+    "id": "ma-deal-email",
+    "sector": "M&A / Finance",
+    "title": "Confidential deal-team update",
+    "text": "Subject: Project Kingfisher – update before Thursday's board call\n\nTeam,\n\nQuick update on Kingfisher. Orion Capital is now prepared to move to a binding offer for Tarang Foods at an enterprise value of ₹1,850 crore, subject to diligence on the Nashik plant. Tarang's FY26 revenue came in at ₹642 crore, slightly below their management case.\n\nDeepak Rao (Orion's CFO) wants the term sheet circulated by 18 November 2026. Meera Pillai at Granite Advisors is coordinating the lender group; her direct line is +91 22 6118 4402 and she prefers email at meera.pillai@graniteadvisors.com.\n\nPlease keep this strictly within the deal team — Tarang's employees have not been told.\n\nArjun\nDeal Lead, Orion Capital",
+    "check": [
+      "Project Kingfisher is a PROJECT codename (and 'Kingfisher' is the same entity)",
+      "Orion Capital (acquirer), Tarang Foods (target, also 'Tarang'), Granite Advisors are ORGs",
+      "₹1,850 crore is DEAL_VALUE; ₹642 crore is REVENUE owned by Tarang Foods",
+      "Deepak Rao is EMPLOYED_BY Orion; Meera Pillai's phone and email belong to her ('her', 'she')",
+      "Arjun (the sender) is a separate person, deal lead at Orion"
+    ]
+  },
+  {
+    "id": "insurance-claim",
+    "sector": "Insurance",
+    "title": "Life insurance claim settlement letter",
+    "text": "Dear Mrs. Lakshmi Narayan,\n\nRe: Claim under Policy No. TLI/2019/448213 – Late Shri Gopal Narayan\n\nWe are deeply sorry for your loss. Following the verification of documents submitted by you as the registered nominee, we have approved the death claim on your late husband's policy for ₹50,00,000.\n\nThe amount will be credited to your savings account 31420016652 within seven working days. Your son, Kiran Narayan, who accompanied you to the branch, has been listed as the alternate contact on +91 94430 18862.\n\nFor any questions please contact our claims officer, Ms. Divya Krishnan, at divya.krishnan@trustlifeins.com.\n\nYours sincerely,\nClaims Department, TrustLife Insurance",
+    "check": [
+      "Gopal Narayan (deceased policyholder) and Lakshmi Narayan (nominee, 'your', 'you') are different people; Lakshmi SPOUSE_OF and NOMINEE_OF Gopal",
+      "Kiran Narayan is a third Narayan; Lakshmi PARENT_OF Kiran (or Gopal PARENT_OF Kiran)",
+      "Policy TLI/2019/448213 belongs to Gopal; the ₹50,00,000 claim and the bank account belong to Lakshmi",
+      "The phone number belongs to Kiran; the email belongs to Divya Krishnan (claims officer, TrustLife)"
+    ]
+  },
+  {
+    "id": "rental-agreement",
+    "sector": "Real estate",
+    "title": "Rental agreement summary (a document type the model never trained on)",
+    "text": "RENTAL AGREEMENT – KEY TERMS\n\nThis agreement is made on 1 December 2026 between Mr. Suresh Babu (\"Landlord\"), residing at 7 Gandhi Bazaar Main Road, Basavanagudi, Bengaluru 560004, and Ms. Aisha Khan (\"Tenant\").\n\nThe Landlord agrees to let the 2BHK flat no. 304, Silver Oak Residency, HSR Layout, to the Tenant for eleven months. The monthly rent is ₹32,000, payable by the 5th of every month. The Tenant has paid a refundable security deposit of ₹1,60,000.\n\nIdentity documents: Landlord's Aadhaar 6654 2210 9873; Tenant's PAN ATHPK6619D. The Tenant's contact number is +91 70225 81904.\n\nWitness: Rahul Desai.",
+    "check": [
+      "Suresh Babu = 'Landlord'; Aisha Khan = 'Tenant' (descriptions should link to the right person)",
+      "Suresh LANDLORD_OF Aisha",
+      "Rent ₹32,000 is PRICE; deposit ₹1,60,000 is FEE; both owned by Aisha (tenant)",
+      "Aadhaar belongs to Suresh; PAN and phone belong to Aisha; Suresh's address is RESIDENTIAL",
+      "Rahul Desai is a third person (witness)"
+    ]
+  },
+  {
+    "id": "school-fee-concession",
+    "sector": "Education",
+    "title": "Fee concession application with two parents (never trained on this type)",
+    "text": "To: The Principal, Crescent International School\nSubject: Request for fee concession – Riya Joseph, Class 6B\n\nRespected Ma'am,\n\nWe, Thomas Joseph and Maria Joseph, are the parents of Riya Joseph (date of birth 9 July 2015), who has studied at Crescent since nursery. Due to my husband's recent job loss, we request a 50% concession on Riya's annual tuition fee of ₹1,42,000 for this academic year.\n\nRiya has mild asthma, which her class teacher, Mrs. Geeta Rao, is already aware of. We would be grateful if this could also be kept on record for her sports activities.\n\nThomas can be reached at +91 98450 31277, and I can be contacted at maria.joseph81@gmail.com.\n\nThank you,\nMaria Joseph",
+    "check": [
+      "Thomas Joseph and Maria Joseph are BOTH PARENT_OF Riya Joseph (two parents of one child); Thomas SPOUSE_OF Maria ('my husband')",
+      "Three Josephs must stay three different identities",
+      "DOB, tuition fee ₹1,42,000 (FEE) and asthma (HEALTH) belong to Riya; 'her' -> Riya",
+      "The phone belongs to Thomas; the email belongs to Maria",
+      "Geeta Rao is the class teacher; Crescent International School is an ORG"
+    ]
+  },
+  {
+    "id": "us-benefits-enrollment",
+    "sector": "HR (US)",
+    "title": "US benefits enrollment confirmation",
+    "text": "Hi Jessica,\n\nWelcome to Redwood Labs! This confirms your benefits enrollment, effective December 1, 2026.\n\nEmployee: Jessica Moore (SSN on file: 412-68-9035)\nBase salary: $138,500\nHome address: 2214 Cedar Lane, Austin, TX 78704\n\nCovered dependents:\n- Daniel Moore (spouse), DOB March 14, 1988\n- Ethan Moore (son), DOB June 2, 2019\n\nDaniel has been added as your emergency contact at (512) 448-2290. Please note that your manager, Kevin Patel, must approve your remote-work stipend before it appears on your first paycheck.\n\nIf anything looks wrong, reply to me directly.\n\nThanks,\nOlivia Grant\nBenefits Coordinator, Redwood Labs",
+    "check": [
+      "Jessica, Daniel and Ethan Moore are three identities; Daniel SPOUSE_OF Jessica and EMERGENCY_CONTACT_OF Jessica; Jessica (and Daniel) PARENT_OF Ethan",
+      "SSN, salary $138,500 and the home address belong to Jessica",
+      "Each DOB belongs to the person on its line (Daniel, Ethan); the phone belongs to Daniel",
+      "Kevin Patel MANAGES Jessica; Olivia Grant is the benefits coordinator"
+    ]
+  },
+  {
+    "id": "payroll-table-ambiguous",
+    "sector": "Payroll",
+    "title": "Payroll table plus an ambiguous bonus note",
+    "text": "October 2026 payroll – Field Sales (Pune)\n\n| Employee | Employee ID | Net pay | Bank account |\n|---|---|---|---|\n| Harsh Vardhan | FS-1182 | ₹96,400 | 004401556281 |\n| Rohit Jain | FS-1207 | ₹88,150 | 917020045516 |\n| Sneha Bhosale | FS-1219 | ₹1,02,300 | 30244118790 |\n\nNotes:\n1. Sneha's net pay includes her quarterly incentive.\n2. Harsh and Rohit both met the regional head last week. His performance bonus of ₹40,000 has been approved and will be paid in November.\n3. Rohit's bank account was updated on 21 October 2026.\n\nPrepared by: Anil Kumar, Payroll",
+    "check": [
+      "Each table row's employee ID, net pay and bank account belongs to the person on that row",
+      "Note 1: 'her' -> Sneha",
+      "Note 2: 'His performance bonus' could be Harsh or Rohit -> the bonus owner should be UNKNOWN, not a guess",
+      "Note 3: the date belongs to Rohit (account update); Anil Kumar prepared the sheet"
+    ]
+  }
+]
