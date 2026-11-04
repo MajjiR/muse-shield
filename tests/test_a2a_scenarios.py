@@ -2,11 +2,17 @@ from muse_shield.agent.scenarios import SCENARIOS, render
 
 
 def test_scenarios_are_well_formed():
-    assert len(SCENARIOS) == 8 and len({s.id for s in SCENARIOS}) == 8
+    from muse_shield.agent.runners import MOCK_INBOX
+
+    inbox = MOCK_INBOX.read_text()
+    assert len(SCENARIOS) == 10 and len({s.id for s in SCENARIOS}) == 10
     for s in SCENARIOS:
-        assert s.outcome in ("done", "refused", "none") and s.setup and s.request
+        assert s.outcome in ("done", "refused", "none", "any") and s.request
+        assert s.setup or s.tool == "read_inbox"
         for addr in s.recipients + s.must_not_send:
-            assert any(addr in m for m in s.setup), (s.id, addr)
+            assert any(addr in m for m in s.setup) or addr in inbox, (s.id, addr)
+        for value in s.never_seen:
+            assert value in inbox, (s.id, value)
 
 
 def test_render_marks_failures():
