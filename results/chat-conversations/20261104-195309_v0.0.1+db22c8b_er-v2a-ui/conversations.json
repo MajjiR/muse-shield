@@ -1,0 +1,2989 @@
+[
+ {
+  "chat_id": "c_76adef853b",
+  "messages": [
+   {
+    "message_id": "m_f76c86885ffb",
+    "role": "user",
+    "masked_text": "Can you draft a polite reply to this? Keep it short.\n\n\"Hi <PERSON_1>, I wanted to check on my reimbursement for the Pune client visit. I submitted the claim for <AMOUNT_1> on <DATE_1> and it still shows pending. My employee ID is <ID_1>. Also, <PERSON_2> from finance said my bank details might be outdated — the account ending 4471 is closed, please use <ID_2> with IFSC <ID_3> instead. Thanks, <PERSON_3>\"\n\nI'm <PERSON_1> from HR at <ORG_1>. Tell him it'll be processed by Friday.",
+    "original": "Can you draft a polite reply to this? Keep it short.\n\n\"Hi Kavya, I wanted to check on my reimbursement for the Pune client visit. I submitted the claim for ₹18,450 on 12 October and it still shows pending. My employee ID is EMP-30915. Also, Rahul from finance said my bank details might be outdated — the account ending 4471 is closed, please use 50100229384771 with IFSC HDFC0001289 instead. Thanks, Nikhil Arora\"\n\nI'm Kavya Menon from HR at Brightpath Logistics. Tell him it'll be processed by Friday.",
+    "meta": {
+     "spans": [
+      {
+       "start": 58,
+       "end": 63,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 156,
+       "end": 163,
+       "type": "AMOUNT",
+       "role": "OTHER",
+       "placeholder": "<AMOUNT_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 167,
+       "end": 177,
+       "type": "DATE",
+       "role": null,
+       "placeholder": "<DATE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 224,
+       "end": 233,
+       "type": "ID",
+       "role": null,
+       "placeholder": "<ID_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 241,
+       "end": 246,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 347,
+       "end": 361,
+       "type": "ID",
+       "role": null,
+       "placeholder": "<ID_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 372,
+       "end": 383,
+       "type": "ID",
+       "role": null,
+       "placeholder": "<ID_3>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 401,
+       "end": 413,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_3>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 420,
+       "end": 431,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 443,
+       "end": 463,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793801751.765088,
+    "text": "Can you draft a polite reply to this? Keep it short.\n\n\"Hi Kavya, I wanted to check on my reimbursement for the Pune client visit. I submitted the claim for ₹18,450 on 12 October and it still shows pending. My employee ID is EMP-30915. Also, Rahul from finance said my bank details might be outdated — the account ending 4471 is closed, please use 50100229384771 with IFSC HDFC0001289 instead. Thanks, Nikhil Arora\"\n\nI'm Kavya Menon from HR at Brightpath Logistics. Tell him it'll be processed by Friday."
+   },
+   {
+    "message_id": "m_6131527593ec",
+    "role": "assistant",
+    "masked_text": "Here's a short draft:\n\n> Hi <PERSON_3>,\n>\n> Thanks for flagging this — I've noted your claim for <AMOUNT_1> and the updated bank details.\n>\n> It will be processed by Friday. I'll confirm once done.\n>\n> Best,\n> <PERSON_1>\n> HR, <ORG_1>",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.0043125
+    },
+    "created_at": 1793801760.377847,
+    "text": "Here's a short draft:\n\n> Hi Nikhil Arora,\n>\n> Thanks for flagging this — I've noted your claim for ₹18,450 and the updated bank details.\n>\n> It will be processed by Friday. I'll confirm once done.\n>\n> Best,\n> Kavya Menon\n> HR, Brightpath Logistics",
+    "segments": [
+     {
+      "text": "Here's a short draft:\n\n> Hi "
+     },
+     {
+      "label": "<PERSON_3>",
+      "kind": "entity",
+      "text": "Nikhil Arora"
+     },
+     {
+      "text": ",\n>\n> Thanks for flagging this — I've noted your claim for "
+     },
+     {
+      "label": "<AMOUNT_1>",
+      "kind": "entity",
+      "text": "₹18,450"
+     },
+     {
+      "text": " and the updated bank details.\n>\n> It will be processed by Friday. I'll confirm once done.\n>\n> Best,\n> "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Kavya Menon"
+     },
+     {
+      "text": "\n> HR, "
+     },
+     {
+      "label": "<ORG_1>",
+      "kind": "entity",
+      "text": "Brightpath Logistics"
+     }
+    ]
+   },
+   {
+    "message_id": "m_8b8d65ac8604",
+    "role": "user",
+    "masked_text": "Also write a one-line note to <PERSON_2> asking him to update <PERSON_3>'s account to the new one before Friday.",
+    "original": "Also write a one-line note to Rahul asking him to update Nikhil's account to the new one before Friday.",
+    "meta": {
+     "spans": [
+      {
+       "start": 30,
+       "end": 35,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 57,
+       "end": 63,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_3>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793801772.8006332,
+    "text": "Also write a one-line note to Rahul asking him to update Nikhil's account to the new one before Friday."
+   },
+   {
+    "message_id": "m_ff7dca19f53a",
+    "role": "assistant",
+    "masked_text": "Hi <PERSON_2>, could you please update <PERSON_3>'s account to his new bank details before Friday?",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.008087500000000001
+    },
+    "created_at": 1793801786.939669,
+    "text": "Hi Rahul, could you please update Nikhil Arora's account to his new bank details before Friday?",
+    "segments": [
+     {
+      "text": "Hi "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Rahul"
+     },
+     {
+      "text": ", could you please update "
+     },
+     {
+      "label": "<PERSON_3>",
+      "kind": "entity",
+      "text": "Nikhil Arora"
+     },
+     {
+      "text": "'s account to his new bank details before Friday?"
+     }
+    ]
+   }
+  ],
+  "consents": [],
+  "graph": {
+   "nodes": [
+    {
+     "id": "<PERSON_1>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<AMOUNT_1>",
+     "group": "entity",
+     "type": "AMOUNT",
+     "chats": 2
+    },
+    {
+     "id": "<DATE_1>",
+     "group": "entity",
+     "type": "DATE",
+     "chats": 1
+    },
+    {
+     "id": "<ID_1>",
+     "group": "entity",
+     "type": "ID",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_2>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<ID_2>",
+     "group": "entity",
+     "type": "ID",
+     "chats": 1
+    },
+    {
+     "id": "<ID_3>",
+     "group": "entity",
+     "type": "ID",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_3>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<ORG_1>",
+     "group": "entity",
+     "type": "ORG",
+     "chats": 1
+    }
+   ],
+   "edges": [
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<DATE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ID_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ID_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<PERSON_3>",
+     "rel": "belongs_to",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ID_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ID_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<ID_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_3>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<ID_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_3>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<ID_3>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_3>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_3>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_3>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_3>",
+     "target": "<PERSON_3>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<ORG_1>",
+     "rel": "employed_by",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 2
+    }
+   ]
+  }
+ },
+ {
+  "chat_id": "c_19fd1554c7",
+  "messages": [
+   {
+    "message_id": "m_dc837288545e",
+    "role": "user",
+    "masked_text": "Help me write an email to HR about two people on my team. <PERSON_1> has missed three client deadlines since August and his last review score was 2.1. <PERSON_2> has been covering for him and deserves a spot bonus of <SALARY_1>. <PERSON_1> mentioned he's been dealing with his father's surgery, so I want the tone to be supportive, not punitive. Send it to <PERSON_3> (<CONTACT_1>). I'm <PERSON_4>, the delivery manager.",
+    "original": "Help me write an email to HR about two people on my team. Arjun Bose has missed three client deadlines since August and his last review score was 2.1. Priya Shetty has been covering for him and deserves a spot bonus of ₹50,000. Arjun mentioned he's been dealing with his father's surgery, so I want the tone to be supportive, not punitive. Send it to Meghna Rao (meghna.rao@zentrix.in). I'm Siddharth, the delivery manager.",
+    "meta": {
+     "spans": [
+      {
+       "start": 58,
+       "end": 68,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 151,
+       "end": 163,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 219,
+       "end": 226,
+       "type": "AMOUNT",
+       "role": "SALARY",
+       "placeholder": "<SALARY_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 228,
+       "end": 233,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 351,
+       "end": 361,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_3>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 363,
+       "end": 384,
+       "type": "CONTACT",
+       "role": null,
+       "placeholder": "<CONTACT_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 391,
+       "end": 400,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_4>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793801805.0484412,
+    "text": "Help me write an email to HR about two people on my team. Arjun Bose has missed three client deadlines since August and his last review score was 2.1. Priya Shetty has been covering for him and deserves a spot bonus of ₹50,000. Arjun mentioned he's been dealing with his father's surgery, so I want the tone to be supportive, not punitive. Send it to Meghna Rao (meghna.rao@zentrix.in). I'm Siddharth, the delivery manager."
+   },
+   {
+    "message_id": "m_df6c860f0588",
+    "role": "tool_call",
+    "masked_text": "TOOL_CALL: {\"tool\": \"send_email\", \"args\": {\"to\": [\"<CONTACT_1>\"], \"subject\": \"Supportive check-in for <PERSON_1> and spot bonus recommendation for <PERSON_2>\", \"body\": \"Dear <PERSON_3>,\\n\\nI am writing as delivery manager regarding two members of my team.\\n\\nFirst, <PERSON_1> has missed three client deadlines since August and his last review score was 2.1. He has shared with me that he has been dealing with his father's surgery, so I would like us to approach this in a supportive, not punitive, way. Could you please advise on what support resources, flexible arrangements, or wellness check-in we can offer him?\\n\\nSecond, <PERSON_2> has been covering for him during this period and has kept delivery on track. I would like to recommend <PERSON_2> for a spot bonus of <SALARY_1> in recognition of this extra contribution.\\n\\nPlease let me know next steps for both items.\\n\\nBest regards,\\n<PERSON_4>\\nDelivery Manager\"}}",
+    "original": null,
+    "meta": {
+     "tool": "send_email",
+     "action_id": "x_28356a32b5"
+    },
+    "created_at": 1793801817.5584059,
+    "text": "TOOL_CALL: {\"tool\": \"send_email\", \"args\": {\"to\": [\"meghna.rao@zentrix.in\"], \"subject\": \"Supportive check-in for Arjun Bose and spot bonus recommendation for Priya Shetty\", \"body\": \"Dear Meghna Rao,\\n\\nI am writing as delivery manager regarding two members of my team.\\n\\nFirst, Arjun Bose has missed three client deadlines since August and his last review score was 2.1. He has shared with me that he has been dealing with his father's surgery, so I would like us to approach this in a supportive, not punitive, way. Could you please advise on what support resources, flexible arrangements, or wellness check-in we can offer him?\\n\\nSecond, Priya Shetty has been covering for him during this period and has kept delivery on track. I would like to recommend Priya Shetty for a spot bonus of ₹50,000 in recognition of this extra contribution.\\n\\nPlease let me know next steps for both items.\\n\\nBest regards,\\nSiddharth\\nDelivery Manager\"}}"
+   },
+   {
+    "message_id": "m_57e8ad69157a",
+    "role": "user",
+    "masked_text": "Now a short Slack message to <PERSON_2> thanking her for covering, without mentioning <PERSON_1>'s situation.",
+    "original": "Now a short Slack message to Priya thanking her for covering, without mentioning Arjun's situation.",
+    "meta": {
+     "spans": [
+      {
+       "start": 29,
+       "end": 34,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 81,
+       "end": 86,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793801860.232577,
+    "text": "Now a short Slack message to Priya thanking her for covering, without mentioning Arjun's situation."
+   },
+   {
+    "message_id": "m_0d8c91616808",
+    "role": "assistant",
+    "masked_text": "Here's a draft you can paste into Slack:\n\n> Hi <PERSON_2>, just wanted to say a big thank you for stepping up and covering extra delivery work lately — I really appreciate it and I've put you forward for recognition. Thanks again!",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.003562
+    },
+    "created_at": 1793801865.928936,
+    "text": "Here's a draft you can paste into Slack:\n\n> Hi Priya Shetty, just wanted to say a big thank you for stepping up and covering extra delivery work lately — I really appreciate it and I've put you forward for recognition. Thanks again!",
+    "segments": [
+     {
+      "text": "Here's a draft you can paste into Slack:\n\n> Hi "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Priya Shetty"
+     },
+     {
+      "text": ", just wanted to say a big thank you for stepping up and covering extra delivery work lately — I really appreciate it and I've put you forward for recognition. Thanks again!"
+     }
+    ]
+   },
+   {
+    "message_id": "m_7913f57a61d8",
+    "role": "user",
+    "masked_text": "Now a short Slack message to <PERSON_2> thanking her for covering, without mentioning <PERSON_1>'s situation.",
+    "original": "Now a short Slack message to Priya thanking her for covering, without mentioning Arjun's situation.",
+    "meta": {
+     "spans": [
+      {
+       "start": 29,
+       "end": 34,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 81,
+       "end": 86,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793801869.5268328,
+    "text": "Now a short Slack message to Priya thanking her for covering, without mentioning Arjun's situation."
+   },
+   {
+    "message_id": "m_afa2882b5673",
+    "role": "assistant",
+    "masked_text": "Hi <PERSON_2>, thank you so much for covering extra work lately to keep us on track — really appreciate your reliability and teamwork!",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.00240445
+    },
+    "created_at": 1793801875.550453,
+    "text": "Hi Priya Shetty, thank you so much for covering extra work lately to keep us on track — really appreciate your reliability and teamwork!",
+    "segments": [
+     {
+      "text": "Hi "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Priya Shetty"
+     },
+     {
+      "text": ", thank you so much for covering extra work lately to keep us on track — really appreciate your reliability and teamwork!"
+     }
+    ]
+   }
+  ],
+  "consents": [],
+  "graph": {
+   "nodes": [
+    {
+     "id": "<PERSON_1>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_2>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<SALARY_1>",
+     "group": "entity",
+     "type": "AMOUNT",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_3>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<CONTACT_1>",
+     "group": "entity",
+     "type": "CONTACT",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_4>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    }
+   ],
+   "edges": [
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_3>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_4>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 3
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_4>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_4>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_3>",
+     "target": "<PERSON_4>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_3>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_4>",
+     "target": "<PERSON_1>",
+     "rel": "manages",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_4>",
+     "target": "<PERSON_2>",
+     "rel": "manages",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_4>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<SALARY_1>",
+     "target": "<PERSON_2>",
+     "rel": "belongs_to",
+     "weight": 1
+    }
+   ]
+  }
+ },
+ {
+  "chat_id": "c_840dff2861",
+  "messages": [
+   {
+    "message_id": "m_fc1bb411601b",
+    "role": "user",
+    "masked_text": "I need a dispute letter to my bank. This charge isn't mine:\n\n<DATE_1>  POS  MERCHANT: GLOBALTECH STORE DUBAI  <AMOUNT_1>  Card xx8823\n\nMy name is <PERSON_1>, card number <ID_1>, account <ID_2> with <ORG_1>. My husband <PERSON_2> also has an add-on card on this account but he says he didn't use it either. Please mention I'm reachable on <CONTACT_1>.",
+    "original": "I need a dispute letter to my bank. This charge isn't mine:\n\n03 Nov 2026  POS  MERCHANT: GLOBALTECH STORE DUBAI  USD 1,249.00  Card xx8823\n\nMy name is Fatima Sheikh, card number 4532 7719 0045 8823, account 917020038814552 with Axis Bank. My husband Imran also has an add-on card on this account but he says he didn't use it either. Please mention I'm reachable on +91 98190 44721.",
+    "meta": {
+     "spans": [
+      {
+       "start": 61,
+       "end": 72,
+       "type": "DATE",
+       "role": null,
+       "placeholder": "<DATE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 113,
+       "end": 125,
+       "type": "AMOUNT",
+       "role": "OTHER",
+       "placeholder": "<AMOUNT_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 151,
+       "end": 164,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 178,
+       "end": 197,
+       "type": "ID",
+       "role": null,
+       "placeholder": "<ID_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 207,
+       "end": 222,
+       "type": "ID",
+       "role": null,
+       "placeholder": "<ID_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 228,
+       "end": 237,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 250,
+       "end": 255,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 365,
+       "end": 380,
+       "type": "CONTACT",
+       "role": null,
+       "placeholder": "<CONTACT_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793801893.269257,
+    "text": "I need a dispute letter to my bank. This charge isn't mine:\n\n03 Nov 2026  POS  MERCHANT: GLOBALTECH STORE DUBAI  USD 1,249.00  Card xx8823\n\nMy name is Fatima Sheikh, card number 4532 7719 0045 8823, account 917020038814552 with Axis Bank. My husband Imran also has an add-on card on this account but he says he didn't use it either. Please mention I'm reachable on +91 98190 44721."
+   },
+   {
+    "message_id": "m_89e72edac324",
+    "role": "assistant",
+    "masked_text": "Here is a draft dispute letter you can send to your bank:\n\n---\n\n**Subject: Dispute of Unauthorized Transaction - Card xx8823**\n\nTo the Dispute / Fraud Department,\n<ORG_1>\n\nDear Sir/Madam,\n\nI, <PERSON_1>, holder of card number <ID_1>, account <ID_2> with <ORG_1>, am writing to formally dispute the following transaction posted to my account:\n\n**<DATE_1>  POS  MERCHANT: GLOBALTECH STORE DUBAI  <AMOUNT_1>  Card xx8823**\n\nI confirm that I did not make, authorize, or participate in this transaction, nor did I receive any goods or services related to it.\n\nMy husband <PERSON_2>, who holds an add-on card on this same account, has also confirmed that he did not make or authorize this transaction.\n\nI request that you investigate this charge as unauthorized, reverse it, and confirm the correction to me in writing. Please also advise if my card needs to be blocked and reissued to prevent further misuse.\n\nI am reachable on <CONTACT_1> for any verification or further information.\n\nThank you for your prompt assistance.\n\nSincerely,\n<PERSON_1>\nCard: <ID_1>\nAccount: <ID_2>\nContact: <CONTACT_1>",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.0047485
+    },
+    "created_at": 1793801903.391839,
+    "text": "Here is a draft dispute letter you can send to your bank:\n\n---\n\n**Subject: Dispute of Unauthorized Transaction - Card xx8823**\n\nTo the Dispute / Fraud Department,\nAxis Bank\n\nDear Sir/Madam,\n\nI, Fatima Sheikh, holder of card number 4532 7719 0045 8823, account 917020038814552 with Axis Bank, am writing to formally dispute the following transaction posted to my account:\n\n**03 Nov 2026  POS  MERCHANT: GLOBALTECH STORE DUBAI  USD 1,249.00  Card xx8823**\n\nI confirm that I did not make, authorize, or participate in this transaction, nor did I receive any goods or services related to it.\n\nMy husband Imran, who holds an add-on card on this same account, has also confirmed that he did not make or authorize this transaction.\n\nI request that you investigate this charge as unauthorized, reverse it, and confirm the correction to me in writing. Please also advise if my card needs to be blocked and reissued to prevent further misuse.\n\nI am reachable on +91 98190 44721 for any verification or further information.\n\nThank you for your prompt assistance.\n\nSincerely,\nFatima Sheikh\nCard: 4532 7719 0045 8823\nAccount: 917020038814552\nContact: +91 98190 44721",
+    "segments": [
+     {
+      "text": "Here is a draft dispute letter you can send to your bank:\n\n---\n\n**Subject: Dispute of Unauthorized Transaction - Card xx8823**\n\nTo the Dispute / Fraud Department,\n"
+     },
+     {
+      "label": "<ORG_1>",
+      "kind": "entity",
+      "text": "Axis Bank"
+     },
+     {
+      "text": "\n\nDear Sir/Madam,\n\nI, "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Fatima Sheikh"
+     },
+     {
+      "text": ", holder of card number "
+     },
+     {
+      "label": "<ID_1>",
+      "kind": "entity",
+      "text": "4532 7719 0045 8823"
+     },
+     {
+      "text": ", account "
+     },
+     {
+      "label": "<ID_2>",
+      "kind": "entity",
+      "text": "917020038814552"
+     },
+     {
+      "text": " with "
+     },
+     {
+      "label": "<ORG_1>",
+      "kind": "entity",
+      "text": "Axis Bank"
+     },
+     {
+      "text": ", am writing to formally dispute the following transaction posted to my account:\n\n**"
+     },
+     {
+      "label": "<DATE_1>",
+      "kind": "entity",
+      "text": "03 Nov 2026"
+     },
+     {
+      "text": "  POS  MERCHANT: GLOBALTECH STORE DUBAI  "
+     },
+     {
+      "label": "<AMOUNT_1>",
+      "kind": "entity",
+      "text": "USD 1,249.00"
+     },
+     {
+      "text": "  Card xx8823**\n\nI confirm that I did not make, authorize, or participate in this transaction, nor did I receive any goods or services related to it.\n\nMy husband "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Imran"
+     },
+     {
+      "text": ", who holds an add-on card on this same account, has also confirmed that he did not make or authorize this transaction.\n\nI request that you investigate this charge as unauthorized, reverse it, and confirm the correction to me in writing. Please also advise if my card needs to be blocked and reissued to prevent further misuse.\n\nI am reachable on "
+     },
+     {
+      "label": "<CONTACT_1>",
+      "kind": "entity",
+      "text": "+91 98190 44721"
+     },
+     {
+      "text": " for any verification or further information.\n\nThank you for your prompt assistance.\n\nSincerely,\n"
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Fatima Sheikh"
+     },
+     {
+      "text": "\nCard: "
+     },
+     {
+      "label": "<ID_1>",
+      "kind": "entity",
+      "text": "4532 7719 0045 8823"
+     },
+     {
+      "text": "\nAccount: "
+     },
+     {
+      "label": "<ID_2>",
+      "kind": "entity",
+      "text": "917020038814552"
+     },
+     {
+      "text": "\nContact: "
+     },
+     {
+      "label": "<CONTACT_1>",
+      "kind": "entity",
+      "text": "+91 98190 44721"
+     }
+    ]
+   },
+   {
+    "message_id": "m_ab058adc5cea",
+    "role": "user",
+    "masked_text": "Before I send it — can you tell whether that card number looks valid and which network it is, Visa or Mastercard?",
+    "original": "Before I send it — can you tell whether that card number looks valid and which network it is, Visa or Mastercard?",
+    "meta": {
+     "spans": [],
+     "cost_usd": null
+    },
+    "created_at": 1793801913.336673,
+    "text": "Before I send it — can you tell whether that card number looks valid and which network it is, Visa or Mastercard?"
+   },
+   {
+    "message_id": "m_926da4e33139",
+    "role": "reveal",
+    "masked_text": "[The user declined to reveal <ID_1>. Answer as well as you can without it, keeping placeholders.]",
+    "original": null,
+    "meta": {
+     "label": "<ID_1>",
+     "level": "full",
+     "decision": "deny"
+    },
+    "created_at": 1793802026.718681,
+    "text": "[The user declined to reveal 4532 7719 0045 8823. Answer as well as you can without it, keeping placeholders.]"
+   },
+   {
+    "message_id": "m_c5c5ce077174",
+    "role": "assistant",
+    "masked_text": "I can't check it while it's masked — for <ID_1> I can only see the placeholder, not the digits, so I can't tell if it's valid or whether it's Visa or Mastercard.\n\nTo check it yourself without sharing it:\n\n1. **Network from the first digits:**\n   - Starts with `4` = Visa\n   - Starts with `51-55` or `2221-2720` = Mastercard\n   - Starts with `34` or `37` = Amex, starts with `6` = Discover/Rupay, etc.\n\n2. **Valid format check:**\n   - Should be 15-16 digits (19 for some), numbers only\n   - Passes the Luhn check — you can paste it into your bank's card checker or any offline Luhn calculator. Don't post the full number publicly.\n\nIf you want me to validate <ID_1> and identify the network, you'd need to allow me to see the real value on this device. Otherwise, compare the first digits above to tell Visa vs Mastercard.",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.00290835
+    },
+    "created_at": 1793802034.226069,
+    "text": "I can't check it while it's masked — for 4532 7719 0045 8823 I can only see the placeholder, not the digits, so I can't tell if it's valid or whether it's Visa or Mastercard.\n\nTo check it yourself without sharing it:\n\n1. **Network from the first digits:**\n   - Starts with `4` = Visa\n   - Starts with `51-55` or `2221-2720` = Mastercard\n   - Starts with `34` or `37` = Amex, starts with `6` = Discover/Rupay, etc.\n\n2. **Valid format check:**\n   - Should be 15-16 digits (19 for some), numbers only\n   - Passes the Luhn check — you can paste it into your bank's card checker or any offline Luhn calculator. Don't post the full number publicly.\n\nIf you want me to validate 4532 7719 0045 8823 and identify the network, you'd need to allow me to see the real value on this device. Otherwise, compare the first digits above to tell Visa vs Mastercard.",
+    "segments": [
+     {
+      "text": "I can't check it while it's masked — for "
+     },
+     {
+      "label": "<ID_1>",
+      "kind": "entity",
+      "text": "4532 7719 0045 8823"
+     },
+     {
+      "text": " I can only see the placeholder, not the digits, so I can't tell if it's valid or whether it's Visa or Mastercard.\n\nTo check it yourself without sharing it:\n\n1. **Network from the first digits:**\n   - Starts with `4` = Visa\n   - Starts with `51-55` or `2221-2720` = Mastercard\n   - Starts with `34` or `37` = Amex, starts with `6` = Discover/Rupay, etc.\n\n2. **Valid format check:**\n   - Should be 15-16 digits (19 for some), numbers only\n   - Passes the Luhn check — you can paste it into your bank's card checker or any offline Luhn calculator. Don't post the full number publicly.\n\nIf you want me to validate "
+     },
+     {
+      "label": "<ID_1>",
+      "kind": "entity",
+      "text": "4532 7719 0045 8823"
+     },
+     {
+      "text": " and identify the network, you'd need to allow me to see the real value on this device. Otherwise, compare the first digits above to tell Visa vs Mastercard."
+     }
+    ]
+   }
+  ],
+  "consents": [
+   {
+    "ts": 1793802026.716581,
+    "chat_id": "c_840dff2861",
+    "label": "<ID_1>",
+    "level": "full",
+    "decision": "deny",
+    "reason": "need real number to check validity and card network"
+   }
+  ],
+  "graph": {
+   "nodes": [
+    {
+     "id": "<DATE_1>",
+     "group": "entity",
+     "type": "DATE",
+     "chats": 3
+    },
+    {
+     "id": "<AMOUNT_1>",
+     "group": "entity",
+     "type": "AMOUNT",
+     "chats": 3
+    },
+    {
+     "id": "<PERSON_1>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 3
+    },
+    {
+     "id": "<ID_1>",
+     "group": "entity",
+     "type": "ID",
+     "chats": 3
+    },
+    {
+     "id": "<ID_2>",
+     "group": "entity",
+     "type": "ID",
+     "chats": 3
+    },
+    {
+     "id": "<ORG_1>",
+     "group": "entity",
+     "type": "ORG",
+     "chats": 3
+    },
+    {
+     "id": "<PERSON_2>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 3
+    },
+    {
+     "id": "<CONTACT_1>",
+     "group": "entity",
+     "type": "CONTACT",
+     "chats": 3
+    }
+   ],
+   "edges": [
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<CONTACT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<DATE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ID_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<AMOUNT_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<DATE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<ID_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_1>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ID_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<ID_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_1>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_1>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<ID_2>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<ORG_1>",
+     "rel": "employed_by",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_1>",
+     "rel": "spouse_of",
+     "weight": 1
+    }
+   ]
+  }
+ },
+ {
+  "chat_id": "c_2953ada40e",
+  "messages": [
+   {
+    "message_id": "m_8e3e8cba306d",
+    "role": "user",
+    "masked_text": "Summarise this for a referral letter to a cardiologist, <PERSON_1> at <ORG_1>:\n\nPatient <PERSON_2>, <SENSITIVE_ATTRIBUTE_1>, <ID_1>. Known <SENSITIVE_ATTRIBUTE_2>, on amlodipine. Presented with chest tightness on exertion for two weeks. ECG shows ST depression in V4-V6. Her son <PERSON_3> (ph <CONTACT_1>) accompanies her and is the contact for appointments. Weight <SENSITIVE_ATTRIBUTE_3>, BP 158/94.",
+    "original": "Summarise this for a referral letter to a cardiologist, Dr. Vivek Nair at Sunrise Heart Institute:\n\nPatient Kamala Iyer, 68, MRN SH-2026-11872. Known hypertensive, on amlodipine. Presented with chest tightness on exertion for two weeks. ECG shows ST depression in V4-V6. Her son Ramesh Iyer (ph +91 94440 22981) accompanies her and is the contact for appointments. Weight 71 kg, BP 158/94.",
+    "meta": {
+     "spans": [
+      {
+       "start": 56,
+       "end": 70,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 74,
+       "end": 97,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 108,
+       "end": 119,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 121,
+       "end": 123,
+       "type": "SENSITIVE_ATTRIBUTE",
+       "role": null,
+       "placeholder": "<SENSITIVE_ATTRIBUTE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 125,
+       "end": 142,
+       "type": "ID",
+       "role": null,
+       "placeholder": "<ID_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 150,
+       "end": 162,
+       "type": "SENSITIVE_ATTRIBUTE",
+       "role": null,
+       "placeholder": "<SENSITIVE_ATTRIBUTE_2>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 279,
+       "end": 290,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_3>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 295,
+       "end": 310,
+       "type": "CONTACT",
+       "role": null,
+       "placeholder": "<CONTACT_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 372,
+       "end": 377,
+       "type": "SENSITIVE_ATTRIBUTE",
+       "role": null,
+       "placeholder": "<SENSITIVE_ATTRIBUTE_3>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793802055.018313,
+    "text": "Summarise this for a referral letter to a cardiologist, Dr. Vivek Nair at Sunrise Heart Institute:\n\nPatient Kamala Iyer, 68, MRN SH-2026-11872. Known hypertensive, on amlodipine. Presented with chest tightness on exertion for two weeks. ECG shows ST depression in V4-V6. Her son Ramesh Iyer (ph +91 94440 22981) accompanies her and is the contact for appointments. Weight 71 kg, BP 158/94."
+   },
+   {
+    "message_id": "m_264cb1779e46",
+    "role": "assistant",
+    "masked_text": "Dear <PERSON_1> at <ORG_1>,\n\nRe: <PERSON_2>, <SENSITIVE_ATTRIBUTE_1>, <ID_1>\n\nThank you for seeing this patient with two weeks of exertional chest tightness.\n\nRelevant history: Known <SENSITIVE_ATTRIBUTE_2>, on amlodipine.\n\nExamination / Investigations:\nWeight <SENSITIVE_ATTRIBUTE_3>, BP 158/94.\nECG shows ST depression in V4-V6.\n\nAccompanied by her son <PERSON_3> (ph <CONTACT_1>) who is the contact for appointments.\n\nGrateful for your cardiac assessment.\n\nKind regards",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.005684
+    },
+    "created_at": 1793802063.7801442,
+    "text": "Dear Dr. Vivek Nair at Sunrise Heart Institute,\n\nRe: Kamala Iyer, 68, MRN SH-2026-11872\n\nThank you for seeing this patient with two weeks of exertional chest tightness.\n\nRelevant history: Known hypertensive, on amlodipine.\n\nExamination / Investigations:\nWeight 71 kg, BP 158/94.\nECG shows ST depression in V4-V6.\n\nAccompanied by her son Ramesh Iyer (ph +91 94440 22981) who is the contact for appointments.\n\nGrateful for your cardiac assessment.\n\nKind regards",
+    "segments": [
+     {
+      "text": "Dear "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Dr. Vivek Nair"
+     },
+     {
+      "text": " at "
+     },
+     {
+      "label": "<ORG_1>",
+      "kind": "entity",
+      "text": "Sunrise Heart Institute"
+     },
+     {
+      "text": ",\n\nRe: "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Kamala Iyer"
+     },
+     {
+      "text": ", "
+     },
+     {
+      "label": "<SENSITIVE_ATTRIBUTE_1>",
+      "kind": "entity",
+      "text": "68"
+     },
+     {
+      "text": ", "
+     },
+     {
+      "label": "<ID_1>",
+      "kind": "entity",
+      "text": "MRN SH-2026-11872"
+     },
+     {
+      "text": "\n\nThank you for seeing this patient with two weeks of exertional chest tightness.\n\nRelevant history: Known "
+     },
+     {
+      "label": "<SENSITIVE_ATTRIBUTE_2>",
+      "kind": "entity",
+      "text": "hypertensive"
+     },
+     {
+      "text": ", on amlodipine.\n\nExamination / Investigations:\nWeight "
+     },
+     {
+      "label": "<SENSITIVE_ATTRIBUTE_3>",
+      "kind": "entity",
+      "text": "71 kg"
+     },
+     {
+      "text": ", BP 158/94.\nECG shows ST depression in V4-V6.\n\nAccompanied by her son "
+     },
+     {
+      "label": "<PERSON_3>",
+      "kind": "entity",
+      "text": "Ramesh Iyer"
+     },
+     {
+      "text": " (ph "
+     },
+     {
+      "label": "<CONTACT_1>",
+      "kind": "entity",
+      "text": "+91 94440 22981"
+     },
+     {
+      "text": ") who is the contact for appointments.\n\nGrateful for your cardiac assessment.\n\nKind regards"
+     }
+    ]
+   },
+   {
+    "message_id": "m_b68b1084ed20",
+    "role": "user",
+    "masked_text": "Now draft a short SMS to her son confirming the cardiology appointment on Monday at 10 am, and remind him to bring her ECG.",
+    "original": "Now draft a short SMS to her son confirming the cardiology appointment on Monday at 10 am, and remind him to bring her ECG.",
+    "meta": {
+     "spans": [],
+     "cost_usd": null
+    },
+    "created_at": 1793802073.7284422,
+    "text": "Now draft a short SMS to her son confirming the cardiology appointment on Monday at 10 am, and remind him to bring her ECG."
+   },
+   {
+    "message_id": "m_fd1b9e16191a",
+    "role": "assistant",
+    "masked_text": "Hi <PERSON_3>, confirming the cardiology appointment for <PERSON_2> on Monday at 10am. Please bring her ECG with you.",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.00300745
+    },
+    "created_at": 1793802083.3437629,
+    "text": "Hi Ramesh Iyer, confirming the cardiology appointment for Kamala Iyer on Monday at 10am. Please bring her ECG with you.",
+    "segments": [
+     {
+      "text": "Hi "
+     },
+     {
+      "label": "<PERSON_3>",
+      "kind": "entity",
+      "text": "Ramesh Iyer"
+     },
+     {
+      "text": ", confirming the cardiology appointment for "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Kamala Iyer"
+     },
+     {
+      "text": " on Monday at 10am. Please bring her ECG with you."
+     }
+    ]
+   }
+  ],
+  "consents": [],
+  "graph": {
+   "nodes": [
+    {
+     "id": "<PERSON_1>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<ORG_1>",
+     "group": "entity",
+     "type": "ORG",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_2>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<SENSITIVE_ATTRIBUTE_1>",
+     "group": "entity",
+     "type": "SENSITIVE_ATTRIBUTE",
+     "chats": 1
+    },
+    {
+     "id": "<ID_1>",
+     "group": "entity",
+     "type": "ID",
+     "chats": 1
+    },
+    {
+     "id": "<SENSITIVE_ATTRIBUTE_2>",
+     "group": "entity",
+     "type": "SENSITIVE_ATTRIBUTE",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_3>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<CONTACT_1>",
+     "group": "entity",
+     "type": "CONTACT",
+     "chats": 1
+    },
+    {
+     "id": "<SENSITIVE_ATTRIBUTE_3>",
+     "group": "entity",
+     "type": "SENSITIVE_ATTRIBUTE",
+     "chats": 1
+    }
+   ],
+   "edges": [
+    {
+     "source": "<CONTACT_1>",
+     "target": "<ID_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<PERSON_3>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<CONTACT_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_2>",
+     "rel": "identifies",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ID_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<ORG_1>",
+     "rel": "employed_by",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "treats",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_3>",
+     "rel": "parent_of",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<SENSITIVE_ATTRIBUTE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_3>",
+     "target": "<SENSITIVE_ATTRIBUTE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_3>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_3>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<SENSITIVE_ATTRIBUTE_1>",
+     "target": "<PERSON_2>",
+     "rel": "belongs_to",
+     "weight": 1
+    },
+    {
+     "source": "<SENSITIVE_ATTRIBUTE_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<SENSITIVE_ATTRIBUTE_1>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<SENSITIVE_ATTRIBUTE_2>",
+     "target": "<PERSON_2>",
+     "rel": "belongs_to",
+     "weight": 1
+    },
+    {
+     "source": "<SENSITIVE_ATTRIBUTE_2>",
+     "target": "<SENSITIVE_ATTRIBUTE_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<SENSITIVE_ATTRIBUTE_3>",
+     "target": "<PERSON_2>",
+     "rel": "belongs_to",
+     "weight": 1
+    }
+   ]
+  }
+ },
+ {
+  "chat_id": "c_41b2930ff9",
+  "messages": [
+   {
+    "message_id": "m_8ac7dcef7064",
+    "role": "user",
+    "masked_text": "Draft a 5-line board update. Context: <PROJECT_1> — <ORG_1> is acquiring <ORG_2> for <DEAL_VALUE_1>. <ORG_2>'s FY26 revenue was <REVENUE_1>. Our advisor <PERSON_1> at <ORG_3> wants the SPA signed by <DATE_1>. <ORG_2>'s CEO, <PERSON_2>, has asked that his team not be told until signing. Keep it confidential in tone.",
+    "original": "Draft a 5-line board update. Context: Project Falcon — Meridian Capital is acquiring Kestrel Pharma for ₹2,300 crore. Kestrel's FY26 revenue was ₹410 crore. Our advisor Ananya Ghosh at Granite Partners wants the SPA signed by 15 December 2026. Kestrel's CEO, Rajiv Malhotra, has asked that his team not be told until signing. Keep it confidential in tone.",
+    "meta": {
+     "spans": [
+      {
+       "start": 38,
+       "end": 52,
+       "type": "PROJECT",
+       "role": null,
+       "placeholder": "<PROJECT_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 55,
+       "end": 71,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 85,
+       "end": 99,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_2>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 104,
+       "end": 116,
+       "type": "AMOUNT",
+       "role": "DEAL_VALUE",
+       "placeholder": "<DEAL_VALUE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 118,
+       "end": 125,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_2>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 145,
+       "end": 155,
+       "type": "AMOUNT",
+       "role": "REVENUE",
+       "placeholder": "<REVENUE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 169,
+       "end": 181,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 185,
+       "end": 201,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_3>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 226,
+       "end": 242,
+       "type": "DATE",
+       "role": null,
+       "placeholder": "<DATE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 244,
+       "end": 251,
+       "type": "ORG",
+       "role": null,
+       "placeholder": "<ORG_2>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 259,
+       "end": 273,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793802101.203022,
+    "text": "Draft a 5-line board update. Context: Project Falcon — Meridian Capital is acquiring Kestrel Pharma for ₹2,300 crore. Kestrel's FY26 revenue was ₹410 crore. Our advisor Ananya Ghosh at Granite Partners wants the SPA signed by 15 December 2026. Kestrel's CEO, Rajiv Malhotra, has asked that his team not be told until signing. Keep it confidential in tone."
+   },
+   {
+    "message_id": "m_ff5cb37eda23",
+    "role": "assistant",
+    "masked_text": "Confidential – Board Only: Update on the project.\n<ORG_1> is acquiring <ORG_2> for <DEAL_VALUE_1>; <ORG_2>'s FY26 revenue was <REVENUE_1>.\nOur advisor <PERSON_1> at <ORG_3> is targeting SPA signature by <DATE_1>.\nAt <PERSON_2>'s request, the <ORG_2> team will not be informed until signing.\nPlease maintain strict confidentiality and refrain from wider distribution.",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.009464750000000001
+    },
+    "created_at": 1793802114.441783,
+    "text": "Confidential – Board Only: Update on the project.\nMeridian Capital is acquiring Kestrel Pharma for ₹2,300 crore; Kestrel Pharma's FY26 revenue was ₹410 crore.\nOur advisor Ananya Ghosh at Granite Partners is targeting SPA signature by 15 December 2026.\nAt Rajiv Malhotra's request, the Kestrel Pharma team will not be informed until signing.\nPlease maintain strict confidentiality and refrain from wider distribution.",
+    "segments": [
+     {
+      "text": "Confidential – Board Only: Update on the project.\n"
+     },
+     {
+      "label": "<ORG_1>",
+      "kind": "entity",
+      "text": "Meridian Capital"
+     },
+     {
+      "text": " is acquiring "
+     },
+     {
+      "label": "<ORG_2>",
+      "kind": "entity",
+      "text": "Kestrel Pharma"
+     },
+     {
+      "text": " for "
+     },
+     {
+      "label": "<DEAL_VALUE_1>",
+      "kind": "entity",
+      "text": "₹2,300 crore"
+     },
+     {
+      "text": "; "
+     },
+     {
+      "label": "<ORG_2>",
+      "kind": "entity",
+      "text": "Kestrel Pharma"
+     },
+     {
+      "text": "'s FY26 revenue was "
+     },
+     {
+      "label": "<REVENUE_1>",
+      "kind": "entity",
+      "text": "₹410 crore"
+     },
+     {
+      "text": ".\nOur advisor "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Ananya Ghosh"
+     },
+     {
+      "text": " at "
+     },
+     {
+      "label": "<ORG_3>",
+      "kind": "entity",
+      "text": "Granite Partners"
+     },
+     {
+      "text": " is targeting SPA signature by "
+     },
+     {
+      "label": "<DATE_1>",
+      "kind": "entity",
+      "text": "15 December 2026"
+     },
+     {
+      "text": ".\nAt "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Rajiv Malhotra"
+     },
+     {
+      "text": "'s request, the "
+     },
+     {
+      "label": "<ORG_2>",
+      "kind": "entity",
+      "text": "Kestrel Pharma"
+     },
+     {
+      "text": " team will not be informed until signing.\nPlease maintain strict confidentiality and refrain from wider distribution."
+     }
+    ]
+   },
+   {
+    "message_id": "m_82e2f6fb9627",
+    "role": "user",
+    "masked_text": "What revenue multiple does that deal value imply? Give me the number.",
+    "original": "What revenue multiple does that deal value imply? Give me the number.",
+    "meta": {
+     "spans": [],
+     "cost_usd": null
+    },
+    "created_at": 1793802124.75084,
+    "text": "What revenue multiple does that deal value imply? Give me the number."
+   },
+   {
+    "message_id": "m_8c1235d15531",
+    "role": "assistant",
+    "masked_text": "I'll pull those deal figures to calculate the revenue multiple.NEED_CONTEXT: <DEAL_VALUE_1> full need real value to calculate multiple",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.00400025
+    },
+    "created_at": 1793802130.020735,
+    "text": "I'll pull those deal figures to calculate the revenue multiple.NEED_CONTEXT: ₹2,300 crore full need real value to calculate multiple",
+    "segments": [
+     {
+      "text": "I'll pull those deal figures to calculate the revenue multiple.NEED_CONTEXT: "
+     },
+     {
+      "label": "<DEAL_VALUE_1>",
+      "kind": "entity",
+      "text": "₹2,300 crore"
+     },
+     {
+      "text": " full need real value to calculate multiple"
+     }
+    ]
+   },
+   {
+    "message_id": "m_21c032a84fe2",
+    "role": "user",
+    "masked_text": "What revenue multiple does that deal value imply? Give me the number.",
+    "original": "What revenue multiple does that deal value imply? Give me the number.",
+    "meta": {
+     "spans": [],
+     "cost_usd": null
+    },
+    "created_at": 1793802326.035674,
+    "text": "What revenue multiple does that deal value imply? Give me the number."
+   },
+   {
+    "message_id": "m_3ec3671914e5",
+    "role": "reveal",
+    "masked_text": "[<DEAL_VALUE_1> revealed in full]",
+    "original": null,
+    "meta": {
+     "label": "<DEAL_VALUE_1>",
+     "level": "full",
+     "decision": "allow"
+    },
+    "created_at": 1793802347.092753,
+    "text": "[₹2,300 crore revealed in full]"
+   },
+   {
+    "message_id": "m_35346435f89a",
+    "role": "reveal",
+    "masked_text": "[<REVENUE_1> revealed in full]",
+    "original": null,
+    "meta": {
+     "label": "<REVENUE_1>",
+     "level": "full",
+     "decision": "allow"
+    },
+    "created_at": 1793802364.818388,
+    "text": "[₹410 crore revealed in full]"
+   },
+   {
+    "message_id": "m_9895c8bdbf8a",
+    "role": "assistant",
+    "masked_text": "~5.61x — ₹2,300 crore / ₹410 crore.",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.00367975
+    },
+    "created_at": 1793802369.9495559,
+    "text": "~5.61x — ₹2,300 crore / ₹410 crore.",
+    "segments": [
+     {
+      "text": "~5.61x — ₹2,300 crore / ₹410 crore."
+     }
+    ]
+   }
+  ],
+  "consents": [
+   {
+    "ts": 1793802347.0917919,
+    "chat_id": "c_41b2930ff9",
+    "label": "<DEAL_VALUE_1>",
+    "level": "full",
+    "decision": "allow",
+    "reason": "need real value to calculate revenue multiple"
+   },
+   {
+    "ts": 1793802364.817046,
+    "chat_id": "c_41b2930ff9",
+    "label": "<REVENUE_1>",
+    "level": "full",
+    "decision": "allow",
+    "reason": "need real value to calculate multiple"
+   }
+  ],
+  "graph": {
+   "nodes": [
+    {
+     "id": "<PROJECT_1>",
+     "group": "entity",
+     "type": "PROJECT",
+     "chats": 1
+    },
+    {
+     "id": "<ORG_1>",
+     "group": "entity",
+     "type": "ORG",
+     "chats": 1
+    },
+    {
+     "id": "<ORG_2>",
+     "group": "entity",
+     "type": "ORG",
+     "chats": 1
+    },
+    {
+     "id": "<DEAL_VALUE_1>",
+     "group": "entity",
+     "type": "AMOUNT",
+     "chats": 1
+    },
+    {
+     "id": "<REVENUE_1>",
+     "group": "entity",
+     "type": "AMOUNT",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_1>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    },
+    {
+     "id": "<ORG_3>",
+     "group": "entity",
+     "type": "ORG",
+     "chats": 1
+    },
+    {
+     "id": "<DATE_1>",
+     "group": "entity",
+     "type": "DATE",
+     "chats": 1
+    },
+    {
+     "id": "<PERSON_2>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 1
+    }
+   ],
+   "edges": [
+    {
+     "source": "<DATE_1>",
+     "target": "<DEAL_VALUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ORG_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<ORG_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<ORG_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<ORG_1>",
+     "rel": "belongs_to",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<ORG_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<ORG_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DEAL_VALUE_1>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<ORG_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<ORG_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_1>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_2>",
+     "target": "<ORG_3>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_2>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_2>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_2>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_2>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_3>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_3>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_3>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ORG_3>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<ORG_3>",
+     "rel": "employed_by",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<ORG_2>",
+     "rel": "employed_by",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PROJECT_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PROJECT_1>",
+     "target": "<REVENUE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<REVENUE_1>",
+     "target": "<ORG_2>",
+     "rel": "belongs_to",
+     "weight": 1
+    }
+   ]
+  }
+ },
+ {
+  "chat_id": "c_6b7a878e24",
+  "messages": [
+   {
+    "message_id": "m_b37217284b91",
+    "role": "user",
+    "masked_text": "Write a warm welcome email for our new joiner, <PERSON_1>. She starts on <DATE_1> as a data analyst, reporting to <PERSON_2>. Her CTC is <SALARY_1> and her laptop will be delivered to <ADDRESS_1>.",
+    "original": "Write a warm welcome email for our new joiner, Sneha Kulkarni. She starts on 1 December 2026 as a data analyst, reporting to Manish Gupta. Her CTC is ₹14,00,000 and her laptop will be delivered to Flat 7C, Lake Vista Towers, Baner Road, Pune 411045.",
+    "meta": {
+     "spans": [
+      {
+       "start": 47,
+       "end": 61,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 77,
+       "end": 92,
+       "type": "DATE",
+       "role": null,
+       "placeholder": "<DATE_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 125,
+       "end": 137,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 150,
+       "end": 160,
+       "type": "AMOUNT",
+       "role": "SALARY",
+       "placeholder": "<SALARY_1>",
+       "kind": "entity",
+       "source": "model",
+       "in_context": null
+      },
+      {
+       "start": 197,
+       "end": 248,
+       "type": "ADDRESS",
+       "role": null,
+       "placeholder": "<ADDRESS_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793802149.131438,
+    "text": "Write a warm welcome email for our new joiner, Sneha Kulkarni. She starts on 1 December 2026 as a data analyst, reporting to Manish Gupta. Her CTC is ₹14,00,000 and her laptop will be delivered to Flat 7C, Lake Vista Towers, Baner Road, Pune 411045."
+   },
+   {
+    "message_id": "m_906bac028869",
+    "role": "assistant",
+    "masked_text": "Here's a warm welcome draft for her — I've kept the compensation and delivery address out of the email body since those aren't typically shared in a welcome note:\n\n**Subject:** Welcome to the team, <PERSON_1>!\n\n**Body:**\n\nDear <PERSON_1>,\n\nWe're so excited to welcome you to the team!\n\nYou’ll be joining us on <DATE_1> as a Data Analyst, reporting to <PERSON_2>. We’re looking forward to all the insights and ideas you’ll bring, and we can’t wait for you to meet everyone.\n\nKeep an eye on your inbox for onboarding details and first-day logistics from us ahead of your start date. If you have any questions in the meantime, please don’t hesitate to reach out.\n\nOnce again, welcome aboard — we’re thrilled to have you with us!\n\nWarm regards,\n[Your Name]\n\n---\nI have your notes on <SALARY_1> and <ADDRESS_1> for onboarding, but didn't include them in the draft. Let me know if you'd like a separate internal note or offer details with those.",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.006947
+    },
+    "created_at": 1793802161.9828749,
+    "text": "Here's a warm welcome draft for her — I've kept the compensation and delivery address out of the email body since those aren't typically shared in a welcome note:\n\n**Subject:** Welcome to the team, Sneha Kulkarni!\n\n**Body:**\n\nDear Sneha Kulkarni,\n\nWe're so excited to welcome you to the team!\n\nYou’ll be joining us on 1 December 2026 as a Data Analyst, reporting to Manish Gupta. We’re looking forward to all the insights and ideas you’ll bring, and we can’t wait for you to meet everyone.\n\nKeep an eye on your inbox for onboarding details and first-day logistics from us ahead of your start date. If you have any questions in the meantime, please don’t hesitate to reach out.\n\nOnce again, welcome aboard — we’re thrilled to have you with us!\n\nWarm regards,\n[Your Name]\n\n---\nI have your notes on ₹14,00,000 and Flat 7C, Lake Vista Towers, Baner Road, Pune 411045 for onboarding, but didn't include them in the draft. Let me know if you'd like a separate internal note or offer details with those.",
+    "segments": [
+     {
+      "text": "Here's a warm welcome draft for her — I've kept the compensation and delivery address out of the email body since those aren't typically shared in a welcome note:\n\n**Subject:** Welcome to the team, "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Sneha Kulkarni"
+     },
+     {
+      "text": "!\n\n**Body:**\n\nDear "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Sneha Kulkarni"
+     },
+     {
+      "text": ",\n\nWe're so excited to welcome you to the team!\n\nYou’ll be joining us on "
+     },
+     {
+      "label": "<DATE_1>",
+      "kind": "entity",
+      "text": "1 December 2026"
+     },
+     {
+      "text": " as a Data Analyst, reporting to "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Manish Gupta"
+     },
+     {
+      "text": ". We’re looking forward to all the insights and ideas you’ll bring, and we can’t wait for you to meet everyone.\n\nKeep an eye on your inbox for onboarding details and first-day logistics from us ahead of your start date. If you have any questions in the meantime, please don’t hesitate to reach out.\n\nOnce again, welcome aboard — we’re thrilled to have you with us!\n\nWarm regards,\n[Your Name]\n\n---\nI have your notes on "
+     },
+     {
+      "label": "<SALARY_1>",
+      "kind": "entity",
+      "text": "₹14,00,000"
+     },
+     {
+      "text": " and "
+     },
+     {
+      "label": "<ADDRESS_1>",
+      "kind": "entity",
+      "text": "Flat 7C, Lake Vista Towers, Baner Road, Pune 411045"
+     },
+     {
+      "text": " for onboarding, but didn't include them in the draft. Let me know if you'd like a separate internal note or offer details with those."
+     }
+    ]
+   },
+   {
+    "message_id": "m_a1a03fa401f3",
+    "role": "user",
+    "masked_text": "Also draft a separate note to <PERSON_2> asking him to set up <PERSON_1>'s access before Monday.",
+    "original": "Also draft a separate note to Manish asking him to set up Sneha's access before Monday.",
+    "meta": {
+     "spans": [
+      {
+       "start": 30,
+       "end": 36,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_2>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      },
+      {
+       "start": 58,
+       "end": 63,
+       "type": "PERSON",
+       "role": null,
+       "placeholder": "<PERSON_1>",
+       "kind": "entity",
+       "source": "policy",
+       "in_context": null
+      }
+     ],
+     "cost_usd": null
+    },
+    "created_at": 1793802172.8138611,
+    "text": "Also draft a separate note to Manish asking him to set up Sneha's access before Monday."
+   },
+   {
+    "message_id": "m_015aa6b05c69",
+    "role": "assistant",
+    "masked_text": "Here's a draft for <PERSON_2>:\n\n**Subject:** Access setup for <PERSON_1> - joining <DATE_1>\n\nHi <PERSON_2>,\n\nJust a quick heads-up that <PERSON_1> is joining as Data Analyst on <DATE_1>, reporting to you.\n\nCould you please help set up her system access and onboarding essentials before Monday, so she's all set for Day 1?\n\nLet me know if you need anything from my side.\n\nThanks so much!\n\nBest,\n[Your Name]",
+    "original": null,
+    "meta": {
+     "cost_usd": 0.001764
+    },
+    "created_at": 1793802176.332117,
+    "text": "Here's a draft for Manish Gupta:\n\n**Subject:** Access setup for Sneha Kulkarni - joining 1 December 2026\n\nHi Manish Gupta,\n\nJust a quick heads-up that Sneha Kulkarni is joining as Data Analyst on 1 December 2026, reporting to you.\n\nCould you please help set up her system access and onboarding essentials before Monday, so she's all set for Day 1?\n\nLet me know if you need anything from my side.\n\nThanks so much!\n\nBest,\n[Your Name]",
+    "segments": [
+     {
+      "text": "Here's a draft for "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Manish Gupta"
+     },
+     {
+      "text": ":\n\n**Subject:** Access setup for "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Sneha Kulkarni"
+     },
+     {
+      "text": " - joining "
+     },
+     {
+      "label": "<DATE_1>",
+      "kind": "entity",
+      "text": "1 December 2026"
+     },
+     {
+      "text": "\n\nHi "
+     },
+     {
+      "label": "<PERSON_2>",
+      "kind": "entity",
+      "text": "Manish Gupta"
+     },
+     {
+      "text": ",\n\nJust a quick heads-up that "
+     },
+     {
+      "label": "<PERSON_1>",
+      "kind": "entity",
+      "text": "Sneha Kulkarni"
+     },
+     {
+      "text": " is joining as Data Analyst on "
+     },
+     {
+      "label": "<DATE_1>",
+      "kind": "entity",
+      "text": "1 December 2026"
+     },
+     {
+      "text": ", reporting to you.\n\nCould you please help set up her system access and onboarding essentials before Monday, so she's all set for Day 1?\n\nLet me know if you need anything from my side.\n\nThanks so much!\n\nBest,\n[Your Name]"
+     }
+    ]
+   }
+  ],
+  "consents": [],
+  "graph": {
+   "nodes": [
+    {
+     "id": "<PERSON_1>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 2
+    },
+    {
+     "id": "<DATE_1>",
+     "group": "entity",
+     "type": "DATE",
+     "chats": 2
+    },
+    {
+     "id": "<PERSON_2>",
+     "group": "entity",
+     "type": "PERSON",
+     "chats": 2
+    },
+    {
+     "id": "<SALARY_1>",
+     "group": "entity",
+     "type": "AMOUNT",
+     "chats": 2
+    },
+    {
+     "id": "<ADDRESS_1>",
+     "group": "entity",
+     "type": "ADDRESS",
+     "chats": 2
+    }
+   ],
+   "edges": [
+    {
+     "source": "<ADDRESS_1>",
+     "target": "<DATE_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ADDRESS_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ADDRESS_1>",
+     "target": "<PERSON_1>",
+     "rel": "belongs_to",
+     "weight": 1
+    },
+    {
+     "source": "<ADDRESS_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<ADDRESS_1>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_1>",
+     "rel": "belongs_to",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<DATE_1>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<PERSON_2>",
+     "rel": "appears_with",
+     "weight": 2
+    },
+    {
+     "source": "<PERSON_1>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<PERSON_1>",
+     "rel": "manages",
+     "weight": 2
+    },
+    {
+     "source": "<PERSON_2>",
+     "target": "<SALARY_1>",
+     "rel": "appears_with",
+     "weight": 1
+    },
+    {
+     "source": "<SALARY_1>",
+     "target": "<PERSON_1>",
+     "rel": "belongs_to",
+     "weight": 1
+    }
+   ]
+  }
+ }
+]

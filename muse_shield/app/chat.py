@@ -52,7 +52,8 @@ email address, phone number or value: the user's device fills those in, and only
 nothing to a search engine: if a web_search needs the real value, ask for it first with NEED_CONTEXT (rule 4), then search
 with the value you were shown. Use one tool per reply. You'll then get the tool's result (also masked); after that, answer the user."""
 
-NEED = re.compile(r"^\s*NEED_CONTEXT:\s*<?([A-Z][A-Z_]*_\d+)>?\s+(shape|summary|full)\b\s*(.*)$", re.I | re.M)
+# Also accept the request after a lead-in sentence on the same line ("I'll check that.NEED_CONTEXT: ..."): Spark does that.
+NEED = re.compile(r"NEED_CONTEXT:\s*<?([A-Z][A-Z_]*_\d+)>?\s+(shape|summary|full)\b\s*(.*)$", re.I | re.M)
 LEVELS = ("shape", "summary", "full")
 
 

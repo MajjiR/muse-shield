@@ -172,3 +172,11 @@ def test_need_context_for_unknown_label_is_an_error_not_a_reply(tmp_path):
     r = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": chat_id}).json()
     assert r["ask"] is None and r["reply"] == "" and "<DEAL_9>" in r["error"]
     assert all("NEED_CONTEXT" not in m["masked_text"] for m in c.get(f"/chats/{chat_id}").json()["messages"])
+
+
+def test_need_context_after_a_lead_in_sentence_still_asks(tmp_path):
+    # Seen live: Spark wrote "I'll pull those figures.NEED_CONTEXT: <DEAL_VALUE_1> full ..." on one line.
+    c, m = make(tmp_path, ["Got it.", "I'll check the numbers.NEED_CONTEXT: <SALARY_1> full need the real amount to compare"])
+    first = c.post("/chat", json={"message": ACCEPT}).json()
+    r = c.post("/chat", json={"message": "Is this a good offer?", "chat_id": first["chat_id"]}).json()
+    assert r["ask"] and r["ask"]["label"] == "<SALARY_1>" and r["reply"] in ("", None)
