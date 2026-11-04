@@ -211,6 +211,17 @@ class MetaModelBackend(ChatBackend):
 MuseSparkBackend = MetaModelBackend  # backwards-compatible name
 
 
+class DeepSeekBackend(ChatBackend):
+    """DeepSeek's own API (OpenAI-compatible; servers in China). Training-data building and checking only:
+    synthetic or public text, never real user data, never at runtime. DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL."""
+
+    def __init__(self, model: str, *, max_tokens: int = 8192, **kwargs):
+        load_env()
+        self.name = f"deepseek-{model}"
+        super().__init__(os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1").rstrip("/"), model,
+                         os.environ.get("DEEPSEEK_API_KEY", ""), max_tokens=max_tokens, timeout=kwargs.pop("timeout", 240.0), **kwargs)
+
+
 class AzureFoundryBackend(ChatBackend):
     """A model deployed in Azure AI Foundry (e.g. DeepSeek-V4-Pro), via its OpenAI-compatible v1 API.
 

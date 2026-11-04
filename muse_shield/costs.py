@@ -21,6 +21,9 @@ TOKEN_PRICES = {  # USD per 1M tokens: (input, cached input, output)
     "muse-spark-1.3": (1.25, 0.15, 4.25),
     "muse-spark-1.3-contributor": (0.10, 0.002, 0.20),
     "muse-wonder-1.0": (4.00, 0.20, 20.00),
+    # Azure AI Foundry, Global Standard (data building only). Flash: the published V4-Flash-0731 rate.
+    "DeepSeek-V4-Pro": (1.74, 0.145, 3.48),
+    "DeepSeek-V4-Flash": (0.44, 0.044, 1.32),
 }
 GPU_HOURLY = {  # USD per GPU-hour, Fireworks on-demand
     "NVIDIA_H200_141GB": 8.00,

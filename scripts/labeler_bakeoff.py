@@ -16,6 +16,7 @@ The output goes to results/labeler-bakeoff/<run>/ (bakeoff.md, bakeoff.json, per
 from __future__ import annotations
 
 import argparse
+import collections
 import itertools
 import json
 import os
@@ -36,7 +37,7 @@ from muse_shield.costs import run_cost  # noqa: E402
 from muse_shield.results import RESULTS, git_version, new_run_id  # noqa: E402
 import threading  # noqa: E402
 
-from muse_shield.backends import AzureFoundryBackend  # noqa: E402
+from muse_shield.backends import AzureFoundryBackend, DeepSeekBackend  # noqa: E402
 from muse_shield.synth import PACK_VALUE_KEYS, _CappedSpark  # noqa: E402
 
 AZURE_SLOTS = threading.BoundedSemaphore(int(os.environ.get("AZURE_CONCURRENCY", "8")))
@@ -47,10 +48,23 @@ class _CappedAzure(AzureFoundryBackend):
         with AZURE_SLOTS:
             return super()._call(messages)
 
+
+DEEPSEEK_SLOTS = threading.BoundedSemaphore(int(os.environ.get("DEEPSEEK_CONCURRENCY", "32")))
+
+
+class _CappedDeepSeek(DeepSeekBackend):
+    def _call(self, messages):
+        with DEEPSEEK_SLOTS:
+            return super()._call(messages)
+
 TRAIN_ROWS = 50_000
 
 
 def labeller(name: str, spec: str):
+    if spec.startswith("deepseek:"):  # deepseek:<model id from the DeepSeek API>
+        b = _CappedDeepSeek(spec.split(":", 1)[1])
+        b.name = name
+        return b
     if spec.startswith("azure:"):  # azure:<Foundry deployment name>
         b = _CappedAzure(spec.split(":", 1)[1])
         b.name = name
@@ -89,7 +103,11 @@ def planted_part(backend, docs: list[dict], workers: int) -> dict:
     def one(doc):
         out = []
         for _, para in paragraphs(doc["text"]):
-            a = backend.analyze_one(para)
+            try:
+                a = backend.analyze_one(para)
+            except Exception as exc:  # noqa: BLE001  one throttled call must not sink the run
+                out.append({"valid": False, "present": [], "missed": [], "usage": {}, "error": str(exc)[:160]})
+                continue
             values = [doc["pack"][k] for k in PACK_VALUE_KEYS] + list(doc["pack"].get("people", []))
             present = [v for v in values if v and v in para]
             ents = [{"text": e.text, "type": e.type} for e in a.entities] if a.valid else []
@@ -101,7 +119,8 @@ def planted_part(backend, docs: list[dict], workers: int) -> dict:
         rows = [r for doc_rows in pool.map(one, docs) for r in doc_rows]
     present = sum(len(r["present"]) for r in rows)
     missed = sum(len(r["missed"]) for r in rows)
-    return {"paragraphs": len(rows), "invalid": sum(not r["valid"] for r in rows), "planted": present, "missed": missed,
+    return {"paragraphs": len(rows), "invalid": sum(not r["valid"] for r in rows), "errors": sum("error" in r for r in rows),
+            "planted": present, "missed": missed,
             "planted_recall": 1 - missed / present if present else None,
             "missed_examples": [v for r in rows for v in r["missed"]][:20],
             "tokens_in": sum(r["usage"].get("prompt_tokens", 0) for r in rows),
@@ -116,6 +135,8 @@ def main(argv=None) -> int:
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--tag", default="bakeoff")
+    ap.add_argument("--part-a-preds", type=Path, default=None,
+                    help="re-score part A from <dir>/<name>.preds.jsonl of an earlier run instead of calling the models again")
     a = ap.parse_args(argv)
     load_env()
     os.environ["META_SYNTHETIC_ONLY"] = "1"
@@ -129,16 +150,46 @@ def main(argv=None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     reports, hits = {}, {}
 
+    def rescored(name):
+        """Part A from saved predictions: leak/recall only (tokens and JSON validity were not saved)."""
+        from muse_shield.benchmarks.nemotron import LABEL_MAP, DocScore, Pred, score
+        by_uid = {d.uid: d for d in ndocs}
+        total, found, h = DocScore(), collections.defaultdict(lambda: [0, 0]), {}
+        for line in (a.part_a_preds / f"{name}.preds.jsonl").read_text().splitlines():
+            p = json.loads(line)
+            doc = by_uid[p["uid"]]
+            preds = [Pred(**x) for x in p["predictions"]]
+            s = score(doc, preds)
+            for f in ("gold_chars", "leaked_chars", "core_gold_chars", "core_leaked_chars", "pred_total", "pred_on_gold"):
+                setattr(total, f, getattr(total, f) + getattr(s, f))
+            for label, (fd, tt) in s.gold_found.items():
+                t_ = LABEL_MAP.get(label, "OTHER")
+                found[t_][0] += fd
+                found[t_][1] += tt
+            masked = {i for q in preds for i in range(q.start, q.end)}
+            h.update({(doc.uid, g.start, g.end): len(set(range(g.start, g.end)) & masked) * 2 >= g.end - g.start
+                      for g in doc.spans if g.label not in QUASI})
+        r = lambda x, y: x / y if y else None  # noqa: E731
+        return {"leak_rate": r(total.leaked_chars, total.gold_chars), "core_leak_rate": r(total.core_leaked_chars, total.core_gold_chars),
+                "span_recall": r(sum(v[0] for v in found.values()), sum(v[1] for v in found.values())),
+                "span_precision": r(total.pred_on_gold, total.pred_total), "valid_rate": None, "tokens": {}, "calls": 0,
+                "cost_usd": 0, "recall_by_type": {t_: r(*v) for t_, v in sorted(found.items())}, "rescored_from": str(a.part_a_preds)}, h
+
     def run_one(name):
         b = labeller(name, specs[name])
         t0 = time.perf_counter()
-        with ThreadPoolExecutor(max_workers=a.workers) as pool:
-            results = list(pool.map(lambda d: analyze_doc(b, d), ndocs))
-        rep = aggregate(name, b.model, results, time.perf_counter() - t0) if ndocs else {}
-        h = {}
-        for r in results:
-            h.update(gold_hits(r["doc"], r["analyses"]))
-        (out / f"{name}.preds.jsonl").write_text("".join(json.dumps({"uid": r["doc"].uid, "predictions": [p.__dict__ for p in predictions(r["doc"], r["analyses"])]}) + "\n" for r in results))
+        if a.part_a_preds:
+            rep, h = rescored(name)
+            results = []
+        else:
+            with ThreadPoolExecutor(max_workers=a.workers) as pool:
+                results = list(pool.map(lambda d: analyze_doc(b, d), ndocs))
+            rep = aggregate(name, b.model, results, time.perf_counter() - t0) if ndocs else {}
+            h = {}
+            for r in results:
+                h.update(gold_hits(r["doc"], r["analyses"]))
+        if results:
+            (out / f"{name}.preds.jsonl").write_text("".join(json.dumps({"uid": r["doc"].uid, "predictions": [p.__dict__ for p in predictions(r["doc"], r["analyses"])]}) + "\n" for r in results))
         rep["planted"] = planted_part(b, pdocs, a.workers) if pdocs else None
         if rep["planted"]:  # cached input isn't tracked in part B, so this is an upper bound
             rep["planted"]["cost_usd"] = run_cost(b.model, {"in": rep["planted"]["tokens_in"], "out": rep["planted"]["tokens_out"], "cached_in": 0}, 0)["usd"]
