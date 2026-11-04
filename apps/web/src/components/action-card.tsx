@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { ActionStatus, AgentAction } from "@muse-shield/core"
 import {
-  ArrowRight, CalendarPlus, Check, ChevronRight, Globe, Inbox, Loader2, Mail, NotebookPen, ShieldAlert, ShieldX, Wrench, X,
+  ArrowRight, Calculator, CalendarClock, CalendarDays, CalendarPlus, Check, ChevronRight, Contact, FileText, Globe, HeartPulse,
+  Inbox, Landmark, Loader2, Mail, MessagesSquare, NotebookPen, Send, ShieldAlert, ShieldX, Wrench, X,
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
@@ -13,13 +14,24 @@ const TOOLS: Record<string, { icon: typeof Mail; wants: string; run: string; don
   create_calendar_event: { icon: CalendarPlus, wants: "create a calendar event", run: "Create event", done: "Event" },
   save_note: { icon: NotebookPen, wants: "save a private note", run: "Save note", done: "Note" },
   read_inbox: { icon: Inbox, wants: "read your inbox", run: "Read", done: "Inbox" },
+  search_contacts: { icon: Contact, wants: "look up your contacts", run: "Search", done: "Contacts" },
+  list_events: { icon: CalendarDays, wants: "read your calendar", run: "Read", done: "Calendar" },
+  reschedule_event: { icon: CalendarClock, wants: "move a calendar event", run: "Move event", done: "Event" },
+  search_files: { icon: FileText, wants: "search your documents", run: "Search", done: "Documents" },
+  read_file: { icon: FileText, wants: "read a document", run: "Read", done: "Document" },
+  read_transactions: { icon: Landmark, wants: "read your bank statement", run: "Read", done: "Statement" },
+  read_health_records: { icon: HeartPulse, wants: "read your medical reports", run: "Read", done: "Health records" },
+  read_channel: { icon: MessagesSquare, wants: "read a team chat channel", run: "Read", done: "Channel" },
+  post_message: { icon: Send, wants: "post in a team chat channel", run: "Post message", done: "Message" },
+  compute: { icon: Calculator, wants: "calculate on your device", run: "Calculate", done: "Calculator" },
   web_search: { icon: Globe, wants: "search the web", run: "Search", done: "Search" },
 }
 export const toolMeta = (tool: string) => TOOLS[tool] ?? { icon: Wrench, wants: `use ${tool}`, run: "Run", done: tool }
 
 const FIELD_LABEL: Record<string, string> = {
   to: "To", attendees: "Invite", subject: "Subject", title: "Title", body: "Body", start: "When",
-  duration_minutes: "Minutes", location: "Where", query: "Query",
+  duration_minutes: "Minutes", location: "Where", query: "Query", channel: "Channel", text: "Message", event_id: "Event",
+  file_id: "File", expression: "Sum", unit: "Shown as",
 }
 
 const show = (v: unknown) => (Array.isArray(v) ? v.join(", ") : v == null ? "" : String(v))
@@ -169,9 +181,7 @@ export function ActionStep({ action }: { action: AgentAction }) {
                   <Fields fields={fields} values={action.args} masked />
                 </div>
               )}
-              {Array.isArray((action.result as { messages?: unknown }).messages) && (
-                <ReadResult messages={(action.result as { messages: InboxMail[] }).messages} cost={action.mask_cost_usd} />
-              )}
+              {action.status === "done" && <ReadResult action={action} />}
               {action.status === "refused" && (
                 <p className="text-[11.5px] text-muted-foreground">Nothing ran and no hidden value was filled in.</p>
               )}
@@ -183,25 +193,39 @@ export function ActionStep({ action }: { action: AgentAction }) {
   )
 }
 
-type InboxMail = { id: string; date?: string; from: string; subject: string; body: string }
+type Rec = Record<string, unknown>
+const QUIET = new Set(["from", "date", "start", "end", "ts"]) // shown small, above the record
+const TITLE = new Set(["subject", "name", "event"])
+const HIDDEN = new Set(["id", "status", "outbox_id", "note_id", "shared_outside", "channel"])
 
-/** What a read tool brought back, exactly as Muse Spark got it: every name and address already a placeholder. */
-function ReadResult({ messages, cost }: { messages: InboxMail[]; cost?: number }) {
+/** What a tool brought back, exactly as Muse Spark got it: every name, address and amount already a placeholder. */
+function ReadResult({ action }: { action: AgentAction }) {
+  const result = action.result as Rec
+  const lists = Object.entries(result).filter(([, v]) => Array.isArray(v) && v.some((x) => x && typeof x === "object"))
+  const records = lists.length ? (lists[0][1] as Rec[]) : result.text || result.result ? [result] : []
+  if (!records.length) return null
+  const trusted = action.tool === "search_contacts"
   return (
     <div>
       <div className="mb-1 eyebrow text-muted-foreground">What Muse Spark got back</div>
       <ul className="space-y-2">
-        {messages.map((m) => (
-          <li key={m.id} className="rounded-md border bg-card px-3 py-2 text-[13px] leading-relaxed">
-            <div className="truncate text-[12px] text-muted-foreground"><MaskedText text={m.from} size="xs" /></div>
-            <div className="font-medium"><MaskedText text={m.subject} size="xs" /></div>
-            <div className="line-clamp-3 text-muted-foreground"><MaskedText text={m.body} size="xs" /></div>
+        {records.map((r, i) => (
+          <li key={String(r.id ?? i)} className="rounded-md border bg-card px-3 py-2 text-[13px] leading-relaxed">
+            {Object.entries(r).filter(([k, v]) => !HIDDEN.has(k) && typeof v === "string" && v).map(([k, v]) => (
+              <div key={k} className={cn(QUIET.has(k) ? "truncate text-[12px] text-muted-foreground" : TITLE.has(k) ? "font-medium"
+                : "line-clamp-4 whitespace-pre-wrap text-muted-foreground")}>
+                {k === "result" && <span className="mr-1 text-muted-foreground">Result:</span>}
+                <MaskedText text={v as string} size="xs" />
+              </div>
+            ))}
           </li>
         ))}
       </ul>
       <p className="mt-1.5 text-[11.5px] text-muted-foreground">
-        Read on your device and masked before Muse Spark saw it{cost ? ` · masking $${cost.toFixed(4)}` : ""}.
-        Addresses found here can’t be used as recipients unless you write them yourself.
+        {action.tool === "compute" ? "Worked out on your device with the real amounts; Muse Spark only got the placeholder."
+          : <>Read on your device and masked before Muse Spark saw it{action.mask_cost_usd ? ` · masking $${action.mask_cost_usd.toFixed(4)}` : ""}.{" "}
+            {trusted ? "Your own address book counts as you, so these addresses can be recipients."
+              : "Addresses found here can’t be used as recipients unless you write them yourself."}</>}
       </p>
     </div>
   )
