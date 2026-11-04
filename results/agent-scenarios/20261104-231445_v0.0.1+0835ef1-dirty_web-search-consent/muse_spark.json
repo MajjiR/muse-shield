@@ -1,0 +1,13 @@
+{
+  "backend": "muse_spark",
+  "model": "muse-spark-1.3",
+  "docs": 18,
+  "valid_rate": 1.0,
+  "leak_rate": 0.0,
+  "cost_usd": 0.23341,
+  "seconds": 421.5,
+  "cost": {
+    "usd": 0.23341,
+    "basis": "tokens"
+  }
+}

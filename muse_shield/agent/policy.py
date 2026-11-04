@@ -9,6 +9,14 @@ from ..app.vault import Vault
 from .tools import NEVER, TOOLS, Tool
 
 LABEL = re.compile(r"<[A-Z][A-Z_]*_\d+>")
+# Tools whose arguments may carry a real value you approved sharing in this chat. A web search is useless with a
+# placeholder ("news about <ORG_1>"), so once you share the real name with Muse Spark it may search for it. Email,
+# invites and posts still take placeholders: the device fills in real values itself.
+SEARCH_WITH_APPROVED = {"web_search"}
+
+
+def tool_allows_approved(where: str) -> bool:
+    return where.split(".", 1)[0] in SEARCH_WITH_APPROVED
 EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[A-Za-z]{2,}")
 
 
@@ -34,13 +42,24 @@ def _type_of(vault: Vault, chat_id: str, label: str) -> str | None:
     return "CONTEXT" if kind == "context" else typ
 
 
-def _text(vault: Vault, chat_id: str, value: str, allowed: frozenset[str], where: str, out: Checked, external: bool) -> str:
+def approved_labels(vault: Vault, chat_id: str) -> set[str]:
+    """Labels you chose to share in full in this chat (the consent card's 'Share full text'), latest decision wins."""
+    latest: dict[str, tuple[str, str]] = {}
+    for c in vault.consents(chat_id):
+        latest[c["label"]] = (c["decision"], c["level"])
+    return {label for label, (decision, level) in latest.items() if decision == "allow" and level == "full"}
+
+
+def _text(vault: Vault, chat_id: str, value: str, allowed: frozenset[str], where: str, out: Checked, external: bool,
+          approved: set[str] = frozenset()) -> str:
     mapping = vault.mapping(chat_id)
-    # A raw vault value written straight into an external argument is a leak the model shouldn't be able to cause.
+    # A raw vault value written straight into an external argument is a leak the model shouldn't be able to cause,
+    # unless you already chose to share that exact value in this chat (`approved`, web search only).
     if external:
         for label, real in mapping.items():
-            if len(real) >= 3 and real.casefold() in value.casefold() and label not in value:
-                out.violations.append(f"{where}: contains the real value behind {label}; agents must use placeholders")
+            if len(real) >= 3 and real.casefold() in value.casefold() and label not in value and label not in approved:
+                hint = " (or ask you to share it first)" if tool_allows_approved(where) else ""
+                out.violations.append(f"{where}: contains the real value behind {label}; agents must use placeholders{hint}")
 
     def sub(m: re.Match) -> str:
         label = m.group(0)
@@ -121,7 +140,8 @@ def check(vault: Vault, chat_id: str, tool_name: str, args: dict) -> Checked:
         elif p.kind == "channel":
             out.real[p.name] = _channel(str(value), where, out)
         else:
-            out.real[p.name] = _text(vault, chat_id, str(value), p.resolve, where, out, tool.external)
+            approved = approved_labels(vault, chat_id) if tool.name in SEARCH_WITH_APPROVED else frozenset()
+            out.real[p.name] = _text(vault, chat_id, str(value), p.resolve, where, out, tool.external, approved)
     shared = [c for p, c in ((p, out.real.get(p.name)) for p in tool.params if p.kind == "channel") if c and _shared_outside(c)]
     if shared and tool.side_effect and out.unmasked:
         out.violations.append(f"{tool.name}: {shared[0]} is shared with people outside your workspace, so hidden values "

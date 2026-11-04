@@ -101,7 +101,8 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
                                                                             "comparisons, min/max/sum/abs/round"),
         Param("unit", "string", required=False, description="money (default when amounts are involved), percent or number"),
     ), side_effect=False, external=False),
-    Tool("web_search", "Search the public web. The query leaves the device, so it stays masked.", (
+    Tool("web_search", "Search the public web. The query leaves the device, so it stays masked, except a value the user "
+                       "has already chosen to share in full in this chat (ask with NEED_CONTEXT first).", (
         Param("query", "text"),
     ), side_effect=False),
 ]}

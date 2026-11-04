@@ -90,6 +90,11 @@ export function AskCard({ ask, busy, onDecide }: { ask: Ask; busy: boolean; onDe
           >
             <MaskedText text={preview} />
           </motion.div>
+          {level === "full" && ask.kind === "entity" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              If you share it, Muse Spark may also use it in a web search for this chat. Other tools keep placeholders.
+            </p>
+          )}
         </div>
       </div>
 
