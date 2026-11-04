@@ -24,6 +24,9 @@ TOKEN_PRICES = {  # USD per 1M tokens: (input, cached input, output)
     # Azure AI Foundry, Global Standard (data building only). Flash: the published V4-Flash-0731 rate.
     "DeepSeek-V4-Pro": (1.74, 0.145, 3.48),
     "DeepSeek-V4-Flash": (0.44, 0.044, 1.32),
+    # DeepSeek's own API (reported list prices; check platform.deepseek.com before budgeting)
+    "deepseek-v4-pro": (1.74, 0.145, 3.48),
+    "deepseek-flash": (0.30, 0.006, 1.20),
 }
 GPU_HOURLY = {  # USD per GPU-hour, Fireworks on-demand
     "NVIDIA_H200_141GB": 8.00,

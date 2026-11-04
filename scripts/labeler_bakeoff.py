@@ -61,8 +61,9 @@ TRAIN_ROWS = 50_000
 
 
 def labeller(name: str, spec: str):
-    if spec.startswith("deepseek:"):  # deepseek:<model id from the DeepSeek API>
-        b = _CappedDeepSeek(spec.split(":", 1)[1])
+    if spec.startswith("deepseek:"):  # deepseek:<model id>[:<effort>]
+        _, model, *effort = spec.split(":")
+        b = _CappedDeepSeek(model, extra={"reasoning_effort": effort[0]} if effort else {})
         b.name = name
         return b
     if spec.startswith("azure:"):  # azure:<Foundry deployment name>
