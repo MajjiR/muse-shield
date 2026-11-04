@@ -1,7 +1,8 @@
 """Run the Fireworks cookbook SFT loop with Muse Shield's settings. Called by robust_train.py.
 
 Serverless (shared pooled trainer, free LoRA SFT promotion) by default. With "training_shape" set in the
-config it provisions a dedicated trainer on that shape instead (billed per GPU-hour, deleted on exit).
+config it provisions a dedicated trainer on that shape instead (billed per GPU-hour, deleted on exit);
+"trainer_job_id" attaches a second run to an existing dedicated trainer instead of provisioning one.
 
 Runs with the cookbook venv from the cookbook's `training/` directory:
     /Volumes/MajjiR/ai/venv-fwtrain/bin/python scripts/sft_entry.py --config run.json
@@ -35,7 +36,7 @@ def main() -> int:
     shape = c.get("training_shape") or ""
     cfg = sft_loop.Config(
         serverless=not shape,
-        trainer=TrainerConfig(training_shape_id=shape) if shape else TrainerConfig(),
+        trainer=TrainerConfig(training_shape_id=shape, job_id=c.get("trainer_job_id") or None) if shape else TrainerConfig(),
         log_path=c["log_path"],
         base_model=c["base_model"],
         tokenizer_model=c["tokenizer_model"],
