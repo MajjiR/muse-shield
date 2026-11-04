@@ -1,0 +1,26 @@
+06:06:49 attempt 1 starting, fresh start
+06:07:09 session accounts/rohan-majji/trainingSessions/ts-59fc729aa6164ecd8cecf945a12781a4
+06:07:29 run run-84d1fe999b0b428a840be83c0f27c324
+06:13:59 eval loss at step 0: 0.0828
+06:20:50 step 25 loss 0.0654 ema 0.0578
+06:27:30 step 50 loss 0.0461 ema 0.0425
+06:28:50 step 75 loss 0.0487 ema 0.0421
+06:29:50 step 100 loss 0.0349 ema 0.0399
+06:31:00 step 125 loss 0.0315 ema 0.0401
+06:32:00 step 150 loss 0.0399 ema 0.0357
+06:33:01 step 175 loss 0.0349 ema 0.0383
+06:34:01 step 200 loss 0.0298 ema 0.0338
+06:35:01 step 225 loss 0.0390 ema 0.0369
+06:36:01 step 250 loss 0.0226 ema 0.0360
+06:37:01 step 275 loss 0.0563 ema 0.0380
+06:38:11 step 300 loss 0.0084 ema 0.0275
+06:39:11 step 325 loss 0.0031 ema 0.0284
+06:40:11 step 350 loss 0.0169 ema 0.0292
+06:41:21 step 375 loss 0.0338 ema 0.0343
+06:42:21 step 400 loss 0.0504 ema 0.0328
+06:43:42 step 425 loss 0.0282 ema 0.0295
+06:47:02 step 450 loss 0.0390 ema 0.0381
+06:47:02 EARLY STOP: plateau: smoothed loss improved <2% in each of the last 2 windows of 75 steps
+06:47:52 promotion after early stop: {'promoted': 'muse-shield-glimmer-lora-v2', 'from_checkpoint': 'accounts/rohan-majji/trainingSessions/ts-59fc729aa6164ecd8cecf945a12781a4/checkpoints/run-84d1fe999b0b428a840be83c0f27c324-step-450-c434b2b4', 'step': 45043424}
+wrote /Users/majjir/muse-shield/.worktrees/tuning/results/training/20261104-060649_v0.0.1+cf194ee_glimmer-lora-v2/loss.html
+06:47:54 DONE: early_stopped
