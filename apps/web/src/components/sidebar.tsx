@@ -4,7 +4,7 @@ import { modeShort } from "@/lib/modes"
 import { cn, modelLabel } from "@/lib/utils"
 import type { ChatSummary } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { PenSquare, Search, ShieldCheck, Trash2 } from "lucide-react"
+import { PenSquare, Plug, Search, ShieldCheck, Trash2 } from "lucide-react"
 import { motion } from "motion/react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -19,7 +19,11 @@ function groupChats(chats: ChatSummary[]) {
   return groups.filter(([, list]) => list.length)
 }
 
-export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; onSelect: (id: string) => void; onNew: () => void }) {
+export function Sidebar({ chatId, onSelect, onNew, onConnections }: {
+  chatId: string | null; onSelect: (id: string) => void; onNew: () => void; onConnections: () => void
+}) {
+  const connections = useQuery({ queryKey: ["connections"], queryFn: engine.connections })
+  const linked = connections.data ? [connections.data.google, connections.data.telegram, connections.data.folder].filter((c) => c.connected).length : 0
   const chats = useQuery({ queryKey: ["chats"], queryFn: engine.chats })
   const health = useQuery({ queryKey: ["health"], queryFn: engine.health, refetchInterval: 15000 })
   const metrics = useQuery({ queryKey: ["metrics"], queryFn: engine.metrics })
@@ -102,6 +106,12 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
           </div>
         ))}
       </nav>
+
+      <button type="button" onClick={onConnections}
+        className="mx-3 flex items-center justify-between gap-2 rounded-md border border-sidebar-border bg-card px-3 py-2 text-left text-[13px] transition-colors hover:bg-subtle">
+        <span className="flex items-center gap-2"><Plug className="size-4" aria-hidden /> Connections</span>
+        <span className="tabular text-[11.5px] text-muted-foreground">{linked ? `${linked} connected` : "Sample data"}</span>
+      </button>
 
       <div className="m-3 space-y-2 rounded-md border border-sidebar-border bg-card p-3 text-[12px]">
         {health.isError && <p className="font-medium">Engine unreachable</p>}

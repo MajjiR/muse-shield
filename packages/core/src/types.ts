@@ -290,3 +290,18 @@ export interface LeakAudit {
   leaks: { request: string; chat_id: string; labels: string[] }[];
   clean: boolean;
 }
+
+/** A service the user can sign in to from the app. Until it's connected, its tools use the bundled sample data. */
+export interface ConnectionStatus {
+  configured: boolean; // this build ships the app's sign-in key for it
+  connected: boolean;
+  account?: string | null;
+  services?: string[];
+  step?: "code" | "password" | null; // Telegram sign-in in progress
+}
+
+export interface Connections {
+  google: ConnectionStatus;
+  telegram: ConnectionStatus;
+  folder: { configured: boolean; connected: boolean; path: string | null; sample: string | null };
+}
