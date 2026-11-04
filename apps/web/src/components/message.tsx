@@ -31,7 +31,6 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
 
   const user = m.role === "user"
   const masked = (m.meta.spans ?? []).length
-  const cost = m.meta.cost_usd ? `$${m.meta.cost_usd.toFixed(4)}` : null
   const copy = async () => {
     await navigator.clipboard.writeText(m.text)
     setCopied(true)
@@ -46,7 +45,7 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
       </IconAction>
       <IconAction label={copied ? "Copied" : "Copy"} onClick={copy}>{copied ? <Check /> : <Copy />}</IconAction>
       <span className="tabular px-1 text-[11px]">
-        {user && masked > 0 && `${masked} masked · `}{cost && `${user ? "masking" : "answer"} ${cost}`}
+        {user && masked > 0 && `${masked} masked`}
       </span>
     </div>
   )
