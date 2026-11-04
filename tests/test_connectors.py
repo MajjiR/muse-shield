@@ -16,7 +16,7 @@ NAMES = {"Rahul Mehta": "PERSON", "Ananya Iyer": "PERSON", "Meera Pillai": "PERS
          "Kavita Rao": "PERSON", "Sunita Verma": "PERSON", "Suresh Kulkarni": "PERSON", "Arjun Nair": "PERSON",
          "Karan Mehta": "PERSON", "Brightpath Studio": "ORG", "Kestrel Labs": "ORG", "thyroid": "SENSITIVE_ATTRIBUTE"}
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
-RUPEES = re.compile(r"₹\d[\d,]*(?:\.\d+)?(?: lakh| crore)?")
+RUPEES = re.compile(r"(?:₹|Rs\. )\d[\d,]*(?:\.\d+)?(?: lakh| crore)?")
 
 
 def lookup_spark():
@@ -83,7 +83,7 @@ def test_calendar_lists_masked_and_reschedules_after_confirm(ex):
 def test_files_have_opaque_ids_and_a_planted_address_cant_be_mailed(ex):
     executor, vault, chat = ex
     found = executor.propose(chat, "search_files", {})
-    assert len(found.result["files"]) == 3
+    assert len(found.result["files"]) == 7  # 3 documents, 3 tables, 1 PDF across the subfolders
     assert all(re.fullmatch(r"[0-9a-f]{10}", f["id"]) for f in found.result["files"])  # no names hidden in ids
     vendor = next(f for f in found.result["files"] if "vendor" in f["name"])
     doc = executor.propose(chat, "read_file", {"file_id": vendor["id"]})
