@@ -96,7 +96,9 @@ The document is split into numbered units [n]. Return ONE JSON object and nothin
 - id: the type plus a number in order of first appearance (PERSON_1, ORG_1, ID_2). An AMOUNT uses its role
   instead (SALARY_1, LOAN_1).
 - role: for PERSON and ORG, their role in this document in 1-3 lowercase words (employee, manager, mother,
-  borrower, employer, lender). For AMOUNT: SALARY, PRICE, DEAL_VALUE, LOAN, REVENUE, BUDGET, FEE or OTHER.
+  borrower, employer, lender). For AMOUNT: SALARY (pay, bonus, stipend, allowance), PRICE (what something costs to
+  buy, rent or insure: rent, purchase price, premium), FEE (deposits, charges, tuition, professional fees), LOAN
+  (loans, EMIs, arrears), DEAL_VALUE, REVENUE, BUDGET, or OTHER (claims, settlements, reimbursements).
 - subtype: ID: AADHAAR, PAN, PASSPORT, SSN, BANK_ACCOUNT, IFSC, CARD, EMPLOYEE_ID, CUSTOMER_ID, MEDICAL_RECORD,
   TAX_ID, POLICY, OTHER. CONTACT: PHONE, EMAIL. ADDRESS: RESIDENTIAL, OFFICE, OTHER. DATE: DOB, JOINING, EXIT,
   DEADLINE, EVENT, OTHER. SENSITIVE_ATTRIBUTE: HEALTH, AGE, GENDER, RELIGION, CASTE_ETHNICITY, POLITICS,
@@ -129,10 +131,10 @@ EXAMPLE_ASSISTANT = json.dumps({
 }, ensure_ascii=False)
 
 
-def messages(text: str) -> list[dict]:
-    return [{"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": EXAMPLE_USER}, {"role": "assistant", "content": EXAMPLE_ASSISTANT},
-            {"role": "user", "content": render_units(text)}]
+def messages(text: str, example: bool = True) -> list[dict]:
+    """The prompt. Fine-tuned models skip the worked example (they were trained without it: ~600 fewer tokens)."""
+    shot = [{"role": "user", "content": EXAMPLE_USER}, {"role": "assistant", "content": EXAMPLE_ASSISTANT}] if example else []
+    return [{"role": "system", "content": SYSTEM_PROMPT}, *shot, {"role": "user", "content": render_units(text)}]
 
 
 # -- parsing and grounding --------------------------------------------------------------------
@@ -338,8 +340,11 @@ def _f1(tp: int, fp: int, fn: int) -> dict:
     return {"precision": p, "recall": r, "f1": 2 * p * r / (p + r) if p + r else 0.0, "tp": tp, "fp": fp, "fn": fn}
 
 
-def score_doc(gold: dict, res: Resolution | None) -> dict:
-    """Compare one prediction with gold. Gold mentions are (start, end) pairs."""
+def score_doc(gold: dict, res: Resolution | None, relaxed: bool = False) -> dict:
+    """Compare one prediction with gold. Gold mentions are (start, end) pairs.
+
+    relaxed: a predicted mention matches the gold mention it overlaps most (for real text whose gold spans
+    differ in edges, e.g. TAB includes "Mr" in names), instead of needing identical offsets."""
     text = gold["text"]
     g_ent = gold["entities"]
     g_of = {}  # (s, e) -> gold entity index
@@ -348,6 +353,15 @@ def score_doc(gold: dict, res: Resolution | None) -> dict:
             g_of[(s, t)] = gi
     p_ent = res.entities if res else []
     p_of = {(m.start, m.end): pi for pi, e in enumerate(p_ent) for m in e.mentions}
+    if relaxed:  # re-key each predicted mention onto the gold span it overlaps most
+        rekeyed, used = {}, set()
+        for (ps, pe), pi in sorted(p_of.items()):
+            best = max(((min(pe, gt) - max(ps, gs), (gs, gt)) for gs, gt in g_of if gs < pe and ps < gt and (gs, gt) not in used),
+                       default=None)
+            key = best[1] if best and best[0] > 0 else (ps, pe)
+            used.add(key)
+            rekeyed[key] = pi
+        p_of = rekeyed
 
     # leaks: gold names and values (not references) whose characters no predicted name/value covers
     covered = [False] * len(text)

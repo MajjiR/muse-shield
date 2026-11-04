@@ -104,7 +104,7 @@ FAMILIES = {
     "medical_referral": {
         "doc_types": ["hospital referral letter", "discharge summary", "specialist consultation note"],
         "people": [("patient", None), ("doctor", ("TREATS", "patient")),
-                   ("daughter", ("PARENT_OF", "@patient_is_parent"))],
+                   ("daughter", ("PARENT_OF", "<patient"))],
         "org": "hospital",
         "values": [("SENSITIVE_ATTRIBUTE:HEALTH", "patient"), ("SENSITIVE_ATTRIBUTE:AGE", "patient"),
                    ("SENSITIVE_ATTRIBUTE:BODY_MEASUREMENT", "patient"), ("ID:MEDICAL_RECORD", "patient"),
@@ -163,6 +163,65 @@ FAMILIES = {
         "org": "company",
         "values": [("BUDGET", "@org"), ("PROJECT", "@none"), ("DATE:DEADLINE", "@none"), ("REVENUE", "@org")],
     },
+    # v2: several people related to one person, and more kinds of amounts
+    "minor_consent": {
+        "doc_types": ["surgical consent form for a minor", "paediatric treatment consent letter", "hospital admission note for a child"],
+        "people": [("child", None), ("father", ("PARENT_OF", "child")), ("mother", ("PARENT_OF", "child")),
+                   ("doctor", ("TREATS", "child"))],
+        "org": "hospital",
+        "values": [("DATE:DOB", "child"), ("SENSITIVE_ATTRIBUTE:AGE", "child"), ("SENSITIVE_ATTRIBUTE:HEALTH", "child"),
+                   ("ID:MEDICAL_RECORD", "child"), ("CONTACT:PHONE", "father"), ("CONTACT:PHONE", "mother"),
+                   ("ID:AADHAAR", "mother"), ("FEE", "child", "hospital deposit")],
+    },
+    "passport_minor": {
+        "doc_types": ["minor passport application cover letter", "family visa application summary", "travel consent letter for a child"],
+        "people": [("child", None), ("father", ("PARENT_OF", "child")), ("mother", ("PARENT_OF", "child")),
+                   ("passport officer", None)],
+        "org": None,
+        "values": [("DATE:DOB", "child"), ("ID:PASSPORT", "child"), ("ID:PASSPORT", "father"), ("ADDRESS:RESIDENTIAL", "father"),
+                   ("CONTACT:PHONE", "mother"), ("CONTACT:EMAIL", "father"), ("FEE", "father", "application fee")],
+    },
+    "family_insurance": {
+        "doc_types": ["family floater health policy schedule", "family health insurance renewal notice", "policy endorsement adding dependants"],
+        "people": [("policyholder", None), ("spouse", [("SPOUSE_OF", "policyholder"), ("NOMINEE_OF", "policyholder")]),
+                   ("son", ("PARENT_OF", "<policyholder")), ("daughter", ("PARENT_OF", "<policyholder")), ("agent", None)],
+        "org": "insurer",
+        "values": [("PRICE", "policyholder", "annual premium"), ("ID:POLICY", "policyholder"), ("DATE:DOB", "son"),
+                   ("DATE:DOB", "daughter"), ("SENSITIVE_ATTRIBUTE:HEALTH", "spouse"), ("ID:BANK_ACCOUNT", "policyholder"),
+                   ("CONTACT:PHONE", "agent")],
+    },
+    "loan_guarantors": {
+        "doc_types": ["business loan sanction with two guarantors", "guarantee deed summary", "loan recovery notice to a borrower and guarantors"],
+        "people": [("borrower", None), ("guarantor", ("GUARANTOR_FOR", "borrower")), ("guarantor", ("GUARANTOR_FOR", "borrower")),
+                   ("credit officer", None)],
+        "org": "lender",
+        "values": [("LOAN", "borrower"), ("LOAN", "borrower", "monthly EMI"), ("ID:PAN", "guarantor#0"), ("ID:PAN", "guarantor#1"),
+                   ("ADDRESS:RESIDENTIAL", "guarantor#1"), ("ID:BANK_ACCOUNT", "borrower"), ("CONTACT:PHONE", "credit officer")],
+    },
+    "team_review": {
+        "doc_types": ["team compensation review memo", "quarterly team performance summary", "manager's note on team bonuses"],
+        "people": [("manager", [("MANAGES", "analyst"), ("MANAGES", "engineer"), ("MANAGES", "designer")]),
+                   ("analyst", None), ("engineer", None), ("designer", None)],
+        "org": "employer",
+        "values": [("SALARY", "analyst"), ("SALARY", "engineer"), ("SALARY", "designer", "annual bonus"), ("SALARY", "manager"),
+                   ("ID:EMPLOYEE_ID", "engineer"), ("SENSITIVE_ATTRIBUTE:HEALTH", "designer")],
+    },
+    "sibling_estate": {
+        "doc_types": ["property partition agreement between siblings", "succession certificate application", "family settlement letter"],
+        "people": [("sister", ("SIBLING_OF", "brother")), ("brother", None),
+                   ("advocate", [("REPRESENTS", "sister"), ("REPRESENTS", "brother")])],
+        "org": "law firm",
+        "values": [("ADDRESS:RESIDENTIAL", "sister"), ("ADDRESS:RESIDENTIAL", "brother"), ("ID:PAN", "sister"), ("ID:PAN", "brother"),
+                   ("OTHER", "sister", "settlement amount"), ("FEE", "advocate", "professional fee")],
+    },
+    "relocation_letter": {
+        "doc_types": ["employee relocation approval letter", "accommodation allowance letter", "transfer and relocation email"],
+        "people": [("employee", None), ("manager", ("MANAGES", "employee")), ("hr partner", None)],
+        "org": "employer",
+        "values": [("PRICE", "employee", "monthly rent of the new flat"), ("FEE", "employee", "security deposit"),
+                   ("SALARY", "employee", "relocation allowance"), ("OTHER", "employee", "travel reimbursement"),
+                   ("ADDRESS:RESIDENTIAL", "employee"), ("DATE:JOINING", "employee")],
+    },
     # held out entirely: the challenge test set has document structures the model never trained on
     "tenancy_agreement": {
         "doc_types": ["residential rental agreement", "tenancy renewal letter", "security deposit refund notice"],
@@ -181,6 +240,11 @@ FAMILIES = {
     },
 }
 CHALLENGE_FAMILIES = {"tenancy_agreement", "school_admission"}
+V2_FAMILIES = {"minor_consent", "passport_minor", "family_insurance", "loan_guarantors", "team_review", "sibling_estate",
+               "relocation_letter"}
+FEMALE_ROLES, MALE_ROLES = {"mother", "daughter", "sister", "wife"}, {"father", "son", "brother", "husband"}
+FAMILY_ROLES = {"mother", "father", "daughter", "son", "spouse", "co-applicant", "student", "child", "sister", "brother",
+                "policyholder"}
 ORG_SUFFIX = {"hospital": ["Hospital", "Healthcare", "Medical Centre"], "lender": ["Bank", "Finserv", "Housing Finance"],
               "bank": ["Bank", "Co-operative Bank"], "insurer": ["Insurance", "Life Insurance"],
               "law firm": ["Legal LLP", "& Associates"], "school": ["Public School", "International School"]}
@@ -207,6 +271,9 @@ def make_value(kind: str, rng: random.Random, us: bool, owner_name: str | None) 
                             f"₹{rng.randint(40, 300)},{rng.randint(100, 999)} per month"])
         elif kind in ("DEAL_VALUE", "REVENUE"):
             v = rng.choice([f"₹{rng.randint(50, 4000)} crore", f"${rng.randint(20, 900)} million"])
+        elif kind in ("PRICE", "FEE"):
+            v = rng.choice([f"₹{rng.randint(8, 95)},000", f"₹{rng.randint(1, 9)},{rng.randint(10, 99)},000",
+                            f"Rs. {rng.randint(10, 99)},{rng.randint(100, 999)}", f"₹{rng.randint(2, 30)} lakh"])
         else:
             v = rng.choice([f"₹{rng.randint(2, 95)} lakh", f"₹{rng.randint(10, 99)},{rng.randint(100, 999)}",
                             f"Rs. {rng.randint(1, 9)},{rng.randint(10, 99)},{rng.randint(100, 999)}"])
@@ -237,6 +304,8 @@ def make_value(kind: str, rng: random.Random, us: bool, owner_name: str | None) 
         v = rng.choice([f"EMP-{_digits(rng, 5)}", f"E{_digits(rng, 6)}", f"{_letters(rng, 2)}/{_digits(rng, 4)}"])
     elif sub == "MEDICAL_RECORD":
         v = f"MRN-{rng.randint(2019, 2026)}-{_digits(rng, 5)}"
+    elif sub == "PASSPORT":
+        v = rng.choice(_letters(rng, 1)) + _digits(rng, 7)
     elif sub == "POLICY":
         v = f"POL/{rng.randint(2018, 2026)}/{_digits(rng, 6)}"
     elif sub == "RESIDENTIAL":
@@ -279,10 +348,10 @@ def plan(rng: random.Random, family: str, uid: str) -> dict:
     family_last = rng.choice(LAST)
     ents, by_role, names_used = [], {}, set()
     for i, (role, _) in enumerate(people):
-        gender = "female" if role in ("mother", "daughter") else ("male" if role == "father" else rng.choice(["male", "female"]))
+        gender = "female" if role in FEMALE_ROLES else ("male" if role in MALE_ROLES else rng.choice(["male", "female"]))
         while True:
             first = rng.choice(MALE if gender == "male" else FEMALE)
-            last = family_last if role in ("mother", "father", "daughter", "spouse", "co-applicant", "student") and rng.random() < 0.85 else rng.choice(LAST)
+            last = family_last if role in FAMILY_ROLES and rng.random() < 0.85 else rng.choice(LAST)
             if first not in names_used:
                 break
         names_used.add(first)
@@ -310,22 +379,24 @@ def plan(rng: random.Random, family: str, uid: str) -> dict:
         return cands[int(idx or 0)]["key"] if cands else None
 
     rels = []
-    for role, rel in people:
-        if rel:
-            name, target = rel
-            src = by_role[role][0]["key"]
-            if target == "@patient_is_parent":  # the daughter's parent is the patient
-                rels.append([resolve("patient"), "PARENT_OF", src])
+    for i, (role, rel) in enumerate(people):
+        for name, target in ([rel] if isinstance(rel, tuple) else rel or []):
+            src = ents[i]["key"]
+            if target.startswith("<"):  # reversed: that role -> this person ("<policyholder" PARENT_OF son)
+                other = resolve(target[1:])
+                if other:
+                    rels.append([other, name, src])
             else:
                 dst = resolve(target)
-                if dst:
+                if dst and dst != src:
                     rels.append([src, name, dst])
     for role, name, target in extra_rel:
         rels.append([by_role[role][0]["key"], name, resolve(target)])
     if fam.get("org"):
         employed = [e for e in ents if e["type"] == "PERSON" and e["role"] in
                     ("employee", "manager", "hr partner", "new hire", "deal lead", "cfo", "relationship manager",
-                     "doctor", "claims officer", "advocate", "payroll lead", "investigator", "class teacher", "sender")]
+                     "doctor", "claims officer", "advocate", "payroll lead", "investigator", "class teacher", "sender",
+                     "analyst", "engineer", "designer", "agent", "credit officer")]
         for e in employed[:2]:
             rels.append([e["key"], "EMPLOYED_BY", orgs[0]["key"]])
 
@@ -336,28 +407,30 @@ def plan(rng: random.Random, family: str, uid: str) -> dict:
             values.append((kind, opt_people[0]["role"]))
     rng.shuffle(values)
     values = values[: max(3, len(values) - rng.randint(0, 2))]
-    for k, (kind, owner_ref) in enumerate(values):
+    for k, (kind, owner_ref, *hint) in enumerate(values):
         owner = resolve(owner_ref)
         owner_name = next((e["name"] for e in ents if e["key"] == owner), None)
         v, t, role, sub = make_value(kind, rng, us, owner_name)
-        ents.append({"key": f"V{k}", "type": t, "role": role, "subtype": sub, "value": v, "owner": owner})
+        ents.append({"key": f"V{k}", "type": t, "role": role, "subtype": sub, "value": v, "owner": owner,
+                     "hint": hint[0] if hint else None})
 
     # sometimes one value is written so that its owner is genuinely unclear
     ambiguous = None
     persons = [e for e in ents if e["type"] == "PERSON"]
     owned = [e for e in ents if e.get("owner") and e["type"] in ("AMOUNT", "CONTACT", "DATE")]
-    if len(persons) >= 2 and owned and rng.random() < 0.15:
+    if len(persons) >= 2 and owned and rng.random() < 0.05:  # v2: most ambiguity is now built in code (add_ambiguity)
         target = rng.choice(owned)
         a = next(p for p in persons if p["key"] == target["owner"]) if any(p["key"] == target["owner"] for p in persons) else persons[0]
         b = rng.choice([p for p in persons if p is not a])
         if a["gender"] == b["gender"]:
             target["owner"] = R.UNKNOWN
             ambiguous = {"value": target["key"], "between": [a["key"], b["key"]]}
-    return {"uid": uid, "family": family, "doc_type": rng.choice(fam["doc_types"]), "us": us,
+    words = rng.choices(["120 and 320", "350 and 600", "600 and 1000"], [0.6, 0.25, 0.15])[0]
+    return {"uid": uid, "family": family, "doc_type": rng.choice(fam["doc_types"]), "us": us, "words": words,
             "entities": ents, "relations": rels, "ambiguous": ambiguous}
 
 
-WRITER_PROMPT = """Write ONE realistic document: {doc_type}. Between 120 and 320 words. Plain text (markdown tables only if the document type asks for a table).
+WRITER_PROMPT = """Write ONE realistic document: {doc_type}. Between {words} words. Plain text (markdown tables only if the document type asks for a table).
 
 Use ONLY these people, organisations and private values. Each value must appear exactly as written here.
 The role after each person describes their part in the document; give them natural job titles where needed.
@@ -392,6 +465,8 @@ def writer_messages(p: dict) -> list[dict]:
             what = e["role"].lower().replace("_", " ") if e["type"] == "AMOUNT" else (e["subtype"] or e["type"]).lower().replace("_", " ")
             if e["type"] == "PROJECT":
                 what = "internal project codename"
+            if e.get("hint"):
+                what = e["hint"]
             owner = "" if not e.get("owner") else (" — whose it is must stay unclear (see below)" if e["owner"] == R.UNKNOWN
                                                    else f" — belongs to {e['owner']}")
             lines.append(f"- {e['key']}: {what}: {e['value']}{owner}")
@@ -403,7 +478,8 @@ def writer_messages(p: dict) -> list[dict]:
         amb = (f"\nWrite {p['ambiguous']['value']} so that a careful reader CANNOT tell whether it belongs to {names[a]} or "
                f"{names[b]} (for example a pronoun that could refer to either, both being the same gender). Tag that pronoun "
                f"with the key of whichever person you had in mind, but do not resolve it anywhere in the text.\n")
-    return [{"role": "user", "content": WRITER_PROMPT.format(doc_type=p["doc_type"], spec="\n".join(lines),
+    return [{"role": "user", "content": WRITER_PROMPT.format(doc_type=p["doc_type"], words=p.get("words", "120 and 320"),
+                                                               spec="\n".join(lines),
                                                                relations=rels, ambiguity=amb)}]
 
 
@@ -527,7 +603,8 @@ def check(p: dict, tagged: str) -> tuple[dict | None, str]:
         if pat.search(bare):
             return None, f"untagged value: {pat.pattern[:20]}"
     for e in p["entities"]:
-        for part in re.findall(r"[\w']+", e.get("name", "")):
+        parts = re.findall(r"[\w']+", e.get("name", "")) if e["type"] == "PERSON" else e.get("name", "").split()[:1]
+        for part in parts:  # organisation suffixes ("Bank", "Life") are ordinary words
             if len(part) > 2 and re.search(rf"\b{re.escape(part)}\b", bare):
                 return None, f"untagged name part {part!r}"
     if not any(by_key[k]["type"] == "PERSON" for k in got):
@@ -566,6 +643,80 @@ def check(p: dict, tagged: str) -> tuple[dict | None, str]:
     rels = [[ids[a], r, ids[b]] for a, r, b in p["relations"] if a in ids and b in ids]
     return {"uid": p["uid"], "family": p["family"], "doc_type": p["doc_type"], "text": text, "entities": entities,
             "relations": rels, "ambiguous": bool(p["ambiguous"]), "pending": pending}, ""
+
+
+AMBIGUOUS_THINGS = [("bonus", "SALARY"), ("revised allowance", "SALARY"), ("reimbursement", "OTHER"),
+                    ("salary advance", "LOAN"), ("one-time payment", "OTHER")]
+
+
+def renumber(gold: dict) -> dict:
+    """Re-mint ids in order of first appearance (after an insertion), updating owners and relations."""
+    ents = sorted(gold["entities"], key=lambda e: min(s for s, _ in e["mentions"]))
+    counts, ids = {}, {}
+    for e in ents:
+        base = e["role"] if e["type"] == "AMOUNT" and e.get("role") and e["role"] != "OTHER" else e["type"]
+        counts[base] = counts.get(base, 0) + 1
+        ids[e["id"]] = f"{base}_{counts[base]}"
+    for e in ents:
+        e["id"] = ids[e["id"]]
+        if e.get("owner") and e["owner"] != R.UNKNOWN:
+            e["owner"] = ids[e["owner"]]
+    gold["entities"] = ents
+    gold["relations"] = [[ids[a], r, ids[b]] for a, r, b in gold["relations"]]
+    return gold
+
+
+def add_ambiguity(gold: dict, rng: random.Random, us: bool) -> dict | None:
+    """Insert one sentence about two people and a new amount: owner UNKNOWN by construction, or (as the
+    contrast case) clearly one of them. Built in code because a writer asked to be ambiguous rarely is."""
+    text = gold["text"]
+    persons = [e for e in gold["entities"] if e["type"] == "PERSON"]
+    firsts = {}
+    for e in persons:
+        names = [text[s:t] for s, t in e["mentions"] if not R.is_reference(text[s:t])]
+        if names:
+            firsts[e["id"]] = min(names, key=len).split()[-1] if min(names, key=len).split()[0].lower().rstrip(".") in \
+                {"mr", "mrs", "ms", "dr", "prof"} else min(names, key=len).split()[0]
+    cands = [e for e in persons if e["id"] in firsts]
+    if len(cands) < 2:
+        return None
+    a, b = rng.sample(cands, 2)
+    thing, role = rng.choice(AMBIGUOUS_THINGS)
+    value = make_value(role if role != "OTHER" else "OTHER", rng, us, None)[0]
+    same_gender = a.get("gender") == b.get("gender")
+    clear = rng.random() < 0.4
+    A, B = firsts[a["id"]], firsts[b["id"]]
+    if clear:
+        sent, owner = rng.choice([f"{A} and {B} both met the committee this week. {A}'s {thing} of {value} has been approved.",
+                                  f"After the review with {B}, the {thing} of {value} for {A} was approved."]), a["id"]
+    elif same_gender:
+        pron = "His" if a.get("gender") == "male" else "Her"
+        sent, owner = f"{A} and {B} both met the committee this week. {pron} {thing} of {value} has been approved.", R.UNKNOWN
+    else:
+        sent, owner = f"{A} and {B} were both reviewed; a {thing} of {value} was approved for one of them.", R.UNKNOWN
+    paras = [m.start() for m in re.finditer(r"\n\n", text)]
+    pos = paras[-1] if len(paras) >= 2 else len(text)
+    insert = "\n\n" + sent
+    shift = len(insert)
+    for e in gold["entities"]:
+        e["mentions"] = [(s + shift if s >= pos else s, t + shift if s >= pos else t) for s, t in e["mentions"]]
+    text = text[:pos] + insert + text[pos:]
+    base = pos + 2
+    def at(sub: str, start: int = 0) -> tuple[int, int]:
+        i = sent.index(sub, start)
+        return base + i, base + i + len(sub)
+    a_spans = [at(A)] + ([at(A, sent.index(A) + 1)] if sent.count(A) > 1 else [])
+    next(e for e in gold["entities"] if e["id"] == a["id"])["mentions"] += a_spans
+    next(e for e in gold["entities"] if e["id"] == b["id"])["mentions"].append(at(B))
+    gold["entities"].append({"id": "NEW_1", "type": "AMOUNT", "role": role, "owner": owner, "mentions": [at(value)]})
+    for e in gold["entities"]:
+        e["mentions"] = sorted(e["mentions"])
+    gold["text"] = text
+    gold["ambiguous"] = owner == R.UNKNOWN
+    gold["inserted"] = "unknown" if owner == R.UNKNOWN else "clear"
+    if any(not any(x <= s and t <= y for x, y in R.units(text)) for e in gold["entities"] for s, t in e["mentions"]):
+        return None
+    return renumber(gold)
 
 
 VERIFY_PROMPT = """Read this document carefully.
@@ -649,14 +800,14 @@ class Meter:
         return ((t["prompt"] - t["cached"]) * p_in + t["cached"] * p_cached + t["completion"] * p_out) / 1e6
 
 
-def build(out: Path, n: int, seed: int, model: str, workers: int, budget_usd: float) -> dict:
+def build(out: Path, n: int, seed: int, model: str, workers: int, budget_usd: float, ambiguity: float = 0.25) -> dict:
     rng = random.Random(seed)
-    fams = list(FAMILIES) + ["generic"]
-    weights = [1.0] * len(FAMILIES) + [0.4]
+    fams = [f for f in FAMILIES if f not in CHALLENGE_FAMILIES] + ["generic"]
+    weights = [1.6 if f in V2_FAMILIES else 1.0 for f in fams[:-1]] + [0.3]
     plans = [plan(random.Random(rng.random()), rng.choices(fams, weights)[0], f"er-{seed}-{i:05d}") for i in range(n)]
     # thinking off: with reasoning on, Flash spent the whole token budget thinking and wrote nothing
     no_think = {"thinking": {"type": "disabled"}}
-    writer = DeepSeekBackend(model, max_tokens=3000, extra=no_think)
+    writer = DeepSeekBackend(model, max_tokens=4500, extra=no_think)
     writer.json_mode = False
     reader = DeepSeekBackend(model, max_tokens=1500, extra=no_think)
     meter = Meter(model)
@@ -673,6 +824,8 @@ def build(out: Path, n: int, seed: int, model: str, workers: int, budget_usd: fl
             raw, u = writer._call(writer_messages(p))
             meter.add(u)
             gold, why = check(p, raw)
+            if gold and gold["entities"] and random.Random(p["uid"]).random() < ambiguity:
+                gold = add_ambiguity(gold, random.Random(p["uid"] + "a"), p.get("us", False)) or gold
             if gold and gold["entities"]:
                 msgs, vids, refs = verify_messages(gold)
                 want = [next(e.get("owner") or "NONE" for e in gold["entities"] if e["id"] == v) for v in vids]
@@ -727,6 +880,31 @@ def split(src: Path, out: Path, seed: int, val: int, test: int, challenge: int) 
     return stats
 
 
+def split2(v1: Path, src: Path, out: Path) -> dict:
+    """v2 data: v1 train plus the new documents for training; v1 val, test and challenge unchanged, so results
+    compare directly with v1. Rows have no worked example in the prompt (the fine-tune doesn't need one)."""
+    load = lambda f: [json.loads(l) for l in f.read_text().splitlines() if l.strip()]
+    new = [d for d in load(src) if d["family"] not in CHALLENGE_FAMILIES]
+    parts = {"train": load(v1 / "train.docs.jsonl") + new, "val": load(v1 / "val.docs.jsonl"),
+             "test": load(v1 / "test.docs.jsonl"), "challenge": load(v1 / "challenge.docs.jsonl")}
+    random.Random(5).shuffle(parts["train"])
+    out.mkdir(parents=True, exist_ok=True)
+    for name, ds in parts.items():
+        (out / f"{name}.docs.jsonl").write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in ds))
+    for name in ("train", "val"):
+        rows = [{"messages": R.messages(d["text"], example=False) + [{"role": "assistant", "content": R.target_json(d["text"], d)}]}
+                for d in parts[name]]
+        (out / f"{name}.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
+    stats = {name: len(ds) for name, ds in parts.items()}
+    stats["new_documents"] = len(new)
+    stats["inserted"] = {k: sum(d.get("inserted") == k for d in parts["train"]) for k in ("unknown", "clear")}
+    stats["families"] = {}
+    for d in parts["train"]:
+        stats["families"][d["family"]] = stats["families"].get(d["family"], 0) + 1
+    (out / "stats.json").write_text(json.dumps(stats, indent=1))
+    return stats
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m muse_shield.resolution_data")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -737,6 +915,11 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--model", default="deepseek-flash")
     b.add_argument("--workers", type=int, default=24)
     b.add_argument("--budget-usd", type=float, default=4.5)
+    b.add_argument("--ambiguity", type=float, default=0.25, help="share of documents that get a code-built ownership sentence")
+    s2 = sub.add_parser("split2", help="v2: v1 train + new documents; v1 val/test/challenge unchanged")
+    s2.add_argument("--v1", type=Path, default=Path("runs/er/v1"))
+    s2.add_argument("--src", type=Path, default=Path("runs/er/gen2/docs.jsonl"))
+    s2.add_argument("--out", type=Path, default=Path("runs/er/v2"))
     s = sub.add_parser("split")
     s.add_argument("--src", type=Path, default=Path("runs/er/gen/docs.jsonl"))
     s.add_argument("--out", type=Path, default=Path("runs/er/v1"))
@@ -746,9 +929,11 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--challenge", type=int, default=80)
     a = ap.parse_args(argv)
     if a.cmd == "build":
-        print(json.dumps(build(a.out, a.n, a.seed, a.model, a.workers, a.budget_usd), indent=1))
-    else:
+        print(json.dumps(build(a.out, a.n, a.seed, a.model, a.workers, a.budget_usd, a.ambiguity), indent=1))
+    elif a.cmd == "split":
         print(json.dumps(split(a.src, a.out, a.seed, a.val, a.test, a.challenge), indent=1))
+    else:
+        print(json.dumps(split2(a.v1, a.src, a.out), indent=1))
     return 0
 
 

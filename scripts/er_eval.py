@@ -72,8 +72,8 @@ def chat_call(backend: str, model: str, max_tokens: int):
     return b._call, b.model
 
 
-def run_one(call, doc: dict) -> dict:
-    msgs = R.messages(doc["text"])
+def run_one(call, doc: dict, example: bool = True, relaxed: bool = False) -> dict:
+    msgs = R.messages(doc["text"], example=example)
     t0, usage, raw, err = time.perf_counter(), {"prompt_tokens": 0, "completion_tokens": 0}, "", ""
     res = None
     for attempt in (1, 2):
@@ -91,7 +91,7 @@ def run_one(call, doc: dict) -> dict:
             err = str(exc)
             msgs = msgs + [{"role": "assistant", "content": raw},
                            {"role": "user", "content": f"That output broke the contract ({err}). Reply with only the corrected JSON object."}]
-    score = R.score_doc(doc, res)
+    score = R.score_doc(doc, res, relaxed=relaxed)
     pred = None if res is None else {"entities": [{"id": e.id, "type": e.type, "role": e.role, "subtype": e.subtype,
                                                     "owner": e.owner, "mentions": [[m.start, m.end] for m in e.mentions]}
                                                    for e in res.entities], "relations": [list(r) for r in res.relations]}
@@ -109,6 +109,8 @@ def main(argv=None) -> int:
     ap.add_argument("--workers", type=int, default=24)
     ap.add_argument("--max-tokens", type=int, default=3000)
     ap.add_argument("--tag", required=True)
+    ap.add_argument("--no-example", action="store_true", help="omit the worked example (models fine-tuned without it)")
+    ap.add_argument("--relaxed", action="store_true", help="match mentions by overlap (real text, e.g. TAB)")
     a = ap.parse_args(argv)
     load_env()
     started, git = time.time(), git_version()
@@ -117,11 +119,13 @@ def main(argv=None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     report = {"backend": a.backend, "model": model, "tag": a.tag, "git": git, "sets": {}}
     for name in a.sets:
-        docs = [json.loads(l) for l in (a.data / f"{name}.docs.jsonl").read_text().splitlines() if l.strip()]
+        name, _, path = name.partition("=")
+        src = Path(path) if path else a.data / f"{name}.docs.jsonl"
+        docs = [json.loads(l) for l in src.read_text().splitlines() if l.strip()]
         docs = docs[: a.limit] if a.limit else docs
         t0 = time.time()
         with ThreadPoolExecutor(a.workers) as pool:
-            rows = list(pool.map(lambda d: run_one(call, d), docs))
+            rows = list(pool.map(lambda d: run_one(call, d, not a.no_example, a.relaxed or name == "tab"), docs))
         agg = R.aggregate([r["score"] for r in rows])
         agg["seconds"] = round(time.time() - t0, 1)
         agg["tokens"] = {k: sum(r["usage"][k] for r in rows) for k in ("prompt_tokens", "completion_tokens")}
@@ -132,7 +136,9 @@ def main(argv=None) -> int:
         for k in ("mention", "coref", "relations"):
             print(f"   {k}: P {agg[k]['precision']:.3f} R {agg[k]['recall']:.3f} F1 {agg[k]['f1']:.3f}", flush=True)
     report["settings"] = {"max_tokens": a.max_tokens, "workers": a.workers, "data": str(a.data), "limit": a.limit,
-                          "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)"}
+                          "prompt": "muse_shield.resolution.messages" + (" without the worked example" if a.no_example else
+                                                                          " (system + worked example + numbered units)"),
+                          "relaxed": a.relaxed}
     (out / "report.json").write_text(json.dumps(report, indent=1))
     print(f"recorded {out}", flush=True)
     return 0
