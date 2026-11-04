@@ -118,7 +118,7 @@ export interface Message {
   masked_text: string;
   text: string;
   original: string | null;
-  meta: { spans?: Span[]; cost_usd?: number | null; mode?: MaskMode; categories?: string[]; summary?: string; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
+  meta: { spans?: Span[]; cost_usd?: number | null; mode?: MaskMode; categories?: string[]; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
   segments?: Segment[];
   /** role "document": the attached document, shown as a card. */
   document?: DocumentInfo | null;

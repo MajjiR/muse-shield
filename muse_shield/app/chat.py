@@ -386,8 +386,8 @@ class ChatEngine:
         # Spans keep offsets and types only: their text is the real value, and meta is stored unencrypted.
         spans = [{k: v for k, v in sp.items() if k != "text"} for sp in masked.spans]
         meta = {"spans": spans, "cost_usd": masked.cost_usd}
-        if masked.mode == "classify":
-            meta.update(mode="classify", categories=masked.categories, summary=masked.summary)
+        if masked.mode == "classify":  # meta is stored unencrypted: the categories only, never the summary (it names people)
+            meta.update(mode="classify", categories=masked.categories)
         self.vault.add_message(chat_id, "user", masked.masked_text, original=message, meta=meta)
         try:
             self._send(chat_id, turn)

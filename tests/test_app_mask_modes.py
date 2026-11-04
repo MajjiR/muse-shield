@@ -79,3 +79,21 @@ def test_classify_failure_still_masks(tmp_path):
 def test_keep_extra_filters_labels_and_verbs():
     assert not R.keep_extra("Age") and not R.keep_extra("MRN") and not R.keep_extra("thanked")
     assert R.keep_extra("metformin 500 mg") and R.keep_extra("Project Falcon") and R.keep_extra("hypoglycemia")
+
+
+def test_summary_is_never_stored_in_plaintext_meta(tmp_path):
+    from muse_shield.app.chat import ChatEngine
+
+    class Reply:
+        model = "fake-spark"
+
+        def complete(self, messages):
+            return "Noted.", {"prompt_tokens": 10, "completion_tokens": 2}
+
+    vault = Vault(tmp_path / "v.db", b"\x44" * 32)
+    engine = ChatEngine(vault, Masker(vault, fake_model([])), Reply())
+    turn = engine.chat(DOC, mode="classify")
+    assert not turn.error, turn.error
+    meta = next(m["meta"] for m in vault.messages(turn.chat_id) if m["role"] == "user")
+    assert meta["categories"] == ["medical"] and "summary" not in meta
+    assert "Mohan" not in json.dumps(meta)
