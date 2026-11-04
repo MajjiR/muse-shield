@@ -176,7 +176,11 @@ class Vault:
         if self.path != ":memory:":
             os.chmod(self.path, 0o600)
         with self._db:
-            self._db.execute("INSERT OR IGNORE INTO scopes VALUES (?, 'workspace', NULL, 'Workspace', ?)", (WORKSPACE, time.time()))
+            # Each chat is locked to one masking mode (PII + context, entity resolution, ...): added to older vaults here.
+            if "mode" not in {r[1] for r in self._db.execute("PRAGMA table_info(scopes)").fetchall()}:
+                self._db.execute("ALTER TABLE scopes ADD COLUMN mode TEXT")
+            self._db.execute("INSERT OR IGNORE INTO scopes (id, kind, parent_id, title, created_at) VALUES (?, 'workspace', NULL, 'Workspace', ?)",
+                             (WORKSPACE, time.time()))
 
     @classmethod
     def open(cls, home: Path | None = None) -> "Vault":
@@ -199,16 +203,27 @@ class Vault:
             raise VaultError(f"{aad} failed authentication (wrong key or tampered row)") from exc
 
     # -- chats ---------------------------------------------------------------
-    def create_chat(self, title: str = "New chat") -> str:
+    def create_chat(self, title: str = "New chat", mode: str | None = None) -> str:
         chat_id = "c_" + uuid.uuid4().hex[:10]
         with self._lock, self._db:
-            self._db.execute("INSERT INTO scopes VALUES (?, 'chat', ?, ?, ?)", (chat_id, WORKSPACE, title, time.time()))
+            self._db.execute("INSERT INTO scopes (id, kind, parent_id, title, created_at, mode) VALUES (?, 'chat', ?, ?, ?, ?)",
+                             (chat_id, WORKSPACE, title, time.time(), mode))
         return chat_id
 
     def ensure_chat(self, chat_id: str | None, title: str = "New chat") -> str:
         if chat_id and self._db.execute("SELECT 1 FROM scopes WHERE id=? AND kind='chat'", (chat_id,)).fetchone():
             return chat_id
         return self.create_chat(title)
+
+    def chat_mode(self, chat_id: str) -> str | None:
+        row = self._db.execute("SELECT mode FROM scopes WHERE id=? AND kind='chat'", (chat_id,)).fetchone()
+        return row[0] if row else None
+
+    def lock_chat_mode(self, chat_id: str, mode: str) -> str:
+        """Set a chat's masking mode if it has none yet; returns the chat's mode (which never changes once set)."""
+        with self._lock, self._db:
+            self._db.execute("UPDATE scopes SET mode=? WHERE id=? AND kind='chat' AND mode IS NULL", (mode, chat_id))
+        return self.chat_mode(chat_id) or mode
 
     def title_from_masked(self, chat_id: str, masked_text: str) -> None:
         """Name a new chat after its first masked message (titles are stored in the clear)."""
@@ -222,9 +237,9 @@ class Vault:
 
     def chats(self) -> list[dict]:
         rows = self._db.execute(
-            "SELECT s.id, s.title, s.created_at, COUNT(m.id) FROM scopes s LEFT JOIN messages m ON m.chat_id = s.id "
+            "SELECT s.id, s.title, s.created_at, COUNT(m.id), s.mode FROM scopes s LEFT JOIN messages m ON m.chat_id = s.id "
             "WHERE s.kind='chat' GROUP BY s.id ORDER BY s.created_at DESC").fetchall()
-        return [{"chat_id": r[0], "title": r[1], "created_at": r[2], "messages": r[3]} for r in rows]
+        return [{"chat_id": r[0], "title": r[1], "created_at": r[2], "messages": r[3], "mode": r[4]} for r in rows]
 
     # -- placeholders --------------------------------------------------------
     def _mint(self, chat_id: str, base: str, target_kind: str, target_id: str) -> str:

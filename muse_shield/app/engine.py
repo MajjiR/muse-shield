@@ -359,3 +359,69 @@ def segments(text: str, chat_id: str, vault: Vault) -> list[dict]:
     if cursor < len(text):
         out.append({"text": text[cursor:]})
     return out
+
+
+# -- masking modes: each chat is locked to one ------------------------------------------------
+
+MODES = {
+    "pii_context": {"label": "PII + context", "detail": "Fine-tuned Glimmer (v2-full): names, values and whole confidential "
+                    "passages, paragraph by paragraph"},
+    "resolution": {"label": "Entity resolution", "detail": "Fine-tuned Glimmer (er-v2b): one identity per person across the "
+                   "text, owners and relations, in one call"},
+    "resolution_classify": {"label": "Entity resolution + classify", "detail": "Entity resolution plus a second prompt on the "
+                            "same model: the document's category and its extra private details"},
+    "spark": {"label": "Muse Spark", "detail": "Cloud Muse Spark analysis (dev stand-in for the fine-tuned Glimmer)"},
+}
+
+
+class ModeError(ValueError):
+    """A request asked for a different masking mode than the chat is locked to."""
+
+
+class ModeMasker:
+    """Routes each chat to its own masking mode. A chat's mode is fixed when it's first used: its placeholders,
+    identities and edges come from one analyzer only, so switching means starting a new chat.
+
+    `masker_for` maps a mode to (Masker, classify flag). Looks like a Masker to the chat, document and extension
+    code (analyzer, workers and _analyze are the default mode's)."""
+
+    def __init__(self, vault: Vault, masker_for: dict[str, tuple[Masker, bool]], default: str):
+        self.vault, self.masker_for, self.default = vault, masker_for, default
+        self.workers = masker_for[default][0].workers
+
+    @property
+    def analyzer(self):
+        return self.masker_for[self.default][0].analyzer
+
+    @analyzer.setter
+    def analyzer(self, value) -> None:  # swaps the default mode's analyzer (tests, hot reload)
+        self.masker_for[self.default][0].analyzer = value
+
+    @property
+    def modes(self) -> list[str]:
+        return list(self.masker_for)
+
+    def _analyze(self, paras, on_progress=None):
+        return self.masker_for[self.default][0]._analyze(paras, on_progress)
+
+    def check(self, mode: str | None) -> str:
+        mode = mode or self.default
+        if mode not in self.masker_for:
+            raise ModeError(f"masking mode {mode!r} isn't available here (available: {', '.join(self.masker_for)})")
+        return mode
+
+    def mode_of(self, chat_id: str, requested: str | None = None) -> str:
+        """The chat's mode, locking it to `requested` (or the default) on first use. Raises ModeError on a mismatch."""
+        current = self.vault.chat_mode(chat_id)
+        if current and current not in self.masker_for:
+            raise ModeError(f"this chat uses the {MODES.get(current, {}).get('label', current)!r} mode, which this server "
+                            "isn't running; start a new chat")
+        if current and requested and requested != current:
+            raise ModeError(f"this chat is locked to {MODES[current]['label']!r}; start a new chat to use "
+                            f"{MODES.get(requested, {}).get('label', requested)!r}")
+        return current or self.vault.lock_chat_mode(chat_id, self.check(requested))
+
+    def mask(self, text: str, chat_id: str, *, mode: str | None = None, **kw) -> Masked:
+        chat_mode = self.mode_of(chat_id, mode)
+        masker, classify = self.masker_for[chat_mode]
+        return masker.mask(text, chat_id, mode="classify" if classify else "normal", **kw)

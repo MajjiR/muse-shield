@@ -64,7 +64,7 @@ export function MessageView({ m, kinds }: { m: Message; kinds: Record<string, st
           user ? "rounded-md bg-muted px-4 py-2.5 whitespace-pre-wrap" : "pt-0.5")}>
           {user ? <OriginalText text={m.text} spans={m.meta.spans} /> : <RestoredText segments={m.segments} />}
         </div>
-        {user && m.meta.mode === "classify" && <CategoryLine categories={m.meta.categories} className="justify-end" />}
+        {user && !!m.meta.categories?.length && <CategoryLine categories={m.meta.categories} className="justify-end" />}
         <AnimatePresence initial={false}>
           {saw && (
             <motion.div

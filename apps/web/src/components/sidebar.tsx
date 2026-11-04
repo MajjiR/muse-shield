@@ -1,5 +1,6 @@
 import { MaskedText } from "@/components/privacy-text"
 import { engine } from "@/lib/engine"
+import { modeShort } from "@/lib/modes"
 import { cn, modelLabel } from "@/lib/utils"
 import type { ChatSummary } from "@muse-shield/core"
 import { useQuery } from "@tanstack/react-query"
@@ -73,6 +74,7 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
                   </span>
                   <span className="tabular mt-0.5 block text-[11px] text-muted-foreground">
                     {c.messages} {c.messages === 1 ? "message" : "messages"} · {new Date(c.created_at * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {c.mode && <> · {modeShort(c.mode)}</>}
                   </span>
                 </button>
               )

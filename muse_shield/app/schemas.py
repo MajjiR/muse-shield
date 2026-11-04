@@ -28,13 +28,15 @@ class ContextOut(BaseModel):
     summary: str = ""
 
 
-MaskMode = Literal["normal", "classify"]
-
-
 class MaskRequest(BaseModel):
     text: str
     chat_id: str | None = None
-    mode: MaskMode = "normal"  # classify: also detect the document's categories and their extra private details
+    # masking mode for a NEW chat (pii_context, resolution, resolution_classify, spark); an existing chat keeps its own
+    mode: str | None = None
+
+
+class NewChatRequest(BaseModel):
+    mode: str | None = None  # the chat is locked to this masking mode; GET /health lists them
 
 
 class ImageMaskRequest(BaseModel):
@@ -53,7 +55,7 @@ class MaskResponse(BaseModel):
     latency_ms: float = 0.0
     cost_usd: float | None = None
     mask_id: str | None = None
-    mode: MaskMode = "normal"
+    mode: str = "normal"  # normal, or classify (the categories and extras below)
     categories: list[str] = Field(default_factory=list)
     summary: str = ""
 
@@ -84,7 +86,7 @@ class ChatRequest(BaseModel):
     mask_id: str | None = None  # from a /mask preview, so Mask & send doesn't analyze twice
     document_ids: list[str] = Field(default_factory=list)  # documents to attach to this turn (message may be "")
     image_ids: list[str] = Field(default_factory=list)  # masked images (POST /images) to attach to this turn
-    mode: MaskMode = "normal"  # used when there's no mask_id preview
+    mode: str | None = None  # masking mode for a new chat when there's no mask_id preview
 
 
 class ChatResponse(BaseModel):

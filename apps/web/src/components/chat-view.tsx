@@ -1,6 +1,6 @@
 import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
-import { CategoryLine, ModeToggle } from "@/components/categories"
+import { CategoryLine, ModeBadge, ModePicker } from "@/components/categories"
 import { DocumentCard } from "@/components/document-card"
 import { ImageCard, PendingImageCard } from "@/components/image-card"
 import { MessageView } from "@/components/message"
@@ -43,12 +43,13 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const [preview, setPreview] = useState<(MaskResult & { original: string }) | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [autoSend, setAutoSend] = useState(false)
-  const [maskMode, setMaskMode] = useState<MaskMode>(() => {
-    try { return localStorage.getItem("ms-mask-mode") === "classify" ? "classify" : "normal" } catch { return "normal" }
+  // The mode a NEW chat starts in (remembered per browser); an existing chat stays in the mode it's locked to.
+  const [newMode, setNewMode] = useState<MaskMode | null>(() => {
+    try { return localStorage.getItem("ms-chat-mode") } catch { return null }
   })
   const chooseMode = (m: MaskMode) => {
-    setMaskMode(m)
-    try { localStorage.setItem("ms-mask-mode", m) } catch { /* private window: keep it for this session only */ }
+    setNewMode(m)
+    try { localStorage.setItem("ms-chat-mode", m) } catch { /* private window: keep it for this session only */ }
   }
   const [ask, setAsk] = useState<Ask | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
@@ -140,8 +141,10 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const onPreview = () => run(async () => { if (input.trim()) await mask(input.trim()) })
 
   const docsAllowed = !!health.data?.analysis && health.data?.documents !== false
-  const classifyAllowed = !!health.data?.classify_mode
-  const mode: MaskMode = classifyAllowed ? maskMode : "normal"
+  const modes = health.data?.modes ?? []
+  const chatMode = chatId ? (detail.data?.mode ?? chats.data?.find((c) => c.chat_id === chatId)?.mode ?? null) : null
+  const startMode = modes.some((m) => m.id === newMode) ? newMode : health.data?.default_mode ?? null
+  const mode: MaskMode | null = chatId ? null : startMode // the server keeps an existing chat's own mode
   const imagesAllowed = !!health.data?.images
   const filesAllowed = docsAllowed || imagesAllowed
   const statusOf = (d: DocumentInfo) => docStatus[d.doc_id] ?? d.status
@@ -154,7 +157,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
     let cid = chatId
     const list = Array.from(files)
     if (!cid && list.length > 1) {  // several files into a new conversation: one chat for all of them
-      cid = (await engine.newChat()).chat_id
+      cid = (await engine.newChat(startMode)).chat_id
       onChat(cid)
     }
     const adopt = (id: string) => {
@@ -279,6 +282,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
+          {chatId && <ModeBadge mode={chatMode} modes={modes} />}
           <span className="hidden items-center gap-1.5 rounded-full border border-foreground/30 bg-card px-3 py-1 font-mono text-[12px] tracking-[-0.01em] text-muted-foreground sm:flex">
             <ShieldCheck className="size-3.5 text-foreground" aria-hidden />
             {maskedCount > 0 ? <><span className="tabular font-medium text-foreground">{maskedCount}</span> items shielded</> : "Shield on"}
@@ -345,6 +349,14 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           </div>
         )}
 
+        {!chatId && modes.length > 1 && startMode && (
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+            <span>Masking mode for this chat</span>
+            <ModePicker modes={modes} value={startMode} onChange={chooseMode} disabled={!!phase} />
+            <span className="max-sm:hidden">· locked once you send; start a new chat to switch</span>
+          </div>
+        )}
+
         <form
           onSubmit={(e) => { e.preventDefault(); onSend() }}
           className="relative rounded-xl border border-input bg-card shadow-float transition-colors focus-within:border-foreground/60"
@@ -368,7 +380,6 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
               )}
             </span>
             <div className="flex shrink-0 items-center gap-1.5">
-              {classifyAllowed && <ModeToggle mode={maskMode} onChange={chooseMode} disabled={!!phase} />}
               {filesAllowed && (
                 <>
                   <input ref={fileRef} type="file" accept={accept} multiple hidden
@@ -419,7 +430,7 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
           </button>
         )}
       </div>
-      {preview.mode === "classify" && <CategoryLine categories={preview.categories} summary={preview.summary} className="border-b px-4 py-2" />}
+      {!!preview.categories?.length && <CategoryLine categories={preview.categories} summary={preview.summary} className="border-b px-4 py-2" />}
       <div className="grid max-h-52 grid-cols-2 gap-0 overflow-y-auto max-md:grid-cols-1">
         <div className="border-r px-4 py-3 max-md:border-r-0 max-md:border-b">
           <div className="mb-1 eyebrow text-muted-foreground">You wrote</div>
@@ -473,7 +484,7 @@ function PendingMessage({ pending }: { pending: Pending }) {
           ))
         )}
       </div>
-      {masked?.mode === "classify" && (
+      {!!masked?.categories?.length && (
         <CategoryLine categories={masked.categories} summary={masked.summary} className="max-w-[min(42rem,85%)] justify-end" />
       )}
       {masked && spans.length > 0 && (

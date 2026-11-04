@@ -1,13 +1,12 @@
 import { cn } from "@/lib/utils"
-import type { MaskMode } from "@muse-shield/core"
-import { Layers } from "lucide-react"
+import type { MaskMode, ModeInfo } from "@muse-shield/core"
+import { Layers, Lock } from "lucide-react"
 
 const NAMES: Record<string, string> = {
   medical: "Medical", legal: "Legal", mergers_acquisitions: "M&A", banking_finance: "Banking & finance", hr: "HR",
   insurance: "Insurance", real_estate: "Real estate", education: "Education", code: "Code", general: "General",
 }
-
-/** Classify mode: the document's categories and its one-line summary, under a message or preview. */
+/** Entity resolution + classify: the document's categories and its one-line summary, under a message or preview. */
 export function CategoryLine({ categories, summary, className }: { categories?: string[]; summary?: string; className?: string }) {
   if (!categories?.length) return null
   return (
@@ -22,18 +21,30 @@ export function CategoryLine({ categories, summary, className }: { categories?: 
   )
 }
 
-/** Normal: one call finds people, values and owners. Classify: also detects the document type and its extra private details. */
-export function ModeToggle({ mode, onChange, disabled }: { mode: MaskMode; onChange: (m: MaskMode) => void; disabled?: boolean }) {
+/** New chat: pick the masking mode. The chat stays in it; another mode means another chat. */
+export function ModePicker({ modes, value, onChange, disabled }: { modes: ModeInfo[]; value: MaskMode; onChange: (m: MaskMode) => void; disabled?: boolean }) {
   return (
-    <div role="radiogroup" aria-label="Masking mode" className="flex items-center rounded-md border p-0.5 text-[12px]">
-      {(["normal", "classify"] as const).map((m) => (
-        <button key={m} type="button" role="radio" aria-checked={mode === m} disabled={disabled} onClick={() => onChange(m)}
-          title={m === "normal" ? "One call: people, values, owners" : "Also detects the document type (medical, legal, HR…) and masks its extra private details"}
+    <div role="radiogroup" aria-label="Masking mode for this new chat" className="flex flex-wrap items-center gap-1 rounded-md border p-0.5 text-[12px]">
+      {modes.map((m) => (
+        <button key={m.id} type="button" role="radio" aria-checked={value === m.id} disabled={disabled} onClick={() => onChange(m.id)}
+          title={m.detail}
           className={cn("rounded-[5px] px-2 py-0.5 transition-colors",
-            mode === m ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>
-          {m === "normal" ? "Normal" : "Classify"}
+            value === m.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>
+          {m.label}
         </button>
       ))}
     </div>
+  )
+}
+
+/** An existing chat: its mode, locked. */
+export function ModeBadge({ mode, modes }: { mode?: MaskMode | null; modes: ModeInfo[] }) {
+  if (!mode) return null
+  const info = modes.find((m) => m.id === mode)
+  return (
+    <span title={`${info?.detail ?? mode}. Start a new chat to use another mode.`}
+      className="flex items-center gap-1 rounded-md border px-2 py-0.5 text-[12px] text-muted-foreground">
+      <Lock className="size-3" aria-hidden /> {info?.label ?? mode}
+    </span>
   )
 }

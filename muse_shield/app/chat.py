@@ -308,7 +308,7 @@ class ChatEngine:
         return turn  # if the model chained another tool call, turn.action now holds that one
 
     # -- public ---------------------------------------------------------------
-    def preview(self, text: str, chat_id: str | None, mode: str = "normal") -> tuple[str, Masked]:
+    def preview(self, text: str, chat_id: str | None, mode: str | None = None) -> tuple[str, Masked]:
         chat_id = self.vault.ensure_chat(chat_id)
         masked = self.masker.mask(text, chat_id, mode=mode)
         mask_id = "k_" + uuid.uuid4().hex[:10]
@@ -357,7 +357,7 @@ class ChatEngine:
                                                                  "verified": info["verified"], "counts": info["counts"]})
 
     def chat(self, message: str, chat_id: str | None = None, mask_id: str | None = None,
-             document_ids: list[str] | None = None, image_ids: list[str] | None = None, mode: str = "normal") -> Turn:
+             document_ids: list[str] | None = None, image_ids: list[str] | None = None, mode: str | None = None) -> Turn:
         if document_ids or image_ids:
             if not chat_id:
                 return Turn("", error="Not sent: attachments belong to a chat; pass its chat_id")
@@ -378,7 +378,10 @@ class ChatEngine:
             chat_id, masked = cached.chat_id, cached
         else:
             chat_id = self.vault.ensure_chat(chat_id)
-            masked = self.masker.mask(message, chat_id, mode=mode)
+            try:
+                masked = self.masker.mask(message, chat_id, mode=mode)
+            except ValueError as exc:  # ModeError: the chat is locked to another masking mode
+                return Turn(chat_id, error=f"Not sent: {exc}")
         turn = Turn(chat_id, masked=masked, cost_usd=masked.cost_usd or 0.0)
         if not masked.analysis_ok:
             turn.error = f"Not sent: {masked.error}"

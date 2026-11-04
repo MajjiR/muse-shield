@@ -17,8 +17,15 @@ export interface Span {
   in_context?: string | null;
 }
 
-/** normal: one call finds people, values, owners. classify: also detects the document's categories and their extra private details. */
-export type MaskMode = "normal" | "classify";
+/** A masking mode the engine runs (pii_context, resolution, resolution_classify, spark). Each chat is locked to one. */
+export type MaskMode = string;
+
+export interface ModeInfo {
+  id: MaskMode;
+  label: string;
+  detail: string;
+  model: string | null;
+}
 
 export interface ContextBlock {
   label: string;
@@ -39,7 +46,8 @@ export interface MaskResult {
   latency_ms: number;
   cost_usd: number | null;
   mask_id: string | null;
-  mode?: MaskMode;
+  /** "classify" when the entity-resolution + classify mode filled categories and summary */
+  mode?: string;
   categories?: string[];
   summary?: string;
 }
@@ -118,7 +126,7 @@ export interface Message {
   masked_text: string;
   text: string;
   original: string | null;
-  meta: { spans?: Span[]; cost_usd?: number | null; mode?: MaskMode; categories?: string[]; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
+  meta: { spans?: Span[]; cost_usd?: number | null; mode?: string; categories?: string[]; label?: string; level?: Level; decision?: "allow" | "deny"; tool?: string; status?: ActionStatus; action_id?: string };
   segments?: Segment[];
   /** role "document": the attached document, shown as a card. */
   document?: DocumentInfo | null;
@@ -132,10 +140,13 @@ export interface ChatSummary {
   title: string;
   created_at: number;
   messages: number;
+  /** the masking mode this chat is locked to (null: not used yet, or made before modes existed) */
+  mode?: MaskMode | null;
 }
 
 export interface ChatDetail {
   chat_id: string;
+  mode?: MaskMode | null;
   messages: Message[];
   consents: { ts: number; label: string; level: Level; decision: "allow" | "deny"; reason: string }[];
 }
@@ -154,8 +165,9 @@ export interface Health {
   images_off_reason?: string;
   /** e.g. "muse-spark-1.3 + sam-3.1": the vision model, then the segmentation model */
   image_model?: string | null;
-  /** the analyzer can classify documents (entity-resolution Glimmer) */
-  classify_mode?: boolean;
+  /** masking modes this engine runs; new chats pick one and stay locked to it */
+  modes?: ModeInfo[];
+  default_mode?: MaskMode | null;
 }
 
 /** A covered part of an image: a value (kind "text", labelled with its vault placeholder) or a face, code, plate… */
