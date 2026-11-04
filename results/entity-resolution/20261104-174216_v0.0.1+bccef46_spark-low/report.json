@@ -1,0 +1,97 @@
+{
+ "backend": "muse_spark",
+ "model": "muse-spark-1.3",
+ "tag": "spark-low",
+ "git": "bccef46",
+ "sets": {
+  "test": {
+   "docs": 150,
+   "valid": 1.0,
+   "leak": 0.005092297899427116,
+   "core_leak": 0.004199720018665422,
+   "mention": {
+    "precision": 0.7458270106221547,
+    "recall": 0.9375298044825942,
+    "f1": 0.830762729769702,
+    "tp": 3932,
+    "fp": 1340,
+    "fn": 262
+   },
+   "coref": {
+    "precision": 0.988672194324419,
+    "recall": 0.8233806652402257,
+    "f1": 0.8984876625099496,
+    "tp": 8466,
+    "fp": 97,
+    "fn": 1816
+   },
+   "owner_acc": 0.9716535433070866,
+   "unknown_acc": null,
+   "type_acc": 0.9992389649923896,
+   "amount_role_acc": 1.0,
+   "relations": {
+    "precision": 0.8252427184466019,
+    "recall": 0.85,
+    "f1": 0.8374384236453202,
+    "tp": 255,
+    "fp": 54,
+    "fn": 45
+   },
+   "persons_resolved": 0.8407079646017699,
+   "dropped_mentions": 15,
+   "seconds": 213.0,
+   "tokens": {
+    "prompt_tokens": 227879,
+    "completion_tokens": 454384
+   }
+  },
+  "challenge": {
+   "docs": 80,
+   "valid": 1.0,
+   "leak": 0.005723204994797087,
+   "core_leak": 0.007052186177715092,
+   "mention": {
+    "precision": 0.7456629491945477,
+    "recall": 0.9254133025759324,
+    "f1": 0.8258706467661691,
+    "tp": 2407,
+    "fp": 821,
+    "fn": 194
+   },
+   "coref": {
+    "precision": 0.9803819444444445,
+    "recall": 0.7772883688919477,
+    "f1": 0.8671017274472169,
+    "tp": 5647,
+    "fp": 113,
+    "fn": 1618
+   },
+   "owner_acc": 0.9585365853658536,
+   "unknown_acc": 0.0,
+   "type_acc": 0.9987146529562982,
+   "amount_role_acc": 0.7439024390243902,
+   "relations": {
+    "precision": 0.9576719576719577,
+    "recall": 0.8701923076923077,
+    "f1": 0.9118387909319899,
+    "tp": 181,
+    "fp": 8,
+    "fn": 27
+   },
+   "persons_resolved": 0.7138157894736842,
+   "dropped_mentions": 51,
+   "seconds": 141.3,
+   "tokens": {
+    "prompt_tokens": 121123,
+    "completion_tokens": 261839
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 3000,
+  "workers": 16,
+  "data": "/Users/majjir/muse-shield/.worktrees/entity-engine/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)"
+ }
+}
