@@ -181,6 +181,18 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
     }
   }
 
+  // Files already in the thread: deleted from the vault (with their message) after a confirm.
+  const deleteSent = async (kind: "document" | "image", id: string, name: string) => {
+    if (!window.confirm(`Delete this ${kind} (${name}) from the chat? Its original and masked copy are removed from the vault. This can't be undone.`)) return
+    try {
+      await (kind === "document" ? engine.deleteDocument(id) : engine.deleteImage(id))
+      await qc.invalidateQueries({ queryKey: ["chat", chatId] })
+      toast.success(`${kind === "document" ? "Document" : "Image"} deleted`)
+    } catch (e) {
+      toast.error((e as Error).message)
+    }
+  }
+
   const removeAttached = async (d: DocumentInfo) => {
     setAttached((a) => a.filter((x) => x.doc_id !== d.doc_id))
     await engine.deleteDocument(d.doc_id).catch(() => undefined)
@@ -295,8 +307,12 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
                   return m.meta.action_id ? null // its tool call above already shows how it ended
                     : <StepLine key={m.message_id} icon={Wrench} text={`${toolMeta(m.meta.tool ?? "").done}: ${m.meta.status ?? "finished"}`} />
                 }
-                if (m.role === "document") return m.document ? <DocumentCard key={m.message_id} doc={m.document} /> : null
-                if (m.role === "image") return m.image ? <ImageCard key={m.message_id} image={m.image} /> : null
+                if (m.role === "document") return m.document
+                  ? <DocumentCard key={m.message_id} doc={m.document} onRemove={() => deleteSent("document", m.document!.doc_id, `${m.document!.format.toUpperCase()} ${m.document!.n}`)} />
+                  : null
+                if (m.role === "image") return m.image
+                  ? <ImageCard key={m.message_id} image={m.image} onRemove={() => deleteSent("image", m.image!.image_id, `image ${m.image!.n}`)} />
+                  : null
                 return <MessageView key={m.message_id} m={m} kinds={kinds} />
               })}
               {pending && <PendingMessage pending={pending} />}

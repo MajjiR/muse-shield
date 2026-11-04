@@ -137,7 +137,10 @@ class _LockedDB:
 
     def execute(self, sql: str, params: tuple = ()) -> _Rows:
         with self._lock:
-            return _Rows(self._conn.execute(sql, params).fetchall())
+            cur = self._conn.execute(sql, params)
+            rows = _Rows(cur.fetchall())
+            rows.rowcount = cur.rowcount  # rows changed by INSERT / UPDATE / DELETE
+            return rows
 
     def executescript(self, script: str) -> None:
         with self._lock:
@@ -459,6 +462,33 @@ class Vault:
         with self._lock, self._db:
             found = self._db.execute("SELECT 1 FROM documents WHERE id=?", (doc_id,)).fetchone() is not None
             self._db.execute("DELETE FROM documents WHERE id=?", (doc_id,))
+            self._db.execute("DELETE FROM messages WHERE role='document' AND json_extract(meta, '$.doc_id')=?", (doc_id,))
+        return found
+
+    # Everything keyed by chat_id; the audit rows stay (counts only, and the HMAC chain must not break).
+    _CHAT_TABLES = ("messages", "placeholders", "contexts", "edges", "outbox", "actions", "documents", "images", "consents")
+
+    def delete_chat(self, chat_id: str) -> dict | None:
+        """Delete a chat and everything in it: messages, placeholders, contexts, graph, documents, images,
+        agent actions and outbox. Real values (entities) that no other chat still uses are deleted too.
+        Returns the counts removed, or None if there is no such chat."""
+        with self._lock, self._db:
+            if not self._db.execute("SELECT 1 FROM scopes WHERE id=? AND kind='chat'", (chat_id,)).fetchone():
+                return None
+            removed = {t: self._db.execute(f"DELETE FROM {t} WHERE chat_id=?", (chat_id,)).rowcount for t in self._CHAT_TABLES}
+            self._db.execute("DELETE FROM scopes WHERE id=?", (chat_id,))
+            orphan = "SELECT id FROM entities WHERE id NOT IN (SELECT target_id FROM placeholders WHERE target_kind='entity')"
+            self._db.execute(f"DELETE FROM entity_links WHERE src IN ({orphan}) OR dst IN ({orphan})")
+            removed["entities"] = self._db.execute(f"DELETE FROM entities WHERE id IN ({orphan})").rowcount
+        self.audit("chat_deleted", chat_id, {k: v for k, v in removed.items() if v})
+        return removed
+
+    def delete_image(self, image_id: str) -> bool:
+        """Delete a masked image and the chat message that showed it."""
+        with self._lock, self._db:
+            found = self._db.execute("DELETE FROM images WHERE id=?", (image_id,)).rowcount > 0
+            if found:
+                self._db.execute("DELETE FROM messages WHERE role='image' AND json_extract(meta, '$.image_id')=?", (image_id,))
         return found
 
     # -- images --------------------------------------------------------------
