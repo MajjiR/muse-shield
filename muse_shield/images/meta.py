@@ -116,13 +116,15 @@ def _post(client: httpx.Client, url: str, api_key: str, payload: dict, timeout: 
 TEXT_CHECK_PROMPT = """Look at this image for a privacy gateway. Does it show private text: anything that could identify a
 person or hold private data, such as names, ID or account numbers, dates of birth, addresses, phone numbers, emails,
 passwords or keys, or the content of a document, form, card, chat or screen? Brand names, logos, shop or street signs
-and jersey numbers don't count. Reply with ONE JSON object and nothing else:
+and jersey numbers don't count. Parts already hidden don't count either: blurred or pixelated areas and dark bars
+labelled like <LICENSE_PLATE_1> or <PERSON_2>. Reply with ONE JSON object and nothing else:
 {"private_text": true or false, "what": "a few words on what it is"}"""
 
 
 class GlimmerTextCheck:
     """Asks our Glimmer deployment one question about an image: does it show private text? Used when SAM 3.1 is the
-    only finder: SAM covers faces and objects but can't read, so an image with private text isn't sent."""
+    only finder, on the masked picture: SAM covers faces, plates, cards and documents but can't read, so an image
+    whose private text is still showing after that isn't sent."""
 
     def __init__(self, base_url: str, route: str, api_key: str, *, client: httpx.Client | None = None, timeout: float = 120.0):
         if not (route and api_key):

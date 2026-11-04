@@ -117,8 +117,8 @@ def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[
 
 
 def image_text_check(client: httpx.Client | None = None):
-    """SAM can't read, so with no reader our Glimmer deployment answers one question per image: private text?
-    Without a Glimmer deployment there's nothing to ask, and every image is refused (fail closed)."""
+    """Opt-in (MUSE_SHIELD_IMAGE_TEXT_CHECK=1): SAM can't read, so our Glimmer deployment looks at each masked image and
+    answers one question: private text still showing? Without a Glimmer deployment every image is then refused."""
     from ..images import GlimmerTextCheck
 
     route = os.environ.get("MUSE_SHIELD_GLIMMER_ER_MODEL") or os.environ.get("MUSE_SHIELD_GLIMMER_PII_MODEL", "")
@@ -169,8 +169,11 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     if image_masker is None:
         vision, sam, images_off = image_models_from_env(inspector.client("image"))
         concepts = [c.strip() for c in os.environ.get("MUSE_SHIELD_SAM_CONCEPTS", "").split(",") if c.strip()] or None
-        image_masker = ImageMasker(vault, vision, sam, concepts=concepts, text_check=image_text_check(inspector.client("image"))
-                                   if not vision else None) if (vision or sam) else None
+        # SAM 3.1 covers faces, plates, cards, documents and codes. Blocking images that still show other text is
+        # opt-in (MUSE_SHIELD_IMAGE_TEXT_CHECK=1): our Glimmer then looks at the masked picture before it's sent.
+        check = os.environ.get("MUSE_SHIELD_IMAGE_TEXT_CHECK") == "1" and not vision
+        image_masker = ImageMasker(vault, vision, sam, concepts=concepts,
+                                   text_check=image_text_check(inspector.client("image")) if check else None) if (vision or sam) else None
 
     app = FastAPI(title="Muse Shield", version=__version__, docs_url="/docs")
     # The React dev server (and later the Electron renderer) call the engine from another local origin.
