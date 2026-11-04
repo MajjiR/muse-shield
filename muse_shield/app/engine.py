@@ -92,8 +92,9 @@ LINK_WINDOW = 80  # a contact or ID this close to a name (same paragraph) identi
 
 
 class Masker:
-    def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4):
-        self.vault, self.analyzer, self.workers = vault, analyzer, workers
+    def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4, public=None):
+        """public: returns names that are structure, not personal data (your chat channels), so they're never masked."""
+        self.vault, self.analyzer, self.workers, self.public = vault, analyzer, workers, public
 
     def _analyze(self, paras: list[tuple[int, str]], on_progress=None) -> list[Analysis]:
         if not paras:
@@ -174,10 +175,12 @@ class Masker:
                 self.vault.add_edge(chat_id, sa["placeholder"], sb["placeholder"], rel.lower())
 
     def mask(self, text: str, chat_id: str, *, propagate: bool = False, contexts: bool = True, on_progress=None,
-             title: bool = True, mode: str = "normal") -> Masked:
+             title: bool = True, origin: str = "user", mode: str = "normal") -> Masked:
         """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
         contexts=False (a passage block would swallow most of a page), on_progress(done, total) per analysed
         unit, and title=False (a document shouldn't name the chat).
+        origin: "user" (you typed it: every value in it is yours), "tool" (a tool result: values seen here
+        first are marked as coming from a tool) or "document" (neither).
 
         mode="classify" (entity-resolution analyzers only): a second call to the same model, run alongside the
         fill, classifies the document (medical, legal, hr, ...) and lists category-specific private details the
@@ -244,6 +247,10 @@ class Masker:
                     entities.append({"start": m.start(), "end": m.end(), "text": m.group(0), "type": "SENSITIVE_ATTRIBUTE",
                                      "role": None, "canonical": None, "owner": None, "fallback": x["category"] or "sensitive"})
 
+        if self.public:
+            public = {t.casefold() for t in self.public()}
+            entities = [e for e in entities if e["text"].strip().casefold() not in public]
+
         # The fill's entities first, longest first; classify-mode fallbacks only where nothing else is.
         kept: list[dict] = []
         for e in sorted(entities, key=lambda e: (bool(e.get("fallback")), -(e["end"] - e["start"]))):
@@ -259,16 +266,24 @@ class Masker:
         kept = [e for e in kept if e not in already_sent]
 
         spans: list[dict] = []
+        first_seen: list[str] = []
         resolved = any(e.get("canonical") for e in kept)
-        known = self._known_people(chat_id) if resolved else {}
+        people = self._known_people(chat_id) if resolved else {}
         for e in kept:
-            value = self._same_person(e, known) if resolved else e["text"]
+            value = self._same_person(e, people) if resolved else e["text"]
+            known = origin != "tool" or self.vault.find_entity(e["type"], value) is not None
             base = "SENSITIVE" if e.get("fallback") else placeholder_base(e["type"], e["role"])
             label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], value, base)
             spans.append({**e, "placeholder": label, "entity_id": entity_id, "kind": "entity",
                           "source": "fallback" if e.get("fallback") else "policy" if e["type"] in ALWAYS_MASK else "model"})
+            if not known:
+                first_seen.append(entity_id)
+        if origin == "tool":
+            self.vault.mark_from_tool(first_seen)
+        elif origin == "user":
+            self.vault.trust_entities([s["entity_id"] for s in spans])
         if resolved:
-            self._link_resolved(chat_id, spans, relations, known)
+            self._link_resolved(chat_id, spans, relations, people)
         else:
             self._link_contacts(text, chat_id, spans)
 

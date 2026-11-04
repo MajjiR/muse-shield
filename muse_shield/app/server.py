@@ -17,6 +17,7 @@ from .. import __version__, documents
 from ..backends import Backend, BackendError, GlimmerBackend, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
+from ..connectors.personal import channel_names
 from ..agent.tools import catalog
 from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
@@ -152,11 +153,12 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         chat_model, chat_off = chat_model_from_env(inspector.client("chat"))
     vault = vault or Vault.open()
     # One Masker per analyzer; each chat is locked to one mode (ModeMasker routes by the chat's stored mode).
+    # Your chat channel names are workspace structure, never masked.
     maskers: dict[int, Masker] = {}
-    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a)), classify) for m, (a, classify) in modes.items()}
+    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a, public=channel_names)), classify) for m, (a, classify) in modes.items()}
     masker = ModeMasker(vault, masker_for, default_mode) if masker_for else None
     analyzer = masker.analyzer if masker else None
-    executor = Executor(vault)
+    executor = Executor(vault, masker=masker)
     engine = ChatEngine(vault, masker, chat_model, inspector=inspector, executor=executor) if masker and chat_model else None
     images_off = ""
     if image_masker is None:

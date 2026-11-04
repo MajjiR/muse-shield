@@ -7,7 +7,9 @@ deny()     drop it
 Every action is kept, encrypted, in the vault, so a pending confirmation and the history
 of what ran survive an engine restart.
 Whatever a tool returns is masked again (real vault values -> their placeholders) before
-it goes back to any agent.
+it goes back to any agent. A tool that reads private data (an inbox) brings back values the
+vault has never seen, so its result also goes through the masker first; if that can't run,
+the result is dropped and the action fails, rather than reaching a model unmasked.
 """
 
 from __future__ import annotations
@@ -16,11 +18,16 @@ import json
 import re
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 
 from ..app.vault import Vault
 from .policy import Checked, check
 from .runners import RUNNERS
+from .tools import TOOLS
+
+SKIP_KEYS = {"id", "status", "date", "start", "end", "ts", "channel", "shared_outside", "outbox_id", "note_id",
+             "message_id"}  # structure, not content
 
 
 @dataclass
@@ -38,6 +45,7 @@ class Action:
     error: str = ""
     created_at: float = field(default_factory=time.time)
     origin: str = "direct"  # "chat" when the chat model proposed it: deciding it continues that conversation
+    mask_cost_usd: float = 0.0  # masking a private result (one analysis call per text field)
 
     def for_agent(self) -> dict:
         """What an agent may see: no real values."""
@@ -46,7 +54,8 @@ class Action:
 
     def for_user(self) -> dict:
         return {**self.for_agent(), "chat_id": self.chat_id, "args": self.args, "preview": self.preview,
-                "recipients": self.recipients, "unmasked": self.unmasked, "created_at": self.created_at}
+                "recipients": self.recipients, "unmasked": self.unmasked, "created_at": self.created_at,
+                "mask_cost_usd": self.mask_cost_usd}
 
 
 def remask(value, mapping: dict[str, str]):
@@ -59,8 +68,8 @@ def remask(value, mapping: dict[str, str]):
 
 
 class Executor:
-    def __init__(self, vault: Vault, runners: dict | None = None):
-        self.vault, self.runners = vault, runners or RUNNERS
+    def __init__(self, vault: Vault, runners: dict | None = None, masker=None):
+        self.vault, self.runners, self.masker = vault, runners or RUNNERS, masker
         self.actions: dict[str, Action] = {a["action_id"]: Action(**a) for a in vault.actions()}
 
     def _save(self, action: Action) -> Action:
@@ -95,6 +104,39 @@ class Executor:
         self.vault.consent(action.chat_id, action.tool, "execute", "allow", f"unmasks {', '.join(action.unmasked) or 'nothing'}")
         return self._run(action)
 
+    def _mask_result(self, action: Action, value):
+        """Run every text field through the masker (values seen here first are marked as from a tool)."""
+        if self.masker is None:
+            raise RuntimeError(f"{action.tool} reads private data and masking is off, so its result wasn't used")
+        leaves: list[tuple[list, object]] = []
+
+        def walk(node, path):
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    if k not in SKIP_KEYS:
+                        walk(v, path + [k])
+            elif isinstance(node, list):
+                for i, v in enumerate(node):
+                    walk(v, path + [i])
+            elif isinstance(node, str) and len(node.strip()) >= 3:
+                leaves.append((path, node))
+
+        walk(value, [])
+        origin = "user" if TOOLS[action.tool].trusted_source else "tool"  # your own address book counts as you
+        mask = lambda text: self.masker.mask(text, action.chat_id, propagate=True, contexts=False, title=False, origin=origin)  # noqa: E731
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(mask, [text for _, text in leaves]))
+        action.mask_cost_usd = round(sum(m.cost_usd or 0 for m in results), 6)
+        if bad := next((m for m in results if not m.analysis_ok), None):
+            raise RuntimeError(f"couldn't mask the {action.tool} result ({bad.error}), so it wasn't used")
+        out = json.loads(json.dumps(value))
+        for (path, _), m in zip(leaves, results):
+            node = out
+            for key in path[:-1]:
+                node = node[key]
+            node[path[-1]] = m.masked_text
+        return out
+
     def deny(self, action_id: str) -> Action:
         action = self._pending(action_id)
         action.status, action.preview = "denied", {}
@@ -110,6 +152,8 @@ class Executor:
     def _run(self, action: Action) -> Action:
         try:
             real = self.runners[action.tool](self.vault, action.chat_id, action.preview)
+            if TOOLS[action.tool].reads_private:
+                real = self._mask_result(action, real)
             action.result, action.status = remask(real, self.vault.mapping(action.chat_id)), "done"
             self.vault.audit("tool_run", action.chat_id, {"tool": 1})
         except Exception as exc:  # a failing tool must not leak values through its error text

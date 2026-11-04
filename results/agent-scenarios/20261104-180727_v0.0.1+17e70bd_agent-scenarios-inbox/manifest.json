@@ -1,0 +1,23 @@
+{
+  "run_id": "20261104-180727_v0.0.1+17e70bd_agent-scenarios-inbox",
+  "eval": "agent-scenarios",
+  "tag": "agent-scenarios-inbox",
+  "created": "2026-11-04T18:07:27+0530",
+  "version": "0.0.1",
+  "git": "17e70bd",
+  "command": "/Users/majjir/muse-shield/.worktrees/a2a/muse_shield/agent/scenarios.py --rounds 2 --tag agent-scenarios-inbox",
+  "dataset": {
+    "name": "muse_shield.agent.scenarios",
+    "docs": 10,
+    "rounds": 2
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3",
+      "rounds": 2
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

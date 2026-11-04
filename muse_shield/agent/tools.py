@@ -18,7 +18,7 @@ NEVER = {"SECRET", "ID"}  # never leave the vault through a tool, whatever the t
 @dataclass(frozen=True)
 class Param:
     name: str
-    kind: str  # recipient | recipients | text | string | datetime
+    kind: str  # recipients | text | string | datetime | channel
     required: bool = True
     resolve: frozenset[str] = frozenset()  # placeholder types the executor may unmask here
     description: str = ""
@@ -32,6 +32,8 @@ class Tool:
     side_effect: bool  # True: the user confirms a preview with real values before it runs
     external: bool = True  # True: arguments leave the device when it runs
     tags: tuple[str, ...] = field(default_factory=tuple)
+    reads_private: bool = False  # True: its result holds new private data, so the masker runs on it before any agent sees it
+    trusted_source: bool = False  # True: data you keep yourself (your contacts), so addresses in it may be recipients
 
     def param(self, name: str) -> Param | None:
         return next((p for p in self.params if p.name == name), None)
@@ -59,6 +61,46 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
         Param("title", "text", resolve=frozenset(CONTENT_TYPES)),
         Param("body", "text", resolve=frozenset(CONTENT_TYPES)),
     ), side_effect=False, external=False),
+    Tool("read_inbox", "Read the user's recent emails, newest first. Names, addresses and other details come back as placeholders.", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES | {"CONTACT"}),
+              description="optional words, a <PERSON_n> or a <CONTACT_n> to filter by"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("search_contacts", "Look people up in the user's address book. Addresses found here can be used as recipients.", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES | {"CONTACT"}), description="a name, company or <PERSON_n>"),
+    ), side_effect=False, external=False, reads_private=True, trusted_source=True),
+    Tool("list_events", "List the user's calendar events, soonest first. Each has an id for reschedule_event.", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="optional words to filter by"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("reschedule_event", "Move a calendar event to a new time.", (
+        Param("event_id", "string", description="the id from list_events"),
+        Param("start", "datetime", description="new start, ISO 8601 or a <DATE_n>", resolve=frozenset({"DATE"})),
+        Param("end", "datetime", required=False, resolve=frozenset({"DATE"})),
+    ), side_effect=True),
+    Tool("search_files", "Search the user's documents folder. Each file has an id for read_file.", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="optional words to filter by"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("read_file", "Read one document from the user's folder.", (
+        Param("file_id", "string", description="the id from search_files"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("read_transactions", "Read the user's latest bank statement (date, description, amount, balance).", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="e.g. a merchant, 'debit' or '2026-10'"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("read_health_records", "Read the user's medical reports, newest first.", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="optional words to filter by"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("read_channel", "Read recent messages in one of the user's team chat channels.", (
+        Param("channel", "channel", description="e.g. #finance"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("post_message", "Post a message in one of the user's team chat channels.", (
+        Param("channel", "channel", description="e.g. #finance"),
+        Param("text", "text", resolve=frozenset(CONTENT_TYPES)),
+    ), side_effect=True),
+    Tool("compute", "Do arithmetic on hidden amounts on the user's device, e.g. \"<SALARY_1> * 12 - <LOAN_1>\" or "
+                    "\"<AMOUNT_1> > <AMOUNT_2>\". You get the answer back as a new placeholder (or yes/no for a comparison).", (
+        Param("expression", "text", resolve=frozenset({"AMOUNT"}), description="numbers, amount placeholders, + - * / % ( ), "
+                                                                            "comparisons, min/max/sum/abs/round"),
+        Param("unit", "string", required=False, description="money (default when amounts are involved), percent or number"),
+    ), side_effect=False, external=False),
     Tool("web_search", "Search the public web. The query leaves the device, so it stays masked.", (
         Param("query", "text"),
     ), side_effect=False),
@@ -66,4 +108,16 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
 
 
 def catalog() -> list[dict]:
-    return [t.schema() for t in TOOLS.values()]
+    """Tool schemas for the planning model. Channel names are workspace structure, not personal data, so they're listed."""
+    from ..connectors.personal import workspace
+
+    out = []
+    for t in TOOLS.values():
+        schema = t.schema()
+        if any(p.kind == "channel" for p in t.params):
+            try:
+                schema["description"] += f" The user's channels: {', '.join(workspace())}."
+            except (OSError, ValueError, KeyError):
+                pass  # no chat workspace configured
+        out.append(schema)
+    return out

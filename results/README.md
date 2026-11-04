@@ -2,12 +2,18 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$13.27** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$14.71** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261104-225332_v0.0.1+11bcd6b_after-compute-fix](agent-scenarios/20261104-225332_v0.0.1+11bcd6b_after-compute-fix/report.html) | agent-scenarios | after-compute-fix | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.23 |
+| [20261104-224035_v0.0.1+1eb1c8f_after-main-merge](agent-scenarios/20261104-224035_v0.0.1+1eb1c8f_after-main-merge/report.html) | agent-scenarios | after-main-merge | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 88.2% | $0.24 |
+| [20261104-191323_v0.0.1+64d82a4_agent-scenarios-connectors](agent-scenarios/20261104-191323_v0.0.1+64d82a4_agent-scenarios-connectors/report.html) | agent-scenarios | agent-scenarios-connectors | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 100.0% | $0.21 |
+| [20261104-190405_v0.0.1+1e81bc8_agent-scenarios-connectors](agent-scenarios/20261104-190405_v0.0.1+1e81bc8_agent-scenarios-connectors/report.html) | agent-scenarios | agent-scenarios-connectors | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.21 |
+| [20261104-185510_v0.0.1+78ed48a_agent-scenarios-connectors](agent-scenarios/20261104-185510_v0.0.1+78ed48a_agent-scenarios-connectors/report.html) | agent-scenarios | agent-scenarios-connectors | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.23 |
+| [20261104-180727_v0.0.1+17e70bd_agent-scenarios-inbox](agent-scenarios/20261104-180727_v0.0.1+17e70bd_agent-scenarios-inbox/report.html) | agent-scenarios | agent-scenarios-inbox | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 100.0% | $0.32 |
 | [20261104-093237_v0.0.1+86b74f2-dirty_sectors-glimmer-v1c](sector-test/20261104-093237_v0.0.1+86b74f2-dirty_sectors-glimmer-v1c/report.html) | sector-test | sectors-glimmer-v1c | glimmer `accounts/rohan-majji/models/muse-shield-glimmer-lora-v1c#accounts/rohan-majji/deployments/ms-eval-v1c-1104-0929` | 951 | – | – | 78.4% | 61.5% | 100.0% | $0.26 GPU |
 | [20261104-093022_v0.0.1+86b74f2-dirty_sectors-glimmer-v2full-preds](sector-test/20261104-093022_v0.0.1+86b74f2-dirty_sectors-glimmer-v2full-preds/report.html) | sector-test | sectors-glimmer-v2full-preds | glimmer `accounts/rohan-majji/models/muse-shield-glimmer-lora-v2-full#accounts/rohan-majji/deployments/ms-chat-v2full` | 951 | – | – | 98.7% | 97.2% | 100.0% | $0.28 GPU |
 | [20261104-093007_v0.0.1+86b74f2-dirty_synthetic-spark-contributor-low](synthetic-contract/20261104-093007_v0.0.1+86b74f2-dirty_synthetic-spark-contributor-low/report.html) | synthetic-contract | synthetic-spark-contributor-low | muse_spark `muse-spark-1.3-contributor` | 60 | – | – | 96.0% | 94.1% | 100.0% | $0.02 |

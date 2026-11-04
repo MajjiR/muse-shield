@@ -6,6 +6,7 @@ vault's encrypted outbox only, so prototyping never sends real mail by accident.
 
 from __future__ import annotations
 
+import json
 import os
 import smtplib
 import uuid
@@ -13,6 +14,9 @@ from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 
 from ..app.vault import Vault
+from ..connectors import SAMPLES, data_path
+from ..connectors import personal
+from ..connectors.compute import compute
 
 
 def send_email(vault: Vault, chat_id: str, args: dict) -> dict:
@@ -66,4 +70,20 @@ def web_search(vault: Vault, chat_id: str, args: dict) -> dict:
     return {"status": "search disabled in the prototype", "query": args["query"], "results": []}
 
 
-RUNNERS = {"send_email": send_email, "create_calendar_event": create_calendar_event, "save_note": save_note, "web_search": web_search}
+MOCK_INBOX = SAMPLES / "inbox.json"  # invented mail, including one prompt-injection attempt
+
+
+def read_inbox(vault: Vault, chat_id: str, args: dict) -> dict:
+    """Prototype mailbox: a JSON file (MUSE_SHIELD_INBOX or MUSE_SHIELD_DATA_DIR, else the bundled sample). IMAP slots in here."""
+    mails = json.loads(data_path("inbox.json", "MUSE_SHIELD_INBOX").read_text())
+    words = (args.get("query") or "").casefold().split()
+    hits = [m for m in mails if all(w in " ".join((m["from"], m["subject"], m["body"])).casefold() for w in words)]
+    hits.sort(key=lambda m: m["date"], reverse=True)
+    return {"status": f"{len(hits[:10])} of {len(mails)} emails", "messages": hits[:10]}
+
+
+RUNNERS = {"send_email": send_email, "create_calendar_event": create_calendar_event, "save_note": save_note,
+           "read_inbox": read_inbox, "web_search": web_search, "compute": compute,
+           **{name: getattr(personal, name) for name in ("search_contacts", "list_events", "reschedule_event", "search_files",
+                                                         "read_file", "read_transactions", "read_health_records",
+                                                         "read_channel", "post_message")}}

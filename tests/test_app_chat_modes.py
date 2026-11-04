@@ -91,3 +91,17 @@ def test_deleting_a_locked_chat_removes_it_and_its_mode(tmp_path):
     assert vault.chat_mode(cid) is None and cid not in {ch["chat_id"] for ch in c.get("/chats").json()}
     fresh = c.post("/chats", json={"mode": "pii_context"}).json()["chat_id"]  # modes still work after a delete
     assert vault.chat_mode(fresh) == "pii_context"
+
+
+def test_tool_results_keep_their_provenance_in_resolution_mode(tmp_path):
+    from muse_shield.app.engine import Masker, ModeMasker
+    vault = Vault(tmp_path / "v.db", b"\x55" * 32)
+    er = Masker(vault, fake_model([]), public=lambda: ["#ward-7"])
+    masker = ModeMasker(vault, {"resolution": (er, False), "resolution_classify": (er, True)}, "resolution")
+    cid = vault.create_chat(mode="resolution_classify")
+    m = masker.mask(DOC, cid, origin="tool", propagate=True, contexts=False, title=False)
+    assert m.analysis_ok and m.categories == ["medical"]  # the chat's own mode, also for tool results
+    doctor = next(s["placeholder"] for s in m.spans if s["text"] == "Dr. Farah Siddiqui")
+    assert vault.from_tool(cid, doctor)  # first seen in a tool result: can't be a recipient on its own
+    again = masker.mask(DOC, cid, origin="user")  # the fake model only knows DOC
+    assert again.analysis_ok and not vault.from_tool(cid, doctor)  # you wrote it yourself: trusted now

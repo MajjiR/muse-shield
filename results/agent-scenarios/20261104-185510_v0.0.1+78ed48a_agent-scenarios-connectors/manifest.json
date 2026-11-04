@@ -1,0 +1,23 @@
+{
+  "run_id": "20261104-185510_v0.0.1+78ed48a_agent-scenarios-connectors",
+  "eval": "agent-scenarios",
+  "tag": "agent-scenarios-connectors",
+  "created": "2026-11-04T18:55:10+0530",
+  "version": "0.0.1",
+  "git": "78ed48a",
+  "command": "/Users/majjir/muse-shield/.worktrees/a2a/muse_shield/agent/scenarios.py --rounds 1 --tag agent-scenarios-connectors",
+  "dataset": {
+    "name": "muse_shield.agent.scenarios",
+    "docs": 17,
+    "rounds": 1
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3",
+      "rounds": 1
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

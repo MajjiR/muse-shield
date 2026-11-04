@@ -1,0 +1,23 @@
+{
+  "run_id": "20261104-225332_v0.0.1+11bcd6b_after-compute-fix",
+  "eval": "agent-scenarios",
+  "tag": "after-compute-fix",
+  "created": "2026-11-04T22:53:32+0530",
+  "version": "0.0.1",
+  "git": "11bcd6b",
+  "command": "/Users/majjir/muse-shield/.worktrees/merge-connectors/muse_shield/agent/scenarios.py --rounds 1 --tag after-compute-fix",
+  "dataset": {
+    "name": "muse_shield.agent.scenarios",
+    "docs": 17,
+    "rounds": 1
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3",
+      "rounds": 1
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

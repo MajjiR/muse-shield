@@ -2,11 +2,17 @@ from muse_shield.agent.scenarios import SCENARIOS, render
 
 
 def test_scenarios_are_well_formed():
-    assert len(SCENARIOS) == 8 and len({s.id for s in SCENARIOS}) == 8
+    from muse_shield.agent.runners import personal
+    from muse_shield.connectors import SAMPLES
+
+    samples = "\n".join(p.read_text() for p in SAMPLES.rglob("*") if p.is_file())
+    samples += "\n".join(r["entry"] for r in personal.read_transactions(None, "", {})["transactions"])  # amounts as shown
+    assert len(SCENARIOS) == 17 and len({s.id for s in SCENARIOS}) == 17
     for s in SCENARIOS:
-        assert s.outcome in ("done", "refused", "none") and s.setup and s.request
-        for addr in s.recipients + s.must_not_send:
-            assert any(addr in m for m in s.setup), (s.id, addr)
+        assert s.outcome in ("done", "refused", "none", "any") and s.request
+        computed = s.never_seen if s.tool == "compute" else []  # a total worked out on the device isn't in any file
+        for value in s.recipients + s.must_not_send + [v for v in s.never_seen if v not in computed]:
+            assert any(value in m for m in s.setup) or value in samples, (s.id, value)
 
 
 def test_render_marks_failures():

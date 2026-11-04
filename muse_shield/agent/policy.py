@@ -70,15 +70,22 @@ def _recipients(vault: Vault, chat_id: str, value, where: str, out: Checked) -> 
         label = written = labels[0]
         typ = _type_of(vault, chat_id, label)
         if typ == "CONTACT":
+            if vault.from_tool(chat_id, label):
+                out.violations.append(f"{where}: {label} came from a tool result (like an email you received), not from you; "
+                                      "write the address yourself to send to it")
+                continue
             address = vault.resolve(chat_id, label)
             person = None
         elif typ == "PERSON":
             emails = [c for c in vault.contacts_for(chat_id, label) if c["kind"] == "email"]
-            if not emails:
-                out.violations.append(f"{where}: no email address is known for {label}")
+            yours = [c for c in emails if not vault.from_tool(chat_id, c["label"])]
+            if not yours:
+                out.violations.append(f"{where}: no email address is known for {label}" if not emails else
+                                      f"{where}: the only address for {label} came from a tool result (like an email you "
+                                      "received), not from you; write the address yourself to send to it")
                 continue
-            address, person = emails[0]["value"], vault.resolve(chat_id, label)
-            label = emails[0]["label"]
+            address, person = yours[0]["value"], vault.resolve(chat_id, label)
+            label = yours[0]["label"]
         else:
             out.violations.append(f"{where}: {label} is a {typ or 'unknown placeholder'}, not a person or contact")
             continue
@@ -111,7 +118,29 @@ def check(vault: Vault, chat_id: str, tool_name: str, args: dict) -> Checked:
         where = f"{tool.name}.{p.name}"
         if p.kind == "recipients":
             out.real[p.name] = _recipients(vault, chat_id, value, where, out)
+        elif p.kind == "channel":
+            out.real[p.name] = _channel(str(value), where, out)
         else:
             out.real[p.name] = _text(vault, chat_id, str(value), p.resolve, where, out, tool.external)
+    shared = [c for p, c in ((p, out.real.get(p.name)) for p in tool.params if p.kind == "channel") if c and _shared_outside(c)]
+    if shared and tool.side_effect and out.unmasked:
+        out.violations.append(f"{tool.name}: {shared[0]} is shared with people outside your workspace, so hidden values "
+                              f"({', '.join(sorted(set(out.unmasked)))}) can't be posted there")
     out.unmasked = sorted(set(out.unmasked))
     return out
+
+
+def _channel(value: str, where: str, out: Checked) -> str:
+    """A channel must be one of yours; the model can't invent a destination."""
+    from ..connectors.personal import workspace
+
+    name = value if value.startswith("#") else "#" + value
+    if LABEL.search(name) or name not in workspace():
+        out.violations.append(f"{where}: '{value}' isn't one of your channels")
+    return name
+
+
+def _shared_outside(name: str) -> bool:
+    from ..connectors.personal import workspace
+
+    return bool(workspace().get(name, {}).get("external"))
