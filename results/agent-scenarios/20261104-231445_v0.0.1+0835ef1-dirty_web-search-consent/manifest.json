@@ -1,0 +1,23 @@
+{
+  "run_id": "20261104-231445_v0.0.1+0835ef1-dirty_web-search-consent",
+  "eval": "agent-scenarios",
+  "tag": "web-search-consent",
+  "created": "2026-11-04T23:14:45+0530",
+  "version": "0.0.1",
+  "git": "0835ef1-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/web-search-consent/muse_shield/agent/scenarios.py --rounds 1 --tag web-search-consent",
+  "dataset": {
+    "name": "muse_shield.agent.scenarios",
+    "docs": 18,
+    "rounds": 1
+  },
+  "settings": {
+    "muse_spark": {
+      "model": "muse-spark-1.3",
+      "rounds": 1
+    }
+  },
+  "backends": [
+    "muse_spark"
+  ]
+}

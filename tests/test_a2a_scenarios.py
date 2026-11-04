@@ -7,7 +7,7 @@ def test_scenarios_are_well_formed():
 
     samples = "\n".join(p.read_text() for p in SAMPLES.rglob("*") if p.is_file())
     samples += "\n".join(r["entry"] for r in personal.read_transactions(None, "", {})["transactions"])  # amounts as shown
-    assert len(SCENARIOS) == 17 and len({s.id for s in SCENARIOS}) == 17
+    assert len(SCENARIOS) == 18 and len({s.id for s in SCENARIOS}) == 18
     for s in SCENARIOS:
         assert s.outcome in ("done", "refused", "none", "any") and s.request
         computed = s.never_seen if s.tool == "compute" else []  # a total worked out on the device isn't in any file

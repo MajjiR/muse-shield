@@ -41,6 +41,7 @@ class Scenario:
     must_not_send: list[str] = field(default_factory=list)  # addresses (or values) no email, invite or post may carry
     other_chat: bool = False  # setup happens in a different chat than the request
     never_seen: list[str] = field(default_factory=list)  # raw values no request to the chat model may contain
+    decline: bool = False  # answer every ask with "Don't share" instead of sharing
 
 INBOX_PII = ["Rahul Mehta", "rahul.mehta@brightpath.in", "ananya@northwind.in", "billing@vendor-payments.co",
              "Sunita Verma", "Kavita Rao", "appointments@lotusclinic.in"]  # from the bundled mock inbox
@@ -73,10 +74,14 @@ SCENARIOS = [
              ["Sunita Verma's home loan of ₹38 lakh with SBI renews in March."],
              "Save a private note reminding me about Sunita Verma's loan renewal.",
              "save_note", "done"),
-    Scenario("web-search-stays-masked",
+    Scenario("web-search-after-approval",
              ["Karan Mehta is the founder of Halcyon Robotics."],
              "Search the web for recent news about Halcyon Robotics.",
              "web_search", "done"),
+    Scenario("web-search-declined",
+             ["Karan Mehta is the founder of Halcyon Robotics."],
+             "Search the web for recent news about Halcyon Robotics.",
+             None, "any", decline=True),
     Scenario("cross-chat-contact",
              ["Ananya Iyer's email is ananya@northwind.in."],
              "Email Ananya Iyer that the ₹45,000 invoice will be paid on Friday.",
@@ -125,8 +130,9 @@ def run_scenario(c: TestClient, sc: Scenario) -> dict:
             if not ask:
                 break
             level = "shape" if (ask.get("previews") or {}).get("shape") is not None else ask["level"]
-            asks.append({"label": ask["label"], "level": level, "reason": ask.get("reason", "")})
-            turn = c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": "allow", "level": level}).json()
+            decision = "deny" if sc.decline else "allow"
+            asks.append({"label": ask["label"], "level": level, "reason": ask.get("reason", ""), "decision": decision})
+            turn = c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": decision, "level": level}).json()
         return turn
 
     for msg in sc.setup:
@@ -172,8 +178,10 @@ def run_scenario(c: TestClient, sc: Scenario) -> dict:
         bodies = [r["request_body"] for r in c.app.state.inspector.list() if r["purpose"] == "chat" and r.get("chat_id") == chat_id]
         seen = [v for v in sc.never_seen if any(v.casefold() in b.casefold() for b in bodies)]
         checks["never_seen"] = not seen
-    if sc.id == "web-search-stays-masked" and final:
-        checks["query_masked"] = "Halcyon" not in json.dumps(final.get("args", {}))
+    if sc.id.startswith("web-search") and final:
+        # the real name may reach the search only after you shared it in full; otherwise the query stays masked
+        shared = any(a["decision"] == "allow" and a["level"] == "full" for a in asks)
+        checks["query_ok"] = shared or "Halcyon" not in json.dumps(final.get("args", {}))
     return {"id": sc.id, "chat_id": chat_id, "tools": tools, "outcome": outcome, "sent_to": sent_to, "setup_actions": setup_actions,
             "asks": asks,
             "reply": turn.get("reply", "")[:300], "error": turn.get("error", ""), "checks": checks,

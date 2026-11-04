@@ -57,3 +57,35 @@ def test_local_note_may_unmask_everything_but_secrets(vc):
     v, chat = vc
     c = check(v, chat, "save_note", {"title": "Deal", "body": "<DEAL_1> led by <PERSON_1>"})
     assert c.ok and c.real["body"] == "Acme buys Kestrel for ₹120 crore. led by Priya Shah"
+
+
+def test_web_search_may_use_a_value_you_shared_in_full(vc):
+    v, chat = vc
+    assert not check(v, chat, "web_search", {"query": "who is Priya Shah"}).ok
+    v.consent(chat, "<PERSON_1>", "full", "allow", "search needs the real name")
+    c = check(v, chat, "web_search", {"query": "who is Priya Shah"})
+    assert c.ok, c.violations
+    # only that value: another real value in the same query is still refused
+    mixed = check(v, chat, "web_search", {"query": "Priya Shah Ravi"})
+    assert not mixed.ok and "real value behind <PERSON_2>" in mixed.violations[0]
+
+
+@pytest.mark.parametrize("level,decision", [("shape", "allow"), ("summary", "allow"), ("full", "deny")])
+def test_web_search_needs_a_full_allow(vc, level, decision):
+    v, chat = vc
+    v.consent(chat, "<PERSON_1>", level, decision)
+    assert not check(v, chat, "web_search", {"query": "who is Priya Shah"}).ok
+
+
+def test_a_later_deny_withdraws_the_approval(vc):
+    v, chat = vc
+    v.consent(chat, "<PERSON_1>", "full", "allow")
+    v.consent(chat, "<PERSON_1>", "full", "deny")
+    assert not check(v, chat, "web_search", {"query": "who is Priya Shah"}).ok
+
+
+def test_an_approval_doesnt_let_email_carry_raw_values(vc):
+    v, chat = vc
+    v.consent(chat, "<PERSON_2>", "full", "allow")
+    c = check(v, chat, "send_email", {"to": "<PERSON_1>", "subject": "x", "body": "Ravi says hi"})
+    assert not c.ok and "real value behind <PERSON_2>" in c.violations[0]
