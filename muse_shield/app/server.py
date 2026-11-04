@@ -17,6 +17,7 @@ from .. import __version__, documents
 from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
+from ..connectors.personal import channel_names
 from ..agent.tools import catalog
 from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
@@ -71,7 +72,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     if chat_model is None:
         chat_model, chat_off = chat_model_from_env(inspector.client("chat"))
     vault = vault or Vault.open()
-    masker = Masker(vault, analyzer) if analyzer else None
+    masker = Masker(vault, analyzer, public=channel_names) if analyzer else None
     executor = Executor(vault, masker=masker)
     engine = ChatEngine(vault, masker, chat_model, inspector=inspector, executor=executor) if masker and chat_model else None
     images_off = ""

@@ -178,6 +178,14 @@ def workspace() -> dict:
     return json.loads(data_path("chat.json", "MUSE_SHIELD_CHAT").read_text())["channels"]
 
 
+def channel_names() -> set[str]:
+    """Your channel names, which tool descriptions list for the model, so masking leaves them alone."""
+    try:
+        return {n for name in workspace() for n in (name, name.lstrip("#"))}
+    except (OSError, ValueError, KeyError):
+        return set()
+
+
 def read_channel(vault: Vault, chat_id: str, args: dict) -> dict:
     channels = workspace()
     name = args["channel"] if args["channel"].startswith("#") else "#" + args["channel"]

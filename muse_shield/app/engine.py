@@ -87,8 +87,9 @@ LINK_WINDOW = 80  # a contact or ID this close to a name (same paragraph) identi
 
 
 class Masker:
-    def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4):
-        self.vault, self.analyzer, self.workers = vault, analyzer, workers
+    def __init__(self, vault: Vault, analyzer: Backend, workers: int = 4, public=None):
+        """public: returns names that are structure, not personal data (your chat channels), so they're never masked."""
+        self.vault, self.analyzer, self.workers, self.public = vault, analyzer, workers, public
 
     def _analyze(self, paras: list[tuple[int, str]], on_progress=None) -> list[Analysis]:
         if not paras:
@@ -173,6 +174,10 @@ class Masker:
                 entities.append({"start": off + s.start, "end": off + s.end, "text": s.text, "type": s.type, "role": s.role})
         if propagate:
             entities += self._propagate(text, entities)
+
+        if self.public:
+            public = {t.casefold() for t in self.public()}
+            entities = [e for e in entities if e["text"].strip().casefold() not in public]
 
         # Longest entity wins on overlap.
         kept: list[dict] = []

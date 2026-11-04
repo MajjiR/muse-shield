@@ -146,3 +146,19 @@ def test_your_own_data_folder_replaces_the_samples(ex, tmp_path, monkeypatch):
     monkeypatch.setenv("MUSE_SHIELD_DATA_DIR", str(tmp_path / "data"))
     a = executor.propose(chat, "search_contacts", {})
     assert a.result["status"] == "1 of 1 contacts" and "asha@" not in raw(a.result)
+
+
+def test_channel_names_are_never_masked(tmp_path, monkeypatch):
+    """Tool descriptions list your channels, so masking one would only make the pre-send guard refuse the chat."""
+    from muse_shield.connectors.personal import channel_names
+
+    monkeypatch.delenv("MUSE_SHIELD_DATA_DIR", raising=False)
+    NAMES["#partners-shared"] = "ORG"
+    try:
+        vault = Vault(tmp_path / "v.db", b"\x71" * 32)
+        chat = vault.create_chat()
+        assert Masker(vault, lookup_spark()).mask("Read #partners-shared now.", chat).masked_text == "Read <ORG_1> now."
+        masked = Masker(vault, lookup_spark(), public=channel_names).mask("Read #partners-shared now.", chat)
+        assert masked.masked_text == "Read #partners-shared now." and masked.spans == []
+    finally:
+        del NAMES["#partners-shared"]
