@@ -229,6 +229,9 @@ class ChatEngine:
         turn.sent = messages
 
         call = parse_tool_call(content) if self.executor else None
+        if call and turn.tool_rounds >= self.MAX_TOOL_ROUNDS:
+            turn.error = "stopped after several tool calls in a row"
+            return
         if call:
             self._handle_tool_call(chat_id, turn, call, mapping)
             return
@@ -279,11 +282,10 @@ class ChatEngine:
             note = f"[{action.tool} was refused by the privacy policy: {'; '.join(action.violations)}. Explain or ask the user.]"
         else:
             note = f"[{action.tool} failed: {action.error}]"
+        if turn.tool_rounds >= self.MAX_TOOL_ROUNDS:  # no more calls this turn, but still let the model answer
+            note += " [That was the last tool call for this request: answer the user now with what you have.]"
         self.vault.add_message(chat_id, "tool_result", note, meta={"tool": action.tool, "status": action.status,
                                                                   "action_id": action.action_id, "cost_usd": action.mask_cost_usd or None})
-        if turn.tool_rounds >= self.MAX_TOOL_ROUNDS:
-            turn.error = "stopped after several tool calls in a row"
-            return
         self._send(chat_id, turn)
 
     def owns(self, action_id: str) -> bool:
