@@ -1,0 +1,30 @@
+{
+ "Muse Glimmer + er-v2b (ours)": {
+  "name": "Muse Glimmer + er-v2b (ours)",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-ck-er-v2b-024034",
+  "prompts": 101,
+  "units": 231,
+  "leak_rate": 0.4025974025974026,
+  "prompts_fully_protected": 0.46534653465346537,
+  "valid": 1.0,
+  "seconds": 29.3,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.28421052631578947,
+    "units": 95
+   },
+   "healthcare information": {
+    "leak_rate": 0.5357142857142857,
+    "units": 28
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.5054945054945055,
+    "units": 91
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.29411764705882354,
+    "units": 17
+   }
+  }
+ }
+}

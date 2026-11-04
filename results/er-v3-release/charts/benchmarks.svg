@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 812 436" font-family="Inter, Helvetica, Arial, sans-serif">
+<rect width="812" height="436" fill="#fcfcfb"/>
+<text x="24" y="32" font-size="17" font-weight="600" fill="#0b0b0b">Muse Shield masking: fine-tuned Glimmer vs Muse Spark vs base Glimmer</text>
+<text x="24" y="52" font-size="12" fill="#52514e">Official test sets, run once after the model was chosen on held-out data. Arrows show which way is better.</text>
+<rect x="24" y="65" width="12" height="12" rx="2" fill="#2a78d6"/><text x="42" y="75" font-size="12" fill="#52514e">Muse Glimmer + er-v3 (ours, local)</text>
+<rect x="288" y="65" width="12" height="12" rx="2" fill="#eb6834"/><text x="306" y="75" font-size="12" fill="#52514e">Muse Spark (cloud, same instructions)</text>
+<rect x="573" y="65" width="12" height="12" rx="2" fill="#1baf7a"/><text x="591" y="75" font-size="12" fill="#52514e">Muse Glimmer base (same instructions)</text>
+<text x="24" y="112" font-size="13" font-weight="600" fill="#0b0b0b">Nemotron-PII test (500): core leak ↓</text>
+<rect x="24" y="124" width="101.4" height="20" rx="4" fill="#2a78d6"><title>Muse Glimmer + er-v3 (ours, local): 2.0%</title></rect><text x="131.4" y="139" font-size="12" fill="#0b0b0b">2.0%</text>
+<rect x="24" y="154" width="98.0" height="20" rx="4" fill="#eb6834"><title>Muse Spark (cloud, same instructions): 1.9%</title></rect><text x="128.0" y="169" font-size="12" fill="#0b0b0b">1.9%</text>
+<rect x="24" y="184" width="285.7" height="20" rx="4" fill="#1baf7a"><title>Muse Glimmer base (same instructions): 5.6%</title></rect><text x="315.7" y="199" font-size="12" fill="#0b0b0b">5.6%</text>
+<text x="418" y="112" font-size="13" font-weight="600" fill="#0b0b0b">PUPA held-out (269 prompts): details leaked ↓</text>
+<rect x="418" y="124" width="88.2" height="20" rx="4" fill="#2a78d6"><title>Muse Glimmer + er-v3 (ours, local): 13.4%</title></rect><text x="512.2" y="139" font-size="12" fill="#0b0b0b">13.4%</text>
+<rect x="418" y="154" width="88.2" height="20" rx="4" fill="#eb6834"><title>Muse Spark (cloud, same instructions): 13.4%</title></rect><text x="512.2" y="169" font-size="12" fill="#0b0b0b">13.4%</text>
+<rect x="418" y="184" width="285.7" height="20" rx="4" fill="#1baf7a"><title>Muse Glimmer base (same instructions): 43.3%</title></rect><text x="709.7" y="199" font-size="12" fill="#0b0b0b">43.3%</text>
+<text x="24" y="272" font-size="13" font-weight="600" fill="#0b0b0b">TAB (127 judgments): direct identifiers protected ↑</text>
+<rect x="24" y="284" width="285.7" height="20" rx="4" fill="#2a78d6"><title>Muse Glimmer + er-v3 (ours, local): 98.9%</title></rect><text x="315.7" y="299" font-size="12" fill="#0b0b0b">98.9%</text>
+<rect x="24" y="314" width="238.6" height="20" rx="4" fill="#eb6834"><title>Muse Spark (cloud, same instructions): 82.6%</title></rect><text x="268.6" y="329" font-size="12" fill="#0b0b0b">82.6%</text>
+<rect x="24" y="344" width="114.6" height="20" rx="4" fill="#1baf7a"><title>Muse Glimmer base (same instructions): 39.7%</title></rect><text x="144.6" y="359" font-size="12" fill="#0b0b0b">39.7%</text>
+<text x="418" y="272" font-size="13" font-weight="600" fill="#0b0b0b">ER test (synthetic): core leak ↓</text>
+<rect x="418" y="284" width="2.0" height="20" rx="4" fill="#2a78d6"><title>Muse Glimmer + er-v3 (ours, local): 0.1%</title></rect><text x="426.0" y="299" font-size="12" fill="#0b0b0b">0.1%</text>
+<rect x="418" y="314" width="6.5" height="20" rx="4" fill="#eb6834"><title>Muse Spark (cloud, same instructions): 0.6%</title></rect><text x="430.5" y="329" font-size="12" fill="#0b0b0b">0.6%</text>
+<rect x="418" y="344" width="285.7" height="20" rx="4" fill="#1baf7a"><title>Muse Glimmer base (same instructions): 24.7%</title></rect><text x="709.7" y="359" font-size="12" fill="#0b0b0b">24.7%</text>
+</svg>

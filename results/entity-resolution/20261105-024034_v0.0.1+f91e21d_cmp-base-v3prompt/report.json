@@ -1,0 +1,101 @@
+{
+ "backend": "sampler",
+ "model": "accounts/fireworks/models/muse-glimmer-30b",
+ "tag": "cmp-base-v3prompt",
+ "git": "f91e21d",
+ "sets": {
+  "heldout-v3-val": {
+   "docs": 80,
+   "valid": 0.575,
+   "leak": 0.47796222095020036,
+   "core_leak": 0.42689295039164493,
+   "person_leak": 0.45387453874538747,
+   "mention": {
+    "precision": 0.8212801330008312,
+    "recall": 0.4186440677966102,
+    "f1": 0.5545888296379455,
+    "tp": 988,
+    "fp": 215,
+    "fn": 1372
+   },
+   "coref": {
+    "precision": 0.9813084112149533,
+    "recall": 0.221373039926209,
+    "f1": 0.3612514783356628,
+    "tp": 1680,
+    "fp": 32,
+    "fn": 5909
+   },
+   "owner_acc": 0.5076628352490421,
+   "unknown_acc": 0.5588235294117647,
+   "type_acc": 0.5439814814814815,
+   "amount_role_acc": 0.475,
+   "relations": {
+    "precision": 0.2459016393442623,
+    "recall": 0.40540540540540543,
+    "f1": 0.30612244897959184,
+    "tp": 15,
+    "fp": 46,
+    "fn": 22
+   },
+   "persons_resolved": 0.37037037037037035,
+   "dropped_mentions": 48,
+   "seconds": 295.6,
+   "tokens": {
+    "prompt_tokens": 220910,
+    "completion_tokens": 225116
+   }
+  },
+  "heldout-nemotron-train": {
+   "docs": 150,
+   "valid": 0.9466666666666667,
+   "leak": 0.08782435129740519,
+   "core_leak": 0.07849829351535836,
+   "person_leak": 0.10101010101010101,
+   "mention": {
+    "precision": 0.6664012738853503,
+    "recall": 0.8353293413173652,
+    "f1": 0.741364038972542,
+    "tp": 837,
+    "fp": 419,
+    "fn": 165
+   },
+   "coref": {
+    "precision": 0.8744186046511628,
+    "recall": 0.7286821705426356,
+    "f1": 0.7949260042283298,
+    "tp": 188,
+    "fp": 27,
+    "fn": 70
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.8960573476702509,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   },
+   "persons_resolved": 0.5789473684210527,
+   "dropped_mentions": 17,
+   "seconds": 164.6,
+   "tokens": {
+    "prompt_tokens": 262372,
+    "completion_tokens": 105925
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 3000,
+  "workers": 24,
+  "data": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)",
+  "relaxed": false,
+  "prompt_version": "v3"
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "backend": "muse_spark",
+ "model": "muse-spark-1.3",
+ "tag": "official-tab-spark-v3prompt",
+ "git": "f91e21d-dirty",
+ "sets": {
+  "tab": {
+   "docs": 127,
+   "valid": 1.0,
+   "leak": 0.24287484510532836,
+   "core_leak": 0.1497872340425532,
+   "person_leak": 0.053864168618266976,
+   "mention": {
+    "precision": 0.2389795918367347,
+    "recall": 0.8857791225416036,
+    "f1": 0.376406300225008,
+    "tp": 2342,
+    "fp": 7458,
+    "fn": 302
+   },
+   "coref": {
+    "precision": 0.7923875432525952,
+    "recall": 0.7591160220994475,
+    "f1": 0.7753950338600452,
+    "tp": 1374,
+    "fp": 360,
+    "fn": 436
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.8055853920515574,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 431,
+    "fn": 0
+   },
+   "persons_resolved": 0.7756756756756756,
+   "dropped_mentions": 783,
+   "seconds": 405.5,
+   "tokens": {
+    "prompt_tokens": 307252,
+    "completion_tokens": 850252
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 6000,
+  "workers": 24,
+  "data": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)",
+  "relaxed": true,
+  "prompt_version": "v3"
+ }
+}

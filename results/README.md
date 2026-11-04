@@ -2,12 +2,17 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
+Total recorded eval spend: **$35.52** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 Total recorded eval spend: **$15.40** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261105-033814_v0.0.1+f91e21d-dirty_official-base-v3prompt](nemotron-pii/20261105-033814_v0.0.1+f91e21d-dirty_official-base-v3prompt/report.html) | nemotron-pii | official-base-v3prompt | glimmer-resolution `accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ms-off-base-033430` | 500 | 11.7% | 5.6% | 87.9% | 83.9% | 100.0% | – GPU |
+| [20261105-033430_v0.0.1+f91e21d-dirty_official-er-v3a](nemotron-pii/20261105-033430_v0.0.1+f91e21d-dirty_official-er-v3a/report.html) | nemotron-pii | official-er-v3a | glimmer-resolution `accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-ck-er-v3a-s250-033151` | 500 | 9.5% | 2.0% | 90.6% | 91.9% | 100.0% | – GPU |
+| [20261105-033151_v0.0.1+f91e21d-dirty_official-spark-v3prompt](nemotron-pii/20261105-033151_v0.0.1+f91e21d-dirty_official-spark-v3prompt/report.html) | nemotron-pii | official-spark-v3prompt | glimmer-resolution `muse-spark-1.3` | 500 | 9.0% | 1.9% | 90.9% | 82.6% | 100.0% | $20.58 |
+| [20261105-011127_v0.0.1+c0a5c1d-dirty_full500-glimmer-er-v2b](nemotron-pii/20261105-011127_v0.0.1+c0a5c1d-dirty_full500-glimmer-er-v2b/report.html) | nemotron-pii | full500-glimmer-er-v2b | glimmer-resolution `accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-eval-er-v2b-1105-0108` | 500 | 31.3% | 25.4% | 74.7% | 88.8% | 99.9% | – GPU |
 | [20261105-015726_v0.0.1+34c3c17_agent-scenarios-glimmer-er-v2b](agent-scenarios/20261105-015726_v0.0.1+34c3c17_agent-scenarios-glimmer-er-v2b/report.html) | agent-scenarios | agent-scenarios-glimmer-er-v2b | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 100.0% | $0.13 |
 | [20261105-014722_v0.0.1+938a6cf_agent-scenarios-glimmer-er-v2b](agent-scenarios/20261105-014722_v0.0.1+938a6cf_agent-scenarios-glimmer-er-v2b/report.html) | agent-scenarios | agent-scenarios-glimmer-er-v2b | muse_spark `muse-spark-1.3` | 20 | 0.0% | – | – | – | 90.0% | $0.18 |
 | [20261105-013655_v0.0.1+6f50610-dirty_agent-scenarios-glimmer-er-v2b](agent-scenarios/20261105-013655_v0.0.1+6f50610-dirty_agent-scenarios-glimmer-er-v2b/report.html) | agent-scenarios | agent-scenarios-glimmer-er-v2b | muse_spark `muse-spark-1.3` | 20 | – | – | – | – | 80.0% | $0.15 |

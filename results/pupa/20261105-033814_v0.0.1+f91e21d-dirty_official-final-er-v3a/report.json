@@ -1,0 +1,114 @@
+{
+ "Muse Glimmer + er-v3a (ours)": {
+  "name": "Muse Glimmer + er-v3a (ours)",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-ck-er-v3a-s250-033151",
+  "prompts": 269,
+  "units": 658,
+  "leak_rate": 0.1337386018237082,
+  "prompts_fully_protected": 0.862453531598513,
+  "valid": 0.9925650557620818,
+  "seconds": 98.7,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.16929133858267717,
+    "units": 254
+   },
+   "healthcare information": {
+    "leak_rate": 0.20689655172413793,
+    "units": 116
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.07661290322580645,
+    "units": 248
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.05,
+    "units": 40
+   }
+  }
+ },
+ "Base Muse Glimmer (same instructions)": {
+  "name": "Base Muse Glimmer (same instructions)",
+  "model": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ms-off-base-033430",
+  "prompts": 269,
+  "units": 658,
+  "leak_rate": 0.4331306990881459,
+  "prompts_fully_protected": 0.620817843866171,
+  "valid": 0.8996282527881041,
+  "seconds": 1312.4,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.4015748031496063,
+    "units": 254
+   },
+   "healthcare information": {
+    "leak_rate": 0.5517241379310345,
+    "units": 116
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.45564516129032256,
+    "units": 248
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.15,
+    "units": 40
+   }
+  }
+ },
+ "Muse Spark (same instructions)": {
+  "name": "Muse Spark (same instructions)",
+  "model": "muse-spark-1.3",
+  "prompts": 269,
+  "units": 658,
+  "leak_rate": 0.1337386018237082,
+  "prompts_fully_protected": 0.8178438661710037,
+  "valid": 1.0,
+  "seconds": 212.7,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.16535433070866143,
+    "units": 254
+   },
+   "healthcare information": {
+    "leak_rate": 0.08620689655172414,
+    "units": 116
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.125,
+    "units": 248
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.125,
+    "units": 40
+   }
+  }
+ },
+ "Muse Spark": {
+  "name": "Muse Spark",
+  "model": "muse-spark-1.3",
+  "prompts": 269,
+  "units": 658,
+  "leak_rate": 0.0790273556231003,
+  "prompts_fully_protected": 0.862453531598513,
+  "valid": 1.0,
+  "seconds": 136.0,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.05511811023622047,
+    "units": 254
+   },
+   "healthcare information": {
+    "leak_rate": 0.06896551724137931,
+    "units": 116
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.10887096774193548,
+    "units": 248
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.075,
+    "units": 40
+   }
+  }
+ }
+}

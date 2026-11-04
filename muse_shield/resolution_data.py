@@ -58,6 +58,34 @@ US_PLACES = [("Austin", "TX", "787"), ("Seattle", "WA", "981"), ("Boston", "MA",
 US_STREETS = ["Maple Avenue", "Oak Street", "Lakeview Drive", "Cedar Lane", "Elm Street", "Sunset Boulevard"]
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
           "November", "December"]
+# v3 pools: real public places and organisations (public facts; private only because a person is tied to them)
+WORLD_CITIES = ["Dubai", "Singapore", "London", "Toronto", "Berlin", "Nairobi", "Lagos", "Sydney", "Hyderabad", "Jaipur",
+                "Kochi", "Manila", "Jakarta", "Amman", "Doha", "Lisbon", "Melbourne", "Dublin", "Vancouver", "Riyadh",
+                "Kuala Lumpur", "Cape Town", "Istanbul", "Warsaw", "Chicago", "Atlanta", "Phoenix", "Lucknow", "Indore",
+                "Coimbatore", "Accra", "Dhaka", "Karachi", "Cairo", "Milan", "Osaka", "Auckland", "Calgary", "Muscat"]
+STATES = ["Karnataka", "Maharashtra", "Tamil Nadu", "Kerala", "Gujarat", "Punjab", "Texas", "California", "Ontario",
+          "Bavaria", "Queensland", "New South Wales", "Florida", "Telangana", "Rajasthan", "Alberta", "Ohio"]
+COUNTRIES = ["India", "United Arab Emirates", "Canada", "Germany", "Kenya", "Nigeria", "Australia", "Jordan", "Ethiopia",
+             "Philippines", "Indonesia", "Portugal", "Ireland", "Saudi Arabia", "Malaysia", "South Africa", "Turkey",
+             "Poland", "Bangladesh", "Pakistan", "Egypt", "Italy", "Japan", "New Zealand", "Oman", "Ghana", "Qatar"]
+PUBLIC_ORGS = {
+    "EMPLOYERS": ["Infosys", "Deloitte", "Accenture", "Wipro", "Siemens", "Unilever", "HSBC", "Ericsson", "Cognizant",
+                  "Capgemini", "Flipkart", "Swiggy", "Shopify", "Atlassian", "Salesforce", "Nestle", "Philips", "Bosch",
+                  "Zoho", "Freshworks", "Mahindra", "Safaricom", "Dangote"],
+    "UNIVERSITIES": ["IIT Bombay", "Anna University", "Stanford University", "McGill University", "Makerere University",
+                     "Monash University", "Christ University", "BITS Pilani", "Ashoka University", "Columbia University",
+                     "Trinity College Dublin", "Jadavpur University", "Manipal University", "Ryerson University"],
+    "BANKS": ["HDFC Bank", "ICICI Bank", "Axis Bank", "Barclays", "Chase", "Kotak Mahindra Bank", "Wells Fargo",
+              "Standard Chartered", "Citibank", "Equity Bank"],
+    "BRANDS": ["Zomato", "Amazon", "Uber", "Netflix", "Spotify", "Myntra", "Starbucks", "IKEA", "Decathlon", "Nykaa",
+               "Tanishq", "Zara", "Costco", "Walmart"],
+    "PLATFORMS": ["LinkedIn", "Instagram", "Etsy", "Upwork", "Fiverr", "GitHub", "Shopify", "WhatsApp", "Telegram", "Notion"],
+    "HOSPITALS": ["Apollo Hospitals", "Fortis Healthcare", "Manipal Hospitals", "Mayo Clinic", "Cleveland Clinic",
+                  "Narayana Health", "Aster DM Healthcare"],
+    "AIRLINES": ["IndiGo", "Vistara", "Lufthansa", "Etihad", "Ryanair", "KLM", "Akasa Air"],
+    "HOTELS": ["Taj Hotels", "Marriott", "Hilton", "Radisson", "Hyatt", "ITC Hotels", "Novotel"],
+}
+GAZETTEER = sorted(set(WORLD_CITIES + STATES + COUNTRIES + [o for v in PUBLIC_ORGS.values() for o in v]), key=len, reverse=True)
 DIAGNOSES = ["type 2 diabetes", "hypertension", "major depressive disorder", "asthma", "hypothyroidism",
              "chronic kidney disease stage 2", "generalised anxiety disorder", "rheumatoid arthritis", "migraine",
              "iron-deficiency anaemia"]
@@ -222,6 +250,85 @@ FAMILIES = {
                    ("SALARY", "employee", "relocation allowance"), ("OTHER", "employee", "travel reimbursement"),
                    ("ADDRESS:RESIDENTIAL", "employee"), ("DATE:JOINING", "employee")],
     },
+    # v3: chat requests (what people actually paste into chatbots) and the value types public benchmarks count
+    "chat_career": {
+        "doc_types": ["message a person types into an AI chatbot asking it to write a cover letter, pasting their own background",
+                      "chatbot request to rewrite the person's resume summary, with their details pasted in",
+                      "request to an AI assistant to draft a LinkedIn About section from the person's career history",
+                      "message asking an AI to prepare the person for a job interview, describing their experience"],
+        "people": [("user", None)], "us": "random",
+        "optional_people": [("former manager", ("MANAGES", "user"))],
+        "public_orgs": [("current employer", "EMPLOYERS"), ("university", "UNIVERSITIES"), ("company applied to", "EMPLOYERS")],
+        "values": [("LOCATION:CITY", "user"), ("CONTACT:URL", "user"), ("CONTACT:EMAIL", "user"), ("LOCATION:COUNTRY", "user"),
+                   ("CONTACT:PHONE", "user"), ("SALARY", "user")],
+    },
+    "chat_travel": {
+        "doc_types": ["chatbot request to draft a visa invitation letter for the person's sister, with travel details",
+                      "message asking an AI to plan a trip itinerary around the person's bookings",
+                      "request to an AI to write an email to an embassy about a visa appointment",
+                      "message asking a chatbot to help write a leave application for an overseas family trip"],
+        "people": [("user", None), ("sister", ("SIBLING_OF", "user"))], "us": "random",
+        "public_orgs": [("airline", "AIRLINES"), ("hotel", "HOTELS")],
+        "values": [("LOCATION:COUNTRY", "user"), ("LOCATION:CITY", "user"), ("LOCATION:CITY", "sister"), ("ID:PASSPORT", "sister"),
+                   ("DATE:EVENT", "user"), ("DATE:TIME", "user"), ("CONTACT:PHONE", "user")],
+    },
+    "chat_business": {
+        "doc_types": ["message asking an AI to write a short business plan for the person's company",
+                      "chatbot request to draft a reply to a client, pasting the client's email",
+                      "request to an AI for Instagram captions and a bio for the person's shop",
+                      "message asking a chatbot to review a sales pitch to a named customer"],
+        "people": [("owner", None), ("client", None)], "org": "own business", "us": "random",
+        "public_orgs": [("client company", "EMPLOYERS"), ("platform", "PLATFORMS")],
+        "values": [("CONTACT:URL", "owner"), ("CONTACT:USERNAME", "owner"), ("LOCATION:CITY", "owner"), ("REVENUE", "@org"),
+                   ("CONTACT:EMAIL", "client"), ("LOCATION:STATE", "owner")],
+    },
+    "chat_health": {
+        "doc_types": ["message asking an AI chatbot for advice about a health problem, sharing personal details",
+                      "request to an AI to write a sick-leave email to the person's employer",
+                      "chatbot request to draft a message to a doctor about test results",
+                      "message asking an AI for a diet plan that fits the person's religion and condition"],
+        "people": [("user", None), ("doctor", ("TREATS", "user"))], "us": "random",
+        "public_orgs": [("hospital", "HOSPITALS"), ("employer", "EMPLOYERS")],
+        "values": [("SENSITIVE_ATTRIBUTE:HEALTH", "user"), ("SENSITIVE_ATTRIBUTE:AGE", "user"), ("SENSITIVE_ATTRIBUTE:GENDER", "user"),
+                   ("SENSITIVE_ATTRIBUTE:RELIGION", "user"), ("LOCATION:CITY", "user"), ("DATE:TIME", "user"), ("DATE:EVENT", "user")],
+    },
+    "chat_finance": {
+        "doc_types": ["message asking an AI to analyse the person's monthly spending, pasting a few transactions",
+                      "chatbot request to draft a complaint to the person's bank about a wrong charge",
+                      "request to an AI to help plan the person's savings and loan repayments",
+                      "message asking a chatbot to explain a credit card statement line by line"],
+        "people": [("user", None)], "us": "random",
+        "optional_people": [("spouse", ("SPOUSE_OF", "user"))],
+        "public_orgs": [("bank", "BANKS"), ("merchant", "BRANDS"), ("app", "PLATFORMS")],
+        "values": [("ID:BANK_ACCOUNT", "user"), ("ID:CARD", "user"), ("OTHER", "user"), ("LOAN", "user"), ("DATE:EVENT", "user"),
+                   ("DATE:TIME", "user"), ("LOCATION:CITY", "user")],
+    },
+    "tech_support": {
+        "doc_types": ["IT helpdesk ticket about a login problem", "server access request email", "bug report with a few log lines",
+                      "security incident note about a suspicious login"],
+        "people": [("employee", None), ("it admin", None)], "org": "employer", "us": "random",
+        "values": [("ID:IP_ADDRESS", "employee"), ("CONTACT:USERNAME", "employee"), ("CONTACT:URL", "@org"),
+                   ("SECRET:PASSWORD", "employee"), ("ID:DEVICE", "employee"), ("DATE:TIME", "@none"), ("DATE:EVENT", "@none"),
+                   ("CONTACT:EMAIL", "employee"), ("SECRET:API_KEY", "it admin")],
+    },
+    "profile_form": {
+        "doc_types": ["community membership registration form", "user profile export from a social app",
+                      "survey response with demographic questions", "volunteer sign-up form"],
+        "people": [("member", None)], "us": "random",
+        "public_orgs": [("employer", "EMPLOYERS"), ("school", "UNIVERSITIES")],
+        "values": [("SENSITIVE_ATTRIBUTE:GENDER", "member"), ("SENSITIVE_ATTRIBUTE:RELIGION", "member"),
+                   ("SENSITIVE_ATTRIBUTE:POLITICS", "member"), ("SENSITIVE_ATTRIBUTE:CASTE_ETHNICITY", "member"),
+                   ("SENSITIVE_ATTRIBUTE:SEXUALITY", "member"), ("SENSITIVE_ATTRIBUTE:AGE", "member"), ("LOCATION:CITY", "member"),
+                   ("LOCATION:COUNTRY", "member"), ("CONTACT:USERNAME", "member"), ("CONTACT:URL", "member"), ("DATE:DOB", "member")],
+    },
+    "event_schedule": {
+        "doc_types": ["meeting invite email with times and a venue", "itinerary for a conference trip",
+                      "delivery and pickup schedule message", "wedding guest arrival plan"],
+        "people": [("organiser", None), ("guest", None)], "us": "random",
+        "public_orgs": [("venue hotel", "HOTELS"), ("company", "EMPLOYERS")],
+        "values": [("DATE:EVENT", "@none"), ("DATE:TIME", "@none"), ("DATE:TIME", "guest"), ("LOCATION:CITY", "@none"),
+                   ("LOCATION:COUNTRY", "@none"), ("CONTACT:PHONE", "organiser"), ("CONTACT:URL", "organiser")],
+    },
     # held out entirely: the challenge test set has document structures the model never trained on
     "tenancy_agreement": {
         "doc_types": ["residential rental agreement", "tenancy renewal letter", "security deposit refund notice"],
@@ -240,6 +347,8 @@ FAMILIES = {
     },
 }
 CHALLENGE_FAMILIES = {"tenancy_agreement", "school_admission"}
+V3_FAMILIES = {"chat_career", "chat_travel", "chat_business", "chat_health", "chat_finance", "tech_support", "profile_form",
+               "event_schedule"}
 V2_FAMILIES = {"minor_consent", "passport_minor", "family_insurance", "loan_guarantors", "team_review", "sibling_estate",
                "relocation_letter"}
 FEMALE_ROLES, MALE_ROLES = {"mother", "daughter", "sister", "wife"}, {"father", "son", "brother", "husband"}
@@ -316,7 +425,7 @@ def make_value(kind: str, rng: random.Random, us: bool, owner_name: str | None) 
             city, pin = rng.choice(IN_CITIES)
             v = (f"{rng.randint(1, 450)}, {rng.choice(['Sunrise Apartments', 'Lake View Towers', 'Green Park Society', 'Palm Grove Layout'])}, "
                  f"{rng.choice(IN_STREETS)}, {city} {pin}{_digits(rng, 3)}")
-    elif t == "DATE":
+    elif t == "DATE" and sub != "TIME":
         y = rng.randint(1958, 2008) if sub == "DOB" else rng.randint(2024, 2027)
         v = rng.choice([f"{rng.randint(1, 28)} {rng.choice(MONTHS)} {y}", f"{rng.choice(MONTHS)} {rng.randint(1, 28)}, {y}"])
     elif sub == "HEALTH":
@@ -325,6 +434,44 @@ def make_value(kind: str, rng: random.Random, us: bool, owner_name: str | None) 
         v = f"{rng.randint(6, 85)} years old"
     elif sub == "BODY_MEASUREMENT":
         v = rng.choice([f"{rng.randint(45, 110)} kg", f"{rng.randint(150, 192)} cm"])
+    elif sub == "CITY":
+        v = rng.choice(WORLD_CITIES + [c for c, *_ in (US_PLACES if us else IN_CITIES)])
+    elif sub == "STATE":
+        v = rng.choice(STATES)
+    elif sub == "COUNTRY":
+        v = rng.choice(COUNTRIES)
+    elif sub == "URL":
+        v = rng.choice([f"linkedin.com/in/{first}-{last}-{_digits(rng, 3)}", f"https://github.com/{first}{last}{rng.randint(1, 99)}",
+                        f"https://www.{first}{last}.com", f"https://{first}-{last}.netlify.app/portfolio",
+                        f"https://www.instagram.com/{first}.{last}{rng.randint(1, 99)}", f"www.{last}{rng.choice(['studio', 'designs', 'consulting'])}.in"])
+    elif sub == "USERNAME":
+        v = rng.choice([f"@{first}_{last}{rng.randint(1, 99)}", f"{first}{last}{rng.randint(10, 99)}", f"{first[0]}{last}_{_digits(rng, 2)}"])
+    elif sub == "IP_ADDRESS":
+        v = rng.choice([f"{rng.randint(11, 223)}.{rng.randint(0, 255)}.{rng.randint(0, 255)}.{rng.randint(1, 254)}",
+                        f"192.168.{rng.randint(0, 20)}.{rng.randint(2, 254)}"])
+    elif sub == "DEVICE":
+        v = rng.choice([f"LAPTOP-{_letters(rng, 3)}{_digits(rng, 4)}", f"SN {_letters(rng, 2)}{_digits(rng, 8)}",
+                        ":".join(f"{rng.randint(0, 255):02X}" for _ in range(6))])
+    elif sub == "PASSWORD":
+        v = rng.choice([f"{first.capitalize()}@{rng.randint(1970, 2010)}", f"{last.capitalize()}#{_digits(rng, 4)}!",
+                        f"Sunflower{_digits(rng, 3)}$"])
+    elif sub == "API_KEY":
+        v = rng.choice([f"sk_test_{_letters(rng, 6).lower()}{_digits(rng, 10)}", f"AKIA{_letters(rng, 12)}{_digits(rng, 4)}"])
+    elif sub == "TIME":
+        h = rng.randint(1, 12)
+        v = rng.choice([f"{h}:{rng.choice(['00', '15', '30', '45'])} {rng.choice(['AM', 'PM'])}", f"{rng.randint(6, 22):02d}:{rng.choice(['00', '30', '45'])}",
+                        f"{h} {rng.choice(['am', 'pm'])}"])
+    elif sub == "GENDER":
+        v = rng.choice(["female", "male", "non-binary", "transgender woman", "transgender man"])
+    elif sub == "RELIGION":
+        v = rng.choice(["Hindu", "Muslim", "Christian", "Sikh", "Buddhist", "Jain", "Jewish", "Catholic", "atheist"])
+    elif sub == "POLITICS":
+        v = rng.choice(["a registered Democrat", "a Labour Party member", "a Republican voter", "a member of the Green Party",
+                        "a left-leaning voter", "a conservative voter"])
+    elif sub == "CASTE_ETHNICITY":
+        v = rng.choice(["Tamil", "Punjabi", "Hispanic", "Black British", "Dalit", "Yoruba", "Malayali", "Arab", "Bengali"])
+    elif sub == "SEXUALITY":
+        v = rng.choice(["gay", "lesbian", "bisexual", "asexual", "queer"])
     else:
         raise ValueError(kind)
     return v, t, None, sub
@@ -338,6 +485,8 @@ def plan(rng: random.Random, family: str, uid: str) -> dict:
                 "relations": [], "ambiguous": None}
     fam = FAMILIES[family]
     us = fam.get("us", False)
+    if us == "random":
+        us = rng.random() < 0.4
     people = list(fam["people"])
     extra_rel = []
     for opt in fam.get("optional_people", []):
@@ -365,6 +514,11 @@ def plan(rng: random.Random, family: str, uid: str) -> dict:
         orgs.append({"key": "O0", "type": "ORG", "role": fam["org"], "name": f"{rng.choice(ORG_A)} {suffix}"})
     for j, r in enumerate(fam.get("orgs", []), 1):
         orgs.append({"key": f"O{j}", "type": "ORG", "role": r, "name": f"{rng.choice(ORG_A)} {rng.choice(ORG_B)}"})
+    used_orgs = set()
+    for j, (r, pool) in enumerate(fam.get("public_orgs", [])):
+        name = rng.choice([o for o in PUBLIC_ORGS[pool] if o not in used_orgs])
+        used_orgs.add(name)
+        orgs.append({"key": f"Q{j}", "type": "ORG", "role": r, "name": name})
     ents += orgs
 
     def resolve(role_ref: str):
@@ -444,7 +598,8 @@ occur, and descriptions that refer to them ("the employee", "her mother"). Do no
 Private values keep their exact text inside the tag: [[V1|value as listed]]. Make it clear in the text who each private
 value belongs to (e.g. "Rohan's salary", "his address", a table row, a signature block), but vary how you say it.
 Refer to people in varied ways: sometimes first name, sometimes title + surname, sometimes a pronoun.
-Do NOT add any other person, phone number, email, ID number, address, specific date or money amount.
+Do NOT add any other person, phone number, email, ID number, address, specific date or money amount, and no other
+city, state, country, company, school, bank, brand, app, website, username or time of day.
 Return only the tagged document, nothing else."""
 
 GENERIC_PROMPT = """Write ONE realistic document: {brief}. Between 100 and 250 words. It must contain no personal data at all:
@@ -487,7 +642,9 @@ TAG = re.compile(r"\[\[([A-Z]\d+)\|([^\[\]|]+?)\]\]")
 _PRONOUN = re.compile(r"\b(he|him|his|himself|she|her|hers|herself)\b", re.IGNORECASE)
 _SECOND = re.compile(r"(?i)^(you|your|yours|yourself|yourselves|i|me|my|mine|we|our|us)$")
 _TITLES = {"mr", "mrs", "ms", "dr", "prof", "shri", "smt", "sir", "madam", "adv", "advocate"}
-_LEAKY = [re.compile(p) for p in (r"[\w.+-]+@[\w-]+\.\w+", r"\+\d[\d\s()-]{8,}", r"\b\d{6,}\b", r"[₹$]\s?\d",
+_LEAKY = [re.compile(p) for p in (r"https?://|www\.|\b[\w-]+\.(?:com|in|org|net|io|app)\b", r"\b\d{1,2}:\d{2}\b",
+                                  r"\b\d{1,2}\s?(?:am|pm|AM|PM|a\.m\.|p\.m\.)(?!\w)", r"\b\d{1,3}(?:\.\d{1,3}){3}\b",
+                                  r"[\w.+-]+@[\w-]+\.\w+", r"\+\d[\d\s()-]{8,}", r"\b\d{6,}\b", r"[₹$]\s?\d",
                                   r"\bRs\.?\s?\d", r"\b[A-Z]{5}\d{4}[A-Z]\b", r"\b\d{3}-\d{2}-\d{4}\b",
                                   r"\b\d{1,2} (?:%s) \d{4}\b" % "|".join(MONTHS), r"\b(?:%s) \d{1,2}, \d{4}\b" % "|".join(MONTHS))]
 
@@ -534,6 +691,11 @@ def check(p: dict, tagged: str) -> tuple[dict | None, str]:
         if key not in by_key:
             return None, f"unknown key {key}"
         ent, surface = by_key[key], text[s:e]
+        if re.fullmatch(r"(?i)(he|she|they)/(him|her|them)(/\w+)?", surface.strip()):
+            continue  # a pronouns field ("she/her") copied from the plan: not a mention
+        if ent["type"] in ("PERSON", "ORG") and re.search(r"['’]s$", surface) and not R.is_reference(surface):
+            e -= 2  # "Amara's": the name is the mention, not the possessive
+            surface = text[s:e]
         if ent["type"] in ("PERSON", "ORG"):
             words = set(re.findall(r"[\w']+", surface.lower()))
             if _SECOND.match(surface.strip()):
@@ -598,6 +760,36 @@ def check(p: dict, tagged: str) -> tuple[dict | None, str]:
         else:
             return None, "pronoun with no matching person"
 
+    # values planned as text (cities, countries, handles) the writer wrote again without a tag: tag them too
+    for e in p["entities"]:
+        if e["type"] in ("LOCATION", "SENSITIVE_ATTRIBUTE", "CONTACT", "SECRET", "ID") and e.get("value") and e["key"] in got:
+            for m in re.finditer(rf"(?<![\w]){re.escape(e['value'])}(?![\w])", text):
+                if free(m.start(), m.end()):
+                    claim(e["key"], m.start(), m.end())
+    if p["family"] in V3_FAMILIES:
+        # known places and organisations, and times of day, the writer added on its own: they are private under the v3
+        # policy, so they become entities (no owner) instead of untagged text the target would teach the model to leave
+        extra: dict[str, str] = {}
+
+        def add(kind: str, surface: str, **fields) -> str:
+            k = extra.get((kind, surface.lower()))
+            if not k:
+                k = f"X{len(extra)}"
+                extra[(kind, surface.lower())] = k
+                by_key[k] = {"key": k, "type": kind, **fields}
+            return k
+        for g in GAZETTEER:
+            for m in re.finditer(rf"(?<![\w]){re.escape(g)}(?![\w])", text):
+                if free(m.start(), m.end()):
+                    if g in COUNTRIES or g in STATES or g in WORLD_CITIES:
+                        sub = "COUNTRY" if g in COUNTRIES else ("STATE" if g in STATES else "CITY")
+                        k = add("LOCATION", g, subtype=sub, value=g, owner=None, role=None)
+                    else:
+                        k = add("ORG", g, role="organisation", name=g)
+                    claim(k, m.start(), m.end())
+        for m in re.finditer(r"\b\d{1,2}:\d{2}(?:\s?(?:AM|PM|am|pm|a\.m\.|p\.m\.))?|\b\d{1,2}\s?(?:am|pm|AM|PM|a\.m\.|p\.m\.)(?!\w)", text):
+            if free(m.start(), m.end()):
+                claim(add("DATE", m.group(0), subtype="TIME", value=m.group(0), owner=None, role=None), m.start(), m.end())
     bare = "".join(c if not taken[i] else " " for i, c in enumerate(text))
     for pat in _LEAKY:
         if pat.search(bare):
@@ -757,8 +949,17 @@ def agrees(gold: dict, raw: str, value_ids: list[str], want_owners: list[str], r
     """Check the reader against the plan; on success, adds the pending pronouns it resolved to gold."""
     data = _loads(raw)
     owners, answers = data.get("owners", {}), data.get("refs", [])
+    ents = {e["id"]: e for e in gold["entities"]}
     for vid, want in zip(value_ids, want_owners):
         got = str(owners.get(vid, "")).upper()
+        ent = ents.get(vid, {})
+        if ent.get("type") == "LOCATION" or ent.get("subtype") in ("TIME", "EVENT"):
+            # whose place or time it is is often genuinely loose ("Dubai" for the user or the trip): the reader decides
+            if got in ents or got == R.UNKNOWN:
+                ent["owner"] = got
+            else:
+                ent.pop("owner", None)
+            continue
         if want == "NONE":
             continue  # unowned values (a meeting date): any answer is fine
         if got != want:
@@ -800,10 +1001,14 @@ class Meter:
         return ((t["prompt"] - t["cached"]) * p_in + t["cached"] * p_cached + t["completion"] * p_out) / 1e6
 
 
-def build(out: Path, n: int, seed: int, model: str, workers: int, budget_usd: float, ambiguity: float = 0.25) -> dict:
+def build(out: Path, n: int, seed: int, model: str, workers: int, budget_usd: float, ambiguity: float = 0.25,
+          only: set[str] | None = None) -> dict:
     rng = random.Random(seed)
-    fams = [f for f in FAMILIES if f not in CHALLENGE_FAMILIES] + ["generic"]
-    weights = [1.6 if f in V2_FAMILIES else 1.0 for f in fams[:-1]] + [0.3]
+    if only:
+        fams, weights = sorted(only), [1.0] * len(only)
+    else:
+        fams = [f for f in FAMILIES if f not in CHALLENGE_FAMILIES and f not in V3_FAMILIES] + ["generic"]
+        weights = [1.6 if f in V2_FAMILIES else 1.0 for f in fams[:-1]] + [0.3]
     plans = [plan(random.Random(rng.random()), rng.choices(fams, weights)[0], f"er-{seed}-{i:05d}") for i in range(n)]
     # thinking off: with reasoning on, Flash spent the whole token budget thinking and wrote nothing
     no_think = {"thinking": {"type": "disabled"}}
@@ -916,6 +1121,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--workers", type=int, default=24)
     b.add_argument("--budget-usd", type=float, default=4.5)
     b.add_argument("--ambiguity", type=float, default=0.25, help="share of documents that get a code-built ownership sentence")
+    b.add_argument("--only", default="", help="comma-separated families (v3: --only v3 for the eight v3 families)")
     s2 = sub.add_parser("split2", help="v2: v1 train + new documents; v1 val/test/challenge unchanged")
     s2.add_argument("--v1", type=Path, default=Path("runs/er/v1"))
     s2.add_argument("--src", type=Path, default=Path("runs/er/gen2/docs.jsonl"))
@@ -929,7 +1135,8 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--challenge", type=int, default=80)
     a = ap.parse_args(argv)
     if a.cmd == "build":
-        print(json.dumps(build(a.out, a.n, a.seed, a.model, a.workers, a.budget_usd, a.ambiguity), indent=1))
+        only = V3_FAMILIES if a.only == "v3" else ({f for f in a.only.split(",") if f} or None)
+        print(json.dumps(build(a.out, a.n, a.seed, a.model, a.workers, a.budget_usd, a.ambiguity, only), indent=1))
     elif a.cmd == "split":
         print(json.dumps(split(a.src, a.out, a.seed, a.val, a.test, a.challenge), indent=1))
     else:

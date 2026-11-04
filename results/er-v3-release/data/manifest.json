@@ -1,0 +1,52 @@
+{
+ "benchmark_texts_banned": {
+  "nemotron-test-500": 500,
+  "pupa": 723,
+  "er-test": 150,
+  "er-challenge": 80,
+  "er-ambiguity": 80,
+  "tab-test": 127
+ },
+ "ngram": 12,
+ "dropped_for_overlap": {
+  "er-v2": 910,
+  "v3-families": 36,
+  "pupa-train-half": 2
+ },
+ "nemotron": {
+  "train": 4000,
+  "holdout": 150,
+  "skipped": {
+   "shares a 12-word run with a benchmark": 169,
+   "not groundable": 10
+  }
+ },
+ "pupa": {
+  "train_prompts": 353,
+  "train_docs": 349,
+  "test_prompts": 370,
+  "test_units": 889
+ },
+ "rows": {
+  "A": 12160,
+  "B": 8160,
+  "C": 12858,
+  "D": 12160
+ },
+ "sources": {
+  "er-v2 (v3 relabel)": 4545,
+  "v3 families": 3615,
+  "v3 val held out": 80,
+  "v3 relabel added mentions": 380
+ },
+ "families_v3": {
+  "chat_business": 389,
+  "chat_career": 519,
+  "chat_finance": 446,
+  "chat_health": 491,
+  "chat_travel": 481,
+  "event_schedule": 467,
+  "profile_form": 533,
+  "tech_support": 289
+ }
+}
