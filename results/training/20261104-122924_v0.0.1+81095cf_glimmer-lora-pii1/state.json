@@ -1,0 +1,39 @@
+{
+  "name": "glimmer-lora-pii1",
+  "model_id": "muse-shield-glimmer-lora-pii1",
+  "attempts": [
+    {
+      "n": 1,
+      "start": 1793775564.794655,
+      "resume_ref": null
+    }
+  ],
+  "sessions": [
+    "accounts/rohan-majji/trainingSessions/ts-2471eda3b47d42039a60b2304c1ca2f3"
+  ],
+  "runs": [
+    "run-3ae33b189bfd44bbb59217963a11fcfe"
+  ],
+  "outcome": null,
+  "params": {
+    "name": "glimmer-lora-pii1",
+    "output_model_id": "",
+    "lr": 0.0001,
+    "batch": 16,
+    "epochs": 1,
+    "rank": 16,
+    "max_seq_len": 2048,
+    "warmup_steps": 0,
+    "max_examples": null,
+    "checkpoint_every": 50,
+    "max_attempts": 5,
+    "plateau_window": 50,
+    "plateau_min_improve": 0.02,
+    "min_steps": 100,
+    "no_early_stop": true,
+    "simulate_crash_at": 0
+  },
+  "train": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/train.jsonl",
+  "eval": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/pii-v1/val.jsonl",
+  "started": 1793775564.79428
+}

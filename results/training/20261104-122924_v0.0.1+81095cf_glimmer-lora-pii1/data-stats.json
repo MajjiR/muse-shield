@@ -1,0 +1,52 @@
+{
+  "excluded_paragraph_keys": 41741,
+  "nemotron": {
+    "docs_seen": 8525,
+    "docs_skipped_unlocatable": 0,
+    "train": 6000,
+    "val": 77,
+    "train_empty": 720
+  },
+  "gretel-finance": {
+    "docs_seen": 5057,
+    "docs_skipped_unlocatable": 0,
+    "train": 4200,
+    "val": 63,
+    "train_empty": 504
+  },
+  "gretel-en": {
+    "docs_seen": 9351,
+    "docs_skipped_unlocatable": 0,
+    "train": 3500,
+    "val": 57,
+    "train_empty": 420
+  },
+  "synthetic-spark": {
+    "train": 1500
+  },
+  "total_train": 15200,
+  "total_val": 197,
+  "entity_types": {
+    "ID": 9920,
+    "DATE": 8672,
+    "PERSON": 6139,
+    "CONTACT": 5843,
+    "ORG": 3514,
+    "ADDRESS": 2648,
+    "LOCATION": 2179,
+    "SECRET": 883,
+    "SENSITIVE_ATTRIBUTE": 875,
+    "AMOUNT": 297
+  },
+  "benchmark_leaks": 0,
+  "seed": 2026,
+  "gap_filter": {
+    "sources": [
+      "gretel-finance"
+    ],
+    "checked": 4200,
+    "dropped": 739,
+    "errors": 0,
+    "kept_total": 14461
+  }
+}
