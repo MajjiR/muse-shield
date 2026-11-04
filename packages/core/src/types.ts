@@ -79,6 +79,8 @@ export interface AgentAction {
   result: Record<string, unknown>;
   error: string;
   created_at: number;
+  /** Cost of masking a read tool's result before Muse Spark saw it. */
+  mask_cost_usd?: number;
 }
 
 export interface OutboxItem {

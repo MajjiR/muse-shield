@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { ActionStatus, AgentAction } from "@muse-shield/core"
 import {
-  ArrowRight, CalendarPlus, Check, ChevronRight, Globe, Loader2, Mail, NotebookPen, ShieldAlert, ShieldX, Wrench, X,
+  ArrowRight, CalendarPlus, Check, ChevronRight, Globe, Inbox, Loader2, Mail, NotebookPen, ShieldAlert, ShieldX, Wrench, X,
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
@@ -12,6 +12,7 @@ const TOOLS: Record<string, { icon: typeof Mail; wants: string; run: string; don
   send_email: { icon: Mail, wants: "send an email", run: "Send email", done: "Email" },
   create_calendar_event: { icon: CalendarPlus, wants: "create a calendar event", run: "Create event", done: "Event" },
   save_note: { icon: NotebookPen, wants: "save a private note", run: "Save note", done: "Note" },
+  read_inbox: { icon: Inbox, wants: "read your inbox", run: "Read", done: "Inbox" },
   web_search: { icon: Globe, wants: "search the web", run: "Search", done: "Search" },
 }
 export const toolMeta = (tool: string) => TOOLS[tool] ?? { icon: Wrench, wants: `use ${tool}`, run: "Run", done: tool }
@@ -162,10 +163,15 @@ export function ActionStep({ action }: { action: AgentAction }) {
                 </ul>
               )}
               {action.error && <p className="text-[13px]">{action.error}</p>}
-              <div>
-                <div className="mb-1 eyebrow text-muted-foreground">Muse Spark planned</div>
-                <Fields fields={fields} values={action.args} masked />
-              </div>
+              {fields.length > 0 && (
+                <div>
+                  <div className="mb-1 eyebrow text-muted-foreground">Muse Spark planned</div>
+                  <Fields fields={fields} values={action.args} masked />
+                </div>
+              )}
+              {Array.isArray((action.result as { messages?: unknown }).messages) && (
+                <ReadResult messages={(action.result as { messages: InboxMail[] }).messages} cost={action.mask_cost_usd} />
+              )}
               {action.status === "refused" && (
                 <p className="text-[11.5px] text-muted-foreground">Nothing ran and no hidden value was filled in.</p>
               )}
@@ -174,6 +180,30 @@ export function ActionStep({ action }: { action: AgentAction }) {
         )}
       </AnimatePresence>
     </motion.div>
+  )
+}
+
+type InboxMail = { id: string; date?: string; from: string; subject: string; body: string }
+
+/** What a read tool brought back, exactly as Muse Spark got it: every name and address already a placeholder. */
+function ReadResult({ messages, cost }: { messages: InboxMail[]; cost?: number }) {
+  return (
+    <div>
+      <div className="mb-1 eyebrow text-muted-foreground">What Muse Spark got back</div>
+      <ul className="space-y-2">
+        {messages.map((m) => (
+          <li key={m.id} className="rounded-md border bg-card px-3 py-2 text-[13px] leading-relaxed">
+            <div className="truncate text-[12px] text-muted-foreground"><MaskedText text={m.from} size="xs" /></div>
+            <div className="font-medium"><MaskedText text={m.subject} size="xs" /></div>
+            <div className="line-clamp-3 text-muted-foreground"><MaskedText text={m.body} size="xs" /></div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+        Read on your device and masked before Muse Spark saw it{cost ? ` · masking $${cost.toFixed(4)}` : ""}.
+        Addresses found here can’t be used as recipients unless you write them yourself.
+      </p>
+    </div>
   )
 }
 
