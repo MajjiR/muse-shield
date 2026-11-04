@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from ..app.vault import Vault
-from . import data_path, matches, opaque_id
+from . import data_path, google, matches, opaque_id
 
 MAX_RECORDS = 10
 MAX_TEXT = 2000  # characters of a file or report the model gets; each paragraph costs one masking call
@@ -43,7 +43,7 @@ def _vcards(path: Path) -> list[dict]:
 
 
 def search_contacts(vault: Vault, chat_id: str, args: dict) -> dict:
-    cards = _vcards(data_path("contacts.vcf", "MUSE_SHIELD_CONTACTS"))
+    cards = google.contacts(vault) if google.connected(vault) else _vcards(data_path("contacts.vcf", "MUSE_SHIELD_CONTACTS"))
     hits = [c for c in cards if matches(args.get("query"), c.get("name", ""), c.get("org", ""), *c["emails"])]
     out = []
     for c in hits[:MAX_RECORDS]:
@@ -84,8 +84,21 @@ def _events(text: str) -> list[dict]:
     return events
 
 
+def _google_events(vault: Vault, args: dict) -> dict:
+    out = []
+    for ev in google.list_events(vault, args):
+        text = " · ".join(p for p in [ev["summary"], ("with " + ", ".join(ev["attendees"])) if ev["attendees"] else "",
+                                      ev["location"]] if p)
+        out.append({"id": opaque_id("gcal", ev["google_id"]), "start": ev["start"], "end": ev["end"], "event": text,
+                    "_google": ev})
+    return {"status": f"{len(out)} events from Google Calendar", "events": out}
+
+
 def list_events(vault: Vault, chat_id: str, args: dict) -> dict:
-    """Your calendar file plus events created or moved here (they live in the encrypted outbox)."""
+    """Google Calendar when connected; else your calendar file plus events created or moved here (encrypted outbox)."""
+    if google.connected(vault):
+        listed = _google_events(vault, args)
+        return {**listed, "events": [{k: v for k, v in e.items() if k != "_google"} for e in listed["events"]]}
     events = _events(data_path("calendar.ics", "MUSE_SHIELD_CALENDAR").read_text())
     moved = {}
     for item in vault.outbox():
@@ -107,6 +120,14 @@ def list_events(vault: Vault, chat_id: str, args: dict) -> dict:
 
 
 def reschedule_event(vault: Vault, chat_id: str, args: dict) -> dict:
+    if google.connected(vault):
+        found = [e for e in _google_events(vault, {})["events"] if e["id"] == args["event_id"]]
+        if not found:
+            raise ValueError(f"no event with id {args['event_id']}")
+        moved = google.move_event(vault, found[0]["_google"]["google_id"], args["start"], args.get("end"), found[0]["_google"])
+        vault.add_outbox(chat_id, "reschedule_event", {"event_id": args["event_id"], "event": found[0]["event"],
+                                                       "from": found[0]["start"], "start": moved["start"]})
+        return {"status": moved["status"], "event": found[0]["event"], "start": moved["start"]}
     found = [e for e in list_events(vault, chat_id, {})["events"] if e["id"] == args["event_id"]]
     if not found:
         raise ValueError(f"no event with id {args['event_id']}")
