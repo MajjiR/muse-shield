@@ -95,11 +95,11 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
         Param("contains", "text", required=False, resolve=frozenset(CONTENT_TYPES),
               description="keep only rows containing these words, e.g. 'debit' or a placeholder like <ORG_1>"),
         Param("contains_column", "string", required=False, description="look for `contains` only in this column"),
-        Param("month", "string", required=False, description="keep only rows dated in this month, e.g. 2026-10"),
+        Param("month", "string", required=False, description="keep only rows dated in this month, as YYYY-MM"),
         Param("group_by", "string", required=False, description="a column to total separately for each value, e.g. description"),
     ), side_effect=False, external=False, reads_private=True),
     Tool("read_transactions", "Read the user's latest bank statement (date, description, amount, balance).", (
-        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="e.g. a merchant, 'debit' or '2026-10'"),
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="e.g. a merchant, 'debit' or a month as YYYY-MM"),
     ), side_effect=False, external=False, reads_private=True),
     Tool("read_health_records", "Read the user's medical reports, newest first.", (
         Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES), description="optional words to filter by"),
