@@ -1,0 +1,46 @@
+[
+ {
+  "run": "A",
+  "rows": 12160,
+  "steps": 760,
+  "eval_loss_start": 0.17145938826137705,
+  "eval_loss_end": 0.003731491536228487,
+  "started": "2026-11-05 01:57:53",
+  "ended": "2026-11-05 03:20:46",
+  "model": "muse-shield-glimmer-er-v3a",
+  "stopped_early": false
+ },
+ {
+  "run": "B",
+  "rows": 8160,
+  "steps": 510,
+  "eval_loss_start": 0.17145938826137705,
+  "eval_loss_end": 0.0032625458044719152,
+  "started": "2026-11-05 01:57:53",
+  "ended": "2026-11-05 02:59:54",
+  "model": "muse-shield-glimmer-er-v3b",
+  "stopped_early": false
+ },
+ {
+  "run": "C",
+  "rows": 12858,
+  "steps": 804,
+  "eval_loss_start": 0.17145938826137705,
+  "eval_loss_end": 0.0038179565871142183,
+  "started": "2026-11-05 01:57:53",
+  "ended": "2026-11-05 03:22:01",
+  "model": "muse-shield-glimmer-er-v3c",
+  "stopped_early": false
+ },
+ {
+  "run": "D",
+  "rows": 12160,
+  "steps": 328,
+  "eval_loss_start": 0.17145938826137705,
+  "eval_loss_end": null,
+  "started": "2026-11-05 01:57:53",
+  "ended": "2026-11-05 02:35:07",
+  "model": "muse-shield-glimmer-er-v3d",
+  "stopped_early": true
+ }
+]

@@ -1,0 +1,101 @@
+{
+ "backend": "glimmer",
+ "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-ck-er-v2b-024034",
+ "tag": "cmp-er-v2b",
+ "git": "f91e21d",
+ "sets": {
+  "heldout-v3-val": {
+   "docs": 80,
+   "valid": 0.9875,
+   "leak": 0.21980538065254723,
+   "core_leak": 0.07571801566579635,
+   "person_leak": 0.03690036900369004,
+   "mention": {
+    "precision": 0.988872028325746,
+    "recall": 0.8283898305084746,
+    "f1": 0.9015448466682038,
+    "tp": 1955,
+    "fp": 22,
+    "fn": 405
+   },
+   "coref": {
+    "precision": 0.9984656158460036,
+    "recall": 0.9432072736855975,
+    "f1": 0.9700501422957041,
+    "tp": 7158,
+    "fp": 11,
+    "fn": 431
+   },
+   "owner_acc": 0.47701149425287354,
+   "unknown_acc": 0.23529411764705882,
+   "type_acc": 0.6886574074074074,
+   "amount_role_acc": 0.9,
+   "relations": {
+    "precision": 0.25210084033613445,
+    "recall": 0.8108108108108109,
+    "f1": 0.3846153846153846,
+    "tp": 30,
+    "fp": 89,
+    "fn": 7
+   },
+   "persons_resolved": 0.9703703703703703,
+   "dropped_mentions": 1,
+   "seconds": 36.8,
+   "tokens": {
+    "prompt_tokens": 108708,
+    "completion_tokens": 43295
+   }
+  },
+  "heldout-nemotron-train": {
+   "docs": 150,
+   "valid": 0.98,
+   "leak": 0.1936127744510978,
+   "core_leak": 0.1416382252559727,
+   "person_leak": 0.0,
+   "mention": {
+    "precision": 0.8118503118503119,
+    "recall": 0.779441117764471,
+    "f1": 0.7953156822810591,
+    "tp": 781,
+    "fp": 181,
+    "fn": 221
+   },
+   "coref": {
+    "precision": 0.9541666666666667,
+    "recall": 0.8875968992248062,
+    "f1": 0.9196787148594378,
+    "tp": 229,
+    "fp": 11,
+    "fn": 29
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.7060931899641577,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 35,
+    "fn": 0
+   },
+   "persons_resolved": 0.6578947368421053,
+   "dropped_mentions": 4,
+   "seconds": 38.8,
+   "tokens": {
+    "prompt_tokens": 161516,
+    "completion_tokens": 43640
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 4000,
+  "workers": 48,
+  "data": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages without the worked example",
+  "relaxed": false,
+  "prompt_version": "v2"
+ }
+}

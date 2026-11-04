@@ -1,0 +1,15 @@
+{
+ "run_id": "20261105-033814_v0.0.1+f91e21d-dirty_official-final-er-v3a",
+ "eval": "pupa",
+ "dataset": "Columbia-NLP/PUPA (PUPA_New.csv, PUPA_TNB.csv)",
+ "n": 269,
+ "max_chars": 3000,
+ "seed": 7,
+ "prompts_file": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v3/pupa-final.jsonl",
+ "models": {
+  "Muse Glimmer + er-v3a (ours)": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-ck-er-v3a-s250-033151",
+  "Base Muse Glimmer (same instructions)": "accounts/fireworks/models/muse-glimmer-30b#accounts/rohan-majji/deployments/ms-off-base-033430",
+  "Muse Spark (same instructions)": "muse-spark-1.3",
+  "Muse Spark": "muse-spark-1.3"
+ }
+}

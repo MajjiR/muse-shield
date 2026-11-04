@@ -1,0 +1,59 @@
+{
+ "backend": "glimmer",
+ "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s250#accounts/rohan-majji/deployments/ms-ck-er-v3a-s250-033151",
+ "tag": "official-tab-er-v3a",
+ "git": "f91e21d-dirty",
+ "sets": {
+  "tab": {
+   "docs": 127,
+   "valid": 0.9921259842519685,
+   "leak": 0.21127633209417596,
+   "core_leak": 0.12170212765957447,
+   "person_leak": 0.04566744730679157,
+   "mention": {
+    "precision": 0.2736774193548387,
+    "recall": 0.8021936459909228,
+    "f1": 0.4081200692707331,
+    "tp": 2121,
+    "fp": 5629,
+    "fn": 523
+   },
+   "coref": {
+    "precision": 0.6725798276735935,
+    "recall": 0.7331491712707182,
+    "f1": 0.7015596087761037,
+    "tp": 1327,
+    "fp": 646,
+    "fn": 483
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.6697099892588615,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 180,
+    "fn": 0
+   },
+   "persons_resolved": 0.8013513513513514,
+   "dropped_mentions": 281,
+   "seconds": 190.7,
+   "tokens": {
+    "prompt_tokens": 232558,
+    "completion_tokens": 177324
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 6000,
+  "workers": 24,
+  "data": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages without the worked example",
+  "relaxed": true,
+  "prompt_version": "v3"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "run_id": "20261105-032159_v0.0.1+f91e21d_dev-er-v3a-s750",
+ "eval": "pupa",
+ "dataset": "Columbia-NLP/PUPA (PUPA_New.csv, PUPA_TNB.csv)",
+ "n": 101,
+ "max_chars": 3000,
+ "seed": 7,
+ "prompts_file": "runs/er/v3/pupa-dev.jsonl",
+ "models": {
+  "Muse Glimmer + er-v3a-s750 (ours)": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3a-s750#accounts/rohan-majji/deployments/ms-ck-er-v3a-s750-031846"
+ }
+}

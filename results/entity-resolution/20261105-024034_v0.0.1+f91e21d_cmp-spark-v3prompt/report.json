@@ -1,0 +1,101 @@
+{
+ "backend": "muse_spark",
+ "model": "muse-spark-1.3",
+ "tag": "cmp-spark-v3prompt",
+ "git": "f91e21d",
+ "sets": {
+  "heldout-v3-val": {
+   "docs": 80,
+   "valid": 1.0,
+   "leak": 0.01602747567258157,
+   "core_leak": 0.007832898172323759,
+   "person_leak": 0.00922509225092251,
+   "mention": {
+    "precision": 0.6142575373344604,
+    "recall": 0.923728813559322,
+    "f1": 0.7378575055000846,
+    "tp": 2180,
+    "fp": 1369,
+    "fn": 180
+   },
+   "coref": {
+    "precision": 1.0,
+    "recall": 0.7864013704045328,
+    "f1": 0.880430773770008,
+    "tp": 5968,
+    "fp": 0,
+    "fn": 1621
+   },
+   "owner_acc": 0.9291187739463601,
+   "unknown_acc": 0.8823529411764706,
+   "type_acc": 0.9907407407407407,
+   "amount_role_acc": 0.975,
+   "relations": {
+    "precision": 0.3333333333333333,
+    "recall": 0.8108108108108109,
+    "f1": 0.47244094488188976,
+    "tp": 30,
+    "fp": 60,
+    "fn": 7
+   },
+   "persons_resolved": 0.8444444444444444,
+   "dropped_mentions": 24,
+   "seconds": 161.6,
+   "tokens": {
+    "prompt_tokens": 153522,
+    "completion_tokens": 280844
+   }
+  },
+  "heldout-nemotron-train": {
+   "docs": 150,
+   "valid": 1.0,
+   "leak": 0.010978043912175649,
+   "core_leak": 0.006825938566552901,
+   "person_leak": 0.0,
+   "mention": {
+    "precision": 0.6289140572951366,
+    "recall": 0.9421157684630739,
+    "f1": 0.7542948461845784,
+    "tp": 944,
+    "fp": 557,
+    "fn": 58
+   },
+   "coref": {
+    "precision": 0.9539748953974896,
+    "recall": 0.8837209302325582,
+    "f1": 0.9175050301810865,
+    "tp": 228,
+    "fp": 11,
+    "fn": 30
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.9796893667861409,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 13,
+    "fn": 0
+   },
+   "persons_resolved": 0.618421052631579,
+   "dropped_mentions": 3,
+   "seconds": 170.4,
+   "tokens": {
+    "prompt_tokens": 244163,
+    "completion_tokens": 301601
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 3000,
+  "workers": 24,
+  "data": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)",
+  "relaxed": false,
+  "prompt_version": "v3"
+ }
+}

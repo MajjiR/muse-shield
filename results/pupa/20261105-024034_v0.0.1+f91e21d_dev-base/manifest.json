@@ -1,0 +1,12 @@
+{
+ "run_id": "20261105-024034_v0.0.1+f91e21d_dev-base",
+ "eval": "pupa",
+ "dataset": "Columbia-NLP/PUPA (PUPA_New.csv, PUPA_TNB.csv)",
+ "n": 101,
+ "max_chars": 3000,
+ "seed": 7,
+ "prompts_file": "runs/er/v3/pupa-dev.jsonl",
+ "models": {
+  "Muse Glimmer + v2 (ours, PII + context)": "accounts/fireworks/models/muse-glimmer-30b"
+ }
+}
