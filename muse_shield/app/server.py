@@ -22,6 +22,7 @@ from ..agent.tools import catalog
 from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .documents import add_document_routes
+from .connections_api import add_connection_routes
 from .images_api import add_image_routes
 from .engine import MODES, Masker, ModeError, ModeMasker, rehydrate, segments
 from .extension import add_extension_routes
@@ -392,6 +393,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
                 "cost_by_chat": cost_by_chat, "cost_total": round(sum(cost_by_chat.values()), 6), "inspector": inspector.summary()}
 
     add_extension_routes(app, vault, masker, off_reason)
+    add_connection_routes(app, vault)
     add_document_routes(app, vault, masker, off_reason, inspector, sync=documents_sync)
     add_image_routes(app, vault, image_masker, images_off)
 
