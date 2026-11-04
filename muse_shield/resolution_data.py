@@ -1,0 +1,756 @@
+"""Training data for entity resolution: planned scenarios, written by DeepSeek, checked twice.
+
+1. Code plans each document: who is in it (names, roles, gender for pronouns), which private
+   values exist and who owns each one, and how the people relate. Owners and relations are
+   ground truth by construction.
+2. DeepSeek V4 Flash writes the document from the plan, wrapping every mention in a tag:
+   [[PERSON_1|Rohan]] ... [[PERSON_1|his]] salary is [[SALARY_1|₹24 LPA]].
+   Tags give exact offsets for every mention, pronouns included.
+3. Code checks the writing: every value appears exactly as planned, nothing untagged looks like a
+   name, pronoun, phone, email, ID, amount or date, and every planned person and value appears.
+4. A second, independent DeepSeek call reads the clean document (no tags, no owners) and says
+   who owns each value and who each pronoun refers to. Documents where it disagrees with the plan
+   are dropped: if a fresh reader can't recover the plan, the text doesn't really say it.
+
+DeepSeek only ever sees fictional, randomly generated people. Training data only: never real
+user data and never at runtime.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import random
+import re
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+from muse_shield import resolution as R
+from muse_shield.analysis import ContractError, _loads
+from muse_shield.backends import BackendError, DeepSeekBackend
+from muse_shield.costs import TOKEN_PRICES
+
+MALE = ["Rohan", "Sandeep", "Arjun", "Kabir", "Rehan", "Sameer", "Joseph", "Arnav", "Yusuf", "Mihir", "Gaurav", "Pranav",
+        "Imran", "Vivek", "Kenji", "Tobias", "Oliver", "Diego", "Sven", "Aditya", "Farhan", "Rahul", "Michael", "James",
+        "Daniel", "Thomas", "Ethan", "Lucas", "Mateo", "Hiroshi", "Karthik", "Suresh", "Vikram", "Anil", "Ravi", "Omar"]
+FEMALE = ["Lakshmi", "Ishita", "Meenakshi", "Tanya", "Lavanya", "Fatima", "Harpreet", "Deepa", "Nandini", "Bhavna", "Clara",
+          "Shreya", "Anika", "Amara", "Leila", "Rukmini", "Keerthi", "Jasleen", "Sana", "Priyanka", "Esther", "Wen",
+          "Sarah", "Emily", "Olivia", "Sophia", "Grace", "Hannah", "Isabel", "Mei", "Ananya", "Kavya", "Pooja", "Divya",
+          "Aisha", "Maria"]
+LAST = ["Majji", "Kumar", "Bhattacharya", "Narayanan", "Gill", "Sood", "Pillai", "Chakraborty", "Rao", "Kulkarni",
+        "D'Souza", "Ansari", "Mehra", "Venkatesh", "Thakur", "Banerjee", "Fernandes", "Iyengar", "Lobo", "Chopra",
+        "Ramaswamy", "Okonkwo", "Lindholm", "Haddad", "Moreno", "Tanaka", "Weber", "Mukherjee", "Saxena", "Dutta",
+        "Kapoor", "Menon", "Reddy", "Nair", "Shah", "Patel", "Iyer", "Joshi", "Carter", "Bennett", "Hughes", "Walsh",
+        "Novak", "Rossi", "Kim", "Nguyen", "Santos", "Ahmed"]
+ORG_A = ["Acme", "Vardhan", "Silverline", "Bluegate", "Konark", "Northstar", "Tarang", "Evergreen", "Sahyadri",
+         "Crescent", "Pinnacle", "Arcadia", "Indus", "Lumina", "Maple", "Orion", "Saffron", "Trident", "Zenith", "Coral",
+         "Granite", "Halcyon", "Kestrel", "Meridian", "Quantum", "Redwood"]
+ORG_B = ["Technologies", "Capital", "Pharma", "Logistics", "Retail", "Healthcare", "Holdings", "Foods", "Ventures",
+         "Hospital", "Insurance", "Finserv", "Labs", "Motors", "Bank", "Realty", "School", "Legal LLP"]
+IN_CITIES = [("Bengaluru", "560"), ("Mumbai", "400"), ("Chennai", "600"), ("Kolkata", "700"), ("Pune", "411"),
+             ("Hyderabad", "500"), ("Delhi", "110"), ("Ahmedabad", "380"), ("Jaipur", "302"), ("Kochi", "682")]
+IN_STREETS = ["MG Road", "Residency Road", "Anna Salai", "Park Street", "FC Road", "Linking Road", "Brigade Road",
+              "Civil Lines", "Ring Road", "Hill Road", "Sector 18", "Jubilee Hills Road No. 5"]
+US_PLACES = [("Austin", "TX", "787"), ("Seattle", "WA", "981"), ("Boston", "MA", "021"), ("Denver", "CO", "802"),
+             ("Chicago", "IL", "606"), ("San Jose", "CA", "951")]
+US_STREETS = ["Maple Avenue", "Oak Street", "Lakeview Drive", "Cedar Lane", "Elm Street", "Sunset Boulevard"]
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+          "November", "December"]
+DIAGNOSES = ["type 2 diabetes", "hypertension", "major depressive disorder", "asthma", "hypothyroidism",
+             "chronic kidney disease stage 2", "generalised anxiety disorder", "rheumatoid arthritis", "migraine",
+             "iron-deficiency anaemia"]
+
+# Each family: document types, people (role, relation to another role), and private values
+# (kind, owner role). Owners and relations are what the model must recover.
+FAMILIES = {
+    "hr_compensation": {
+        "doc_types": ["offer letter", "salary revision letter", "annual appraisal email", "promotion letter"],
+        "people": [("employee", None), ("manager", ("MANAGES", "employee")), ("hr partner", None)],
+        "org": "employer",
+        "values": [("SALARY", "employee"), ("SALARY", "manager"), ("ADDRESS:RESIDENTIAL", "employee"),
+                   ("DATE:JOINING", "employee"), ("ID:EMPLOYEE_ID", "employee"), ("CONTACT:EMAIL", "employee"),
+                   ("ID:PAN", "employee")],
+        "optional_people": [("mother", ("PARENT_OF", "employee"), ("EMERGENCY_CONTACT_OF", "employee")),
+                            ("spouse", ("SPOUSE_OF", "employee"), ("EMERGENCY_CONTACT_OF", "employee"))],
+        "optional_values": [("CONTACT:PHONE", "@optional")],
+    },
+    "payroll_table": {
+        "doc_types": ["monthly payroll summary with a markdown table", "bonus payout sheet with a markdown table",
+                      "team compensation review with a markdown table"],
+        "people": [("employee", None), ("employee", None), ("employee", None), ("payroll lead", None)],
+        "org": "employer",
+        "values": [("SALARY", "employee#0"), ("SALARY", "employee#1"), ("SALARY", "employee#2"),
+                   ("ID:EMPLOYEE_ID", "employee#0"), ("ID:EMPLOYEE_ID", "employee#1"), ("ID:EMPLOYEE_ID", "employee#2"),
+                   ("ID:BANK_ACCOUNT", "employee#0"), ("ID:BANK_ACCOUNT", "employee#1")],
+    },
+    "hr_investigation": {
+        "doc_types": ["workplace grievance investigation memo", "disciplinary hearing notes", "POSH committee report"],
+        "people": [("complainant", None), ("respondent", None), ("witness", None), ("investigator", None)],
+        "org": "employer",
+        "values": [("SENSITIVE_ATTRIBUTE:HEALTH", "complainant"), ("DATE:EVENT", "@none"), ("CONTACT:PHONE", "witness"),
+                   ("ID:EMPLOYEE_ID", "respondent")],
+    },
+    "loan_sanction": {
+        "doc_types": ["home loan sanction letter", "personal loan approval email", "loan restructuring notice"],
+        "people": [("borrower", None), ("co-applicant", ("SPOUSE_OF", "borrower")),
+                   ("guarantor", ("GUARANTOR_FOR", "borrower")), ("relationship manager", None)],
+        "org": "lender",
+        "values": [("LOAN", "borrower"), ("ID:BANK_ACCOUNT", "borrower"), ("ID:IFSC", "borrower"), ("ID:PAN", "borrower"),
+                   ("ID:PAN", "co-applicant"), ("ID:AADHAAR", "guarantor"), ("ADDRESS:RESIDENTIAL", "borrower"),
+                   ("CONTACT:PHONE", "relationship manager")],
+    },
+    "medical_referral": {
+        "doc_types": ["hospital referral letter", "discharge summary", "specialist consultation note"],
+        "people": [("patient", None), ("doctor", ("TREATS", "patient")),
+                   ("daughter", ("PARENT_OF", "@patient_is_parent"))],
+        "org": "hospital",
+        "values": [("SENSITIVE_ATTRIBUTE:HEALTH", "patient"), ("SENSITIVE_ATTRIBUTE:AGE", "patient"),
+                   ("SENSITIVE_ATTRIBUTE:BODY_MEASUREMENT", "patient"), ("ID:MEDICAL_RECORD", "patient"),
+                   ("DATE:DOB", "patient"), ("CONTACT:PHONE", "daughter")],
+    },
+    "insurance_claim": {
+        "doc_types": ["life insurance claim settlement letter", "health insurance claim email", "nominee verification letter"],
+        "people": [("policyholder", None), ("nominee", ("NOMINEE_OF", "policyholder")), ("claims officer", None)],
+        "org": "insurer",
+        "values": [("ID:POLICY", "policyholder"), ("OTHER", "nominee"), ("ID:BANK_ACCOUNT", "nominee"),
+                   ("ADDRESS:RESIDENTIAL", "nominee"), ("DATE:EVENT", "@none"), ("CONTACT:EMAIL", "claims officer")],
+    },
+    "legal_notice": {
+        "doc_types": ["legal notice for recovery of dues", "advocate's reply notice", "settlement offer letter"],
+        "people": [("client", None), ("advocate", ("REPRESENTS", "client")), ("opposing party", None)],
+        "org": "law firm",
+        "values": [("OTHER", "client"), ("FEE", "advocate"), ("ADDRESS:RESIDENTIAL", "opposing party"),
+                   ("DATE:DEADLINE", "@none"), ("CONTACT:PHONE", "advocate")],
+    },
+    "ma_memo": {
+        "doc_types": ["confidential acquisition memo", "board note on a proposed merger", "deal team update email"],
+        "people": [("deal lead", None), ("cfo", None), ("banker", None)],
+        "org": "acquirer",
+        "orgs": ["target company"],
+        "values": [("DEAL_VALUE", "@org"), ("REVENUE", "@org2"), ("PROJECT", "@none"), ("DATE:DEADLINE", "@none"),
+                   ("CONTACT:EMAIL", "banker"), ("CONTACT:PHONE", "deal lead")],
+    },
+    "email_thread": {
+        "doc_types": ["email thread between three colleagues with signatures", "vendor onboarding email chain",
+                      "client escalation email thread"],
+        "people": [("sender", None), ("recipient", None), ("colleague", None)],
+        "org": "employer",
+        "values": [("CONTACT:PHONE", "sender"), ("CONTACT:EMAIL", "sender"), ("CONTACT:PHONE", "recipient"),
+                   ("CONTACT:EMAIL", "colleague"), ("BUDGET", "@org"), ("DATE:DEADLINE", "@none")],
+    },
+    "kyc_update": {
+        "doc_types": ["bank KYC update confirmation", "address change request acknowledgement", "credit card dispute letter"],
+        "people": [("customer", None), ("relationship manager", None)],
+        "org": "bank",
+        "values": [("ID:BANK_ACCOUNT", "customer"), ("ID:CARD", "customer"), ("ID:AADHAAR", "customer"),
+                   ("ID:PAN", "customer"), ("ADDRESS:RESIDENTIAL", "customer"), ("ADDRESS:RESIDENTIAL", "customer"),
+                   ("DATE:DOB", "customer")],
+    },
+    "us_onboarding": {
+        "doc_types": ["US new-hire onboarding packet", "I-9 verification follow-up email", "benefits enrollment confirmation"],
+        "people": [("new hire", None), ("manager", ("MANAGES", "new hire")), ("benefits coordinator", None)],
+        "org": "employer",
+        "us": True,
+        "values": [("ID:SSN", "new hire"), ("SALARY", "new hire"), ("ADDRESS:RESIDENTIAL", "new hire"),
+                   ("DATE:DOB", "new hire"), ("CONTACT:PHONE", "new hire"), ("CONTACT:EMAIL", "benefits coordinator")],
+        "optional_people": [("spouse", ("SPOUSE_OF", "new hire"), ("EMERGENCY_CONTACT_OF", "new hire"))],
+    },
+    "meeting_minutes": {
+        "doc_types": ["leadership meeting minutes", "project steering committee minutes", "quarterly review notes"],
+        "people": [("chair", None), ("project lead", ("MANAGES", "@analyst")), ("analyst", None)],
+        "org": "company",
+        "values": [("BUDGET", "@org"), ("PROJECT", "@none"), ("DATE:DEADLINE", "@none"), ("REVENUE", "@org")],
+    },
+    # held out entirely: the challenge test set has document structures the model never trained on
+    "tenancy_agreement": {
+        "doc_types": ["residential rental agreement", "tenancy renewal letter", "security deposit refund notice"],
+        "people": [("landlord", ("LANDLORD_OF", "tenant")), ("tenant", None), ("witness", None)],
+        "org": None,
+        "values": [("PRICE", "tenant"), ("FEE", "tenant"), ("ID:AADHAAR", "landlord"), ("ID:PAN", "tenant"),
+                   ("ADDRESS:RESIDENTIAL", "landlord"), ("CONTACT:PHONE", "tenant"), ("DATE:JOINING", "tenant")],
+    },
+    "school_admission": {
+        "doc_types": ["school admission confirmation", "fee concession application", "parent-teacher meeting summary"],
+        "people": [("student", None), ("father", ("PARENT_OF", "student")), ("mother", ("PARENT_OF", "student")),
+                   ("class teacher", None)],
+        "org": "school",
+        "values": [("DATE:DOB", "student"), ("SENSITIVE_ATTRIBUTE:AGE", "student"), ("FEE", "student"),
+                   ("CONTACT:PHONE", "father"), ("CONTACT:EMAIL", "mother"), ("SENSITIVE_ATTRIBUTE:HEALTH", "student")],
+    },
+}
+CHALLENGE_FAMILIES = {"tenancy_agreement", "school_admission"}
+ORG_SUFFIX = {"hospital": ["Hospital", "Healthcare", "Medical Centre"], "lender": ["Bank", "Finserv", "Housing Finance"],
+              "bank": ["Bank", "Co-operative Bank"], "insurer": ["Insurance", "Life Insurance"],
+              "law firm": ["Legal LLP", "& Associates"], "school": ["Public School", "International School"]}
+AMOUNT_KINDS = R.AMOUNT_ROLES
+GENERIC = {"policy circular": "a company-wide IT acceptable-use policy update",
+           "product announcement": "a product feature announcement for customers"}
+
+
+def _digits(rng, n):
+    return "".join(rng.choice("0123456789") for _ in range(n))
+
+
+def _letters(rng, n):
+    return "".join(rng.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(n))
+
+
+def make_value(kind: str, rng: random.Random, us: bool, owner_name: str | None) -> tuple[str, str, str | None, str | None]:
+    """(value, type, role, subtype) for one planned private value."""
+    if kind in AMOUNT_KINDS:
+        if us:
+            v = rng.choice([f"${rng.randint(60, 240)},{rng.randint(0, 9)}00", f"${rng.randint(2, 90)},{rng.randint(100, 999)}"])
+        elif kind == "SALARY":
+            v = rng.choice([f"₹{rng.randint(6, 60)} LPA", f"₹{rng.randint(4, 40)},{rng.randint(10, 99)},000 per annum",
+                            f"₹{rng.randint(40, 300)},{rng.randint(100, 999)} per month"])
+        elif kind in ("DEAL_VALUE", "REVENUE"):
+            v = rng.choice([f"₹{rng.randint(50, 4000)} crore", f"${rng.randint(20, 900)} million"])
+        else:
+            v = rng.choice([f"₹{rng.randint(2, 95)} lakh", f"₹{rng.randint(10, 99)},{rng.randint(100, 999)}",
+                            f"Rs. {rng.randint(1, 9)},{rng.randint(10, 99)},{rng.randint(100, 999)}"])
+        return v, "AMOUNT", kind, None
+    if kind == "PROJECT":
+        return f"Project {rng.choice(['Falcon', 'Neptune', 'Bluebird', 'Sapphire', 'Monsoon', 'Atlas', 'Granite', 'Lotus'])}", "PROJECT", None, None
+    t, sub = kind.split(":")
+    first = (owner_name or "contact").split()[0].lower()
+    last = (owner_name or "x y").split()[-1].lower().replace("'", "")
+    if sub == "PHONE":
+        v = f"+1 ({rng.randint(200, 989)}) {rng.randint(200, 989)}-{_digits(rng, 4)}" if us else \
+            f"+91 {rng.choice('6789')}{_digits(rng, 4)} {_digits(rng, 5)}"
+    elif sub == "EMAIL":
+        v = f"{first}.{last}{rng.randint(1, 99)}@{rng.choice(['gmail.com', 'outlook.com', 'yahoo.com', 'proton.me'])}"
+    elif sub == "AADHAAR":
+        v = f"{rng.randint(2, 9)}{_digits(rng, 3)} {_digits(rng, 4)} {_digits(rng, 4)}"
+    elif sub == "PAN":
+        v = _letters(rng, 3) + "P" + _letters(rng, 1) + _digits(rng, 4) + _letters(rng, 1)
+    elif sub == "IFSC":
+        v = _letters(rng, 4) + "0" + _digits(rng, 6)
+    elif sub == "BANK_ACCOUNT":
+        v = _digits(rng, rng.choice([11, 12, 14]))
+    elif sub == "CARD":
+        v = f"{rng.choice(['4', '5'])}{_digits(rng, 3)} {_digits(rng, 4)} {_digits(rng, 4)} {_digits(rng, 4)}"
+    elif sub == "SSN":
+        v = f"{rng.randint(100, 665)}-{rng.randint(10, 99)}-{_digits(rng, 4)}"
+    elif sub == "EMPLOYEE_ID":
+        v = rng.choice([f"EMP-{_digits(rng, 5)}", f"E{_digits(rng, 6)}", f"{_letters(rng, 2)}/{_digits(rng, 4)}"])
+    elif sub == "MEDICAL_RECORD":
+        v = f"MRN-{rng.randint(2019, 2026)}-{_digits(rng, 5)}"
+    elif sub == "POLICY":
+        v = f"POL/{rng.randint(2018, 2026)}/{_digits(rng, 6)}"
+    elif sub == "RESIDENTIAL":
+        if us:
+            city, st, z = rng.choice(US_PLACES)
+            v = f"{rng.randint(10, 9800)} {rng.choice(US_STREETS)}, {city}, {st} {z}{_digits(rng, 2)}"
+        else:
+            city, pin = rng.choice(IN_CITIES)
+            v = (f"{rng.randint(1, 450)}, {rng.choice(['Sunrise Apartments', 'Lake View Towers', 'Green Park Society', 'Palm Grove Layout'])}, "
+                 f"{rng.choice(IN_STREETS)}, {city} {pin}{_digits(rng, 3)}")
+    elif t == "DATE":
+        y = rng.randint(1958, 2008) if sub == "DOB" else rng.randint(2024, 2027)
+        v = rng.choice([f"{rng.randint(1, 28)} {rng.choice(MONTHS)} {y}", f"{rng.choice(MONTHS)} {rng.randint(1, 28)}, {y}"])
+    elif sub == "HEALTH":
+        v = rng.choice(DIAGNOSES)
+    elif sub == "AGE":
+        v = f"{rng.randint(6, 85)} years old"
+    elif sub == "BODY_MEASUREMENT":
+        v = rng.choice([f"{rng.randint(45, 110)} kg", f"{rng.randint(150, 192)} cm"])
+    else:
+        raise ValueError(kind)
+    return v, t, None, sub
+
+
+def plan(rng: random.Random, family: str, uid: str) -> dict:
+    """A document plan: entities with values and owners, relations, and writing instructions."""
+    if family == "generic":
+        doc_type = rng.choice(list(GENERIC))
+        return {"uid": uid, "family": family, "doc_type": doc_type, "brief": GENERIC[doc_type], "entities": [],
+                "relations": [], "ambiguous": None}
+    fam = FAMILIES[family]
+    us = fam.get("us", False)
+    people = list(fam["people"])
+    extra_rel = []
+    for opt in fam.get("optional_people", []):
+        if rng.random() < 0.5:
+            people.append((opt[0], opt[1]))
+            extra_rel += [(opt[0], *r) for r in opt[2:]]
+            break
+    family_last = rng.choice(LAST)
+    ents, by_role, names_used = [], {}, set()
+    for i, (role, _) in enumerate(people):
+        gender = "female" if role in ("mother", "daughter") else ("male" if role == "father" else rng.choice(["male", "female"]))
+        while True:
+            first = rng.choice(MALE if gender == "male" else FEMALE)
+            last = family_last if role in ("mother", "father", "daughter", "spouse", "co-applicant", "student") and rng.random() < 0.85 else rng.choice(LAST)
+            if first not in names_used:
+                break
+        names_used.add(first)
+        ent = {"key": f"P{i}", "type": "PERSON", "role": role, "name": f"{first} {last}", "gender": gender}
+        ents.append(ent)
+        by_role.setdefault(role, []).append(ent)
+    orgs = []
+    if fam.get("org"):
+        suffix = rng.choice(ORG_SUFFIX.get(fam["org"], ["Technologies", "Capital", "Pharma", "Logistics", "Retail", "Holdings",
+                                                              "Foods", "Ventures", "Labs", "Motors", "Realty", "Textiles"]))
+        orgs.append({"key": "O0", "type": "ORG", "role": fam["org"], "name": f"{rng.choice(ORG_A)} {suffix}"})
+    for j, r in enumerate(fam.get("orgs", []), 1):
+        orgs.append({"key": f"O{j}", "type": "ORG", "role": r, "name": f"{rng.choice(ORG_A)} {rng.choice(ORG_B)}"})
+    ents += orgs
+
+    def resolve(role_ref: str):
+        if role_ref == "@none":
+            return None
+        if role_ref == "@org":
+            return orgs[0]["key"] if orgs else None
+        if role_ref == "@org2":
+            return orgs[1]["key"] if len(orgs) > 1 else None
+        role, _, idx = role_ref.partition("#")
+        cands = by_role.get(role.lstrip("@"), [])
+        return cands[int(idx or 0)]["key"] if cands else None
+
+    rels = []
+    for role, rel in people:
+        if rel:
+            name, target = rel
+            src = by_role[role][0]["key"]
+            if target == "@patient_is_parent":  # the daughter's parent is the patient
+                rels.append([resolve("patient"), "PARENT_OF", src])
+            else:
+                dst = resolve(target)
+                if dst:
+                    rels.append([src, name, dst])
+    for role, name, target in extra_rel:
+        rels.append([by_role[role][0]["key"], name, resolve(target)])
+    if fam.get("org"):
+        employed = [e for e in ents if e["type"] == "PERSON" and e["role"] in
+                    ("employee", "manager", "hr partner", "new hire", "deal lead", "cfo", "relationship manager",
+                     "doctor", "claims officer", "advocate", "payroll lead", "investigator", "class teacher", "sender")]
+        for e in employed[:2]:
+            rels.append([e["key"], "EMPLOYED_BY", orgs[0]["key"]])
+
+    values = list(fam["values"])
+    opt_people = [e for e in ents if e["type"] == "PERSON" and e["role"] in ("mother", "spouse")]
+    for kind, owner in fam.get("optional_values", []):
+        if owner == "@optional" and opt_people:
+            values.append((kind, opt_people[0]["role"]))
+    rng.shuffle(values)
+    values = values[: max(3, len(values) - rng.randint(0, 2))]
+    for k, (kind, owner_ref) in enumerate(values):
+        owner = resolve(owner_ref)
+        owner_name = next((e["name"] for e in ents if e["key"] == owner), None)
+        v, t, role, sub = make_value(kind, rng, us, owner_name)
+        ents.append({"key": f"V{k}", "type": t, "role": role, "subtype": sub, "value": v, "owner": owner})
+
+    # sometimes one value is written so that its owner is genuinely unclear
+    ambiguous = None
+    persons = [e for e in ents if e["type"] == "PERSON"]
+    owned = [e for e in ents if e.get("owner") and e["type"] in ("AMOUNT", "CONTACT", "DATE")]
+    if len(persons) >= 2 and owned and rng.random() < 0.15:
+        target = rng.choice(owned)
+        a = next(p for p in persons if p["key"] == target["owner"]) if any(p["key"] == target["owner"] for p in persons) else persons[0]
+        b = rng.choice([p for p in persons if p is not a])
+        if a["gender"] == b["gender"]:
+            target["owner"] = R.UNKNOWN
+            ambiguous = {"value": target["key"], "between": [a["key"], b["key"]]}
+    return {"uid": uid, "family": family, "doc_type": rng.choice(fam["doc_types"]), "us": us,
+            "entities": ents, "relations": rels, "ambiguous": ambiguous}
+
+
+WRITER_PROMPT = """Write ONE realistic document: {doc_type}. Between 120 and 320 words. Plain text (markdown tables only if the document type asks for a table).
+
+Use ONLY these people, organisations and private values. Each value must appear exactly as written here.
+The role after each person describes their part in the document; give them natural job titles where needed.
+{spec}
+
+Relationships the document must make clear: {relations}
+{ambiguity}
+Tag EVERY mention of every listed item as [[KEY|text]]: full names, first names, title + surname ("Mr Rao", "Dr. Iyer"),
+third-person pronouns that refer to a listed person (he, him, his, himself, she, her, hers, herself) EVERY time they
+occur, and descriptions that refer to them ("the employee", "her mother"). Do not tag "you", "your" or "I".
+Private values keep their exact text inside the tag: [[V1|value as listed]]. Make it clear in the text who each private
+value belongs to (e.g. "Rohan's salary", "his address", a table row, a signature block), but vary how you say it.
+Refer to people in varied ways: sometimes first name, sometimes title + surname, sometimes a pronoun.
+Do NOT add any other person, phone number, email, ID number, address, specific date or money amount.
+Return only the tagged document, nothing else."""
+
+GENERIC_PROMPT = """Write ONE realistic document: {brief}. Between 100 and 250 words. It must contain no personal data at all:
+no names of people, no organisation names, no phone numbers, emails, addresses, ID numbers, specific dates or money amounts.
+Return only the document."""
+
+
+def writer_messages(p: dict) -> list[dict]:
+    if p["family"] == "generic":
+        return [{"role": "user", "content": GENERIC_PROMPT.format(brief=p["brief"])}]
+    lines = []
+    for e in p["entities"]:
+        if e["type"] == "PERSON":
+            lines.append(f"- {e['key']}: person, {e['name']}, {e['role']} ({'he/him' if e['gender'] == 'male' else 'she/her'})")
+        elif e["type"] == "ORG":
+            lines.append(f"- {e['key']}: organisation, {e['name']} ({e['role']})")
+        else:
+            what = e["role"].lower().replace("_", " ") if e["type"] == "AMOUNT" else (e["subtype"] or e["type"]).lower().replace("_", " ")
+            if e["type"] == "PROJECT":
+                what = "internal project codename"
+            owner = "" if not e.get("owner") else (" — whose it is must stay unclear (see below)" if e["owner"] == R.UNKNOWN
+                                                   else f" — belongs to {e['owner']}")
+            lines.append(f"- {e['key']}: {what}: {e['value']}{owner}")
+    names = {e["key"]: e.get("name", e["key"]) for e in p["entities"]}
+    rels = "; ".join(f"{names[a]} {r.lower().replace('_', ' ')} {names[b]}" for a, r, b in p["relations"]) or "none"
+    amb = ""
+    if p["ambiguous"]:
+        a, b = p["ambiguous"]["between"]
+        amb = (f"\nWrite {p['ambiguous']['value']} so that a careful reader CANNOT tell whether it belongs to {names[a]} or "
+               f"{names[b]} (for example a pronoun that could refer to either, both being the same gender). Tag that pronoun "
+               f"with the key of whichever person you had in mind, but do not resolve it anywhere in the text.\n")
+    return [{"role": "user", "content": WRITER_PROMPT.format(doc_type=p["doc_type"], spec="\n".join(lines),
+                                                               relations=rels, ambiguity=amb)}]
+
+
+TAG = re.compile(r"\[\[([A-Z]\d+)\|([^\[\]|]+?)\]\]")
+_PRONOUN = re.compile(r"\b(he|him|his|himself|she|her|hers|herself)\b", re.IGNORECASE)
+_SECOND = re.compile(r"(?i)^(you|your|yours|yourself|yourselves|i|me|my|mine|we|our|us)$")
+_TITLES = {"mr", "mrs", "ms", "dr", "prof", "shri", "smt", "sir", "madam", "adv", "advocate"}
+_LEAKY = [re.compile(p) for p in (r"[\w.+-]+@[\w-]+\.\w+", r"\+\d[\d\s()-]{8,}", r"\b\d{6,}\b", r"[₹$]\s?\d",
+                                  r"\bRs\.?\s?\d", r"\b[A-Z]{5}\d{4}[A-Z]\b", r"\b\d{3}-\d{2}-\d{4}\b",
+                                  r"\b\d{1,2} (?:%s) \d{4}\b" % "|".join(MONTHS), r"\b(?:%s) \d{1,2}, \d{4}\b" % "|".join(MONTHS))]
+
+
+def untag(tagged: str) -> tuple[str, list[tuple[str, int, int]]]:
+    out, mentions, cursor = [], [], 0
+    for m in TAG.finditer(tagged):
+        out.append(tagged[cursor:m.start()])
+        start = sum(len(x) for x in out)
+        out.append(m.group(2))
+        mentions.append((m.group(1), start, start + len(m.group(2))))
+        cursor = m.end()
+    out.append(tagged[cursor:])
+    return "".join(out), mentions
+
+
+def _digits_of(v: str) -> str:
+    return re.sub(r"\D", "", v)
+
+
+def check(p: dict, tagged: str) -> tuple[dict | None, str]:
+    """Turn the writer's output into a gold document, or say why it can't be trusted.
+
+    Safe repairs instead of drops: untag "you/your" (often the letter's reader, who isn't in the plan) and bare
+    role words; accept a value written with the same digits; tag missed names and missed he/she when only one
+    planned person has that gender. Pronouns that are still ambiguous go to the reader (`pending`).
+    """
+    tagged = tagged.strip().strip("`").strip()
+    if p["family"] == "generic":
+        if "[[" in tagged:
+            return None, "tags in generic doc"
+        for pat in _LEAKY + [_PRONOUN]:
+            if pat.search(tagged):
+                return None, f"personal data in generic doc: {pat.pattern[:20]}"
+        return {"uid": p["uid"], "family": p["family"], "doc_type": p["doc_type"], "text": tagged, "entities": [],
+                "relations": [], "pending": []}, ""
+    if "[[" in TAG.sub("", tagged) or "]]" in TAG.sub("", tagged):
+        return None, "malformed tag"
+    text, mentions = untag(tagged)
+    by_key = {e["key"]: e for e in p["entities"]}
+    persons = [e for e in p["entities"] if e["type"] == "PERSON"]
+    got: dict[str, list[tuple[int, int]]] = {}
+    for key, s, e in mentions:
+        if key not in by_key:
+            return None, f"unknown key {key}"
+        ent, surface = by_key[key], text[s:e]
+        if ent["type"] in ("PERSON", "ORG"):
+            words = set(re.findall(r"[\w']+", surface.lower()))
+            if _SECOND.match(surface.strip()):
+                continue  # second person: not annotated
+            if ent["type"] == "PERSON" and not R.is_reference(surface):
+                parts = set(re.findall(r"[\w']+", ent["name"].lower()))
+                names = words - _TITLES
+                if not names <= parts or not names:
+                    if words <= set(ent["role"].split()) | _TITLES:
+                        continue  # a bare role word ("chair", "Advocate"): not a mention
+                    return None, f"name form not from plan: {surface!r}"
+        elif surface != ent["value"]:
+            dv = _digits_of(ent["value"])
+            if not (surface.lower() == ent["value"].lower() or (len(dv) >= 2 and _digits_of(surface) == dv)):
+                return None, f"value changed: {key}"
+        got.setdefault(key, []).append((s, e))
+
+    taken = [False] * len(text)
+    for spans in got.values():
+        for s, e in spans:
+            for i in range(s, e):
+                taken[i] = True
+
+    def free(s: int, e: int) -> bool:
+        return not any(taken[s:e])
+
+    def claim(key: str, s: int, e: int) -> None:
+        got.setdefault(key, []).append((s, e))
+        for i in range(s, e):
+            taken[i] = True
+
+    # missed names: full name, first name, surname (if no one else shares it), organisation name or its first word
+    surnames = {}
+    for e in persons:
+        surnames.setdefault(e["name"].split()[-1], []).append(e["key"])
+    forms = []
+    for e in persons:
+        first, last = e["name"].split()[0], e["name"].split()[-1]
+        forms += [(e["name"], e["key"]), (first, e["key"])]
+        if len(surnames[last]) == 1:
+            forms.append((last, e["key"]))
+    for e in p["entities"]:
+        if e["type"] == "ORG":
+            forms += [(e["name"], e["key"]), (e["name"].split()[0], e["key"])]
+    for form, key in sorted(forms, key=lambda x: -len(x[0])):
+        for m in re.finditer(rf"(?<![\w]){re.escape(form)}(?![\w])", text):
+            if free(m.start(), m.end()):
+                claim(key, m.start(), m.end())
+    # missed he/she: unique gender -> that person; otherwise the reader decides
+    pending = []
+    for m in _PRONOUN.finditer(text):
+        if not free(m.start(), m.end()):
+            continue
+        gender = "male" if m.group(1).lower() in ("he", "him", "his", "himself") else "female"
+        cands = [e for e in persons if e["gender"] == gender and e["key"] in got]
+        if len(cands) == 1:
+            claim(cands[0]["key"], m.start(), m.end())
+        elif cands:
+            pending.append((m.start(), m.end()))
+            for i in range(m.start(), m.end()):
+                taken[i] = True
+        else:
+            return None, "pronoun with no matching person"
+
+    bare = "".join(c if not taken[i] else " " for i, c in enumerate(text))
+    for pat in _LEAKY:
+        if pat.search(bare):
+            return None, f"untagged value: {pat.pattern[:20]}"
+    for e in p["entities"]:
+        for part in re.findall(r"[\w']+", e.get("name", "")):
+            if len(part) > 2 and re.search(rf"\b{re.escape(part)}\b", bare):
+                return None, f"untagged name part {part!r}"
+    if not any(by_key[k]["type"] == "PERSON" for k in got):
+        return None, "no person"
+    for k in got:
+        owner = by_key[k].get("owner")
+        if owner and owner != R.UNKNOWN and owner not in got:
+            return None, "owner never named"
+    us = R.units(text)
+    for spans in list(got.values()) + [pending]:
+        for s, e in spans:
+            if not any(a <= s and e <= b for a, b in us):
+                return None, "mention crosses a unit boundary"
+
+    # renumber keys in order of first appearance: PERSON_1, ORG_1, SALARY_1, ...
+    order = sorted(got, key=lambda k: min(s for s, _ in got[k]))
+    counts, ids = {}, {}
+    for k in order:
+        ent = by_key[k]
+        base = ent["role"] if ent["type"] == "AMOUNT" and ent["role"] != "OTHER" else ent["type"]
+        counts[base] = counts.get(base, 0) + 1
+        ids[k] = f"{base}_{counts[base]}"
+    entities = []
+    for k in order:
+        ent = by_key[k]
+        item = {"id": ids[k], "type": ent["type"], "mentions": sorted(got[k])}
+        if ent["type"] in ("PERSON", "ORG", "AMOUNT"):
+            item["role"] = ent["role"]
+        if ent.get("subtype"):
+            item["subtype"] = ent["subtype"]
+        if ent.get("owner"):
+            item["owner"] = R.UNKNOWN if ent["owner"] == R.UNKNOWN else ids[ent["owner"]]
+        if ent["type"] == "PERSON":
+            item["gender"] = ent["gender"]
+        entities.append(item)
+    rels = [[ids[a], r, ids[b]] for a, r, b in p["relations"] if a in ids and b in ids]
+    return {"uid": p["uid"], "family": p["family"], "doc_type": p["doc_type"], "text": text, "entities": entities,
+            "relations": rels, "ambiguous": bool(p["ambiguous"]), "pending": pending}, ""
+
+
+VERIFY_PROMPT = """Read this document carefully.
+{doc}
+
+People and organisations:
+{people}
+
+1. For each private value below, who does it belong to? Answer with a person or organisation id, or "UNKNOWN" if the
+   text does not make it clear (don't guess), or "NONE" if it belongs to no one in particular.
+{values}
+2. For each reference below (unit number and text, in document order), which person or organisation does it refer to?
+{refs}
+
+Return JSON: {{"owners": {{"<value id>": "<id | UNKNOWN | NONE>", ...}}, "refs": ["<id>", ...]}}"""
+
+
+def verify_messages(gold: dict) -> tuple[list[dict], list[str], list[tuple]]:
+    """The reader's prompt, the value ids asked about, and the references in document order:
+    (start, end, gold id or None for a pending pronoun the reader must resolve)."""
+    text, us = gold["text"], R.units(gold["text"])
+    people = [f"- {e['id']}: {text[e['mentions'][0][0]:e['mentions'][0][1]]}" for e in gold["entities"]
+              if e["type"] in ("PERSON", "ORG")]
+    vals = [e for e in gold["entities"] if e["type"] in R.OWNED_TYPES]
+    values = [f"- {e['id']}: {text[e['mentions'][0][0]:e['mentions'][0][1]]}" for e in vals]
+    refs = [(s, t, e["id"]) for e in gold["entities"] if e["type"] in ("PERSON", "ORG")
+            for s, t in e["mentions"] if R.is_reference(text[s:t])]
+    refs += [(s, t, None) for s, t in gold.get("pending", [])]
+    refs.sort()
+    unit = lambda s: next(i for i, (a, b) in enumerate(us, 1) if a <= s < b)
+    ref_lines = [f"- [{unit(s)}] {text[s:t]}" for s, t, _ in refs]
+    msg = VERIFY_PROMPT.format(doc=R.render_units(text, us), people="\n".join(people) or "- none",
+                               values="\n".join(values) or "- none", refs="\n".join(ref_lines) or "- none")
+    return [{"role": "user", "content": msg}], [e["id"] for e in vals], refs
+
+
+def agrees(gold: dict, raw: str, value_ids: list[str], want_owners: list[str], refs: list[tuple]) -> tuple[bool, str]:
+    """Check the reader against the plan; on success, adds the pending pronouns it resolved to gold."""
+    data = _loads(raw)
+    owners, answers = data.get("owners", {}), data.get("refs", [])
+    for vid, want in zip(value_ids, want_owners):
+        got = str(owners.get(vid, "")).upper()
+        if want == "NONE":
+            continue  # unowned values (a meeting date): any answer is fine
+        if got != want:
+            return False, f"owner {vid}: plan {want}, reader {got}"
+    if refs:
+        if len(answers) != len(refs):
+            return False, "reference count"
+        known = [(str(a).upper(), r[2]) for a, r in zip(answers, refs) if r[2]]
+        hits = sum(a == b for a, b in known)
+        if hits < len(known) - (1 if len(known) >= 8 else 0):
+            return False, f"references {hits}/{len(known)}"
+        persons = {e["id"]: e for e in gold["entities"] if e["type"] == "PERSON"}
+        for a, (s, t, gid) in zip(answers, refs):
+            if gid:
+                continue
+            pid = str(a).upper()
+            want_gender = "male" if gold["text"][s:t].lower() in ("he", "him", "his", "himself") else "female"
+            if pid not in persons or persons[pid].get("gender") != want_gender:
+                return False, "pending pronoun unresolved"
+            persons[pid]["mentions"] = sorted(persons[pid]["mentions"] + [(s, t)])
+    gold["pending"] = []
+    return True, ""
+
+
+class Meter:
+    def __init__(self, model: str):
+        self.lock, self.model = threading.Lock(), model
+        self.tokens = {"prompt": 0, "cached": 0, "completion": 0}
+
+    def add(self, usage: dict) -> None:
+        with self.lock:
+            self.tokens["prompt"] += usage.get("prompt_tokens", 0)
+            self.tokens["cached"] += usage.get("prompt_cache_hit_tokens", 0)
+            self.tokens["completion"] += usage.get("completion_tokens", 0)
+
+    def usd(self) -> float:
+        p_in, p_cached, p_out = TOKEN_PRICES[self.model]
+        t = self.tokens
+        return ((t["prompt"] - t["cached"]) * p_in + t["cached"] * p_cached + t["completion"] * p_out) / 1e6
+
+
+def build(out: Path, n: int, seed: int, model: str, workers: int, budget_usd: float) -> dict:
+    rng = random.Random(seed)
+    fams = list(FAMILIES) + ["generic"]
+    weights = [1.0] * len(FAMILIES) + [0.4]
+    plans = [plan(random.Random(rng.random()), rng.choices(fams, weights)[0], f"er-{seed}-{i:05d}") for i in range(n)]
+    # thinking off: with reasoning on, Flash spent the whole token budget thinking and wrote nothing
+    no_think = {"thinking": {"type": "disabled"}}
+    writer = DeepSeekBackend(model, max_tokens=3000, extra=no_think)
+    writer.json_mode = False
+    reader = DeepSeekBackend(model, max_tokens=1500, extra=no_think)
+    meter = Meter(model)
+    out.mkdir(parents=True, exist_ok=True)
+    kept_f, drop_f = open(out / "docs.jsonl", "a"), open(out / "dropped.jsonl", "a")
+    done = {json.loads(l)["uid"] for l in (out / "docs.jsonl").read_text().splitlines() if l.strip()} | \
+           {json.loads(l)["uid"] for l in (out / "dropped.jsonl").read_text().splitlines() if l.strip()}
+    lock, stats = threading.Lock(), {"kept": 0, "dropped": 0, "reasons": {}}
+
+    def work(p):
+        if p["uid"] in done or meter.usd() > budget_usd:
+            return
+        try:
+            raw, u = writer._call(writer_messages(p))
+            meter.add(u)
+            gold, why = check(p, raw)
+            if gold and gold["entities"]:
+                msgs, vids, refs = verify_messages(gold)
+                want = [next(e.get("owner") or "NONE" for e in gold["entities"] if e["id"] == v) for v in vids]
+                vraw, vu = reader._call(msgs)
+                meter.add(vu)
+                ok, why = agrees(gold, vraw, vids, want, refs)
+                if not ok:
+                    gold = None
+        except (BackendError, ContractError, ValueError, KeyError, StopIteration) as exc:
+            gold, why = None, f"error: {exc!s:.80}"
+        with lock:
+            if gold:
+                kept_f.write(json.dumps(gold, ensure_ascii=False) + "\n")
+                kept_f.flush()
+                stats["kept"] += 1
+            else:
+                drop_f.write(json.dumps({"uid": p["uid"], "family": p["family"], "why": why}) + "\n")
+                drop_f.flush()
+                stats["dropped"] += 1
+                r = why.split(":")[0]
+                stats["reasons"][r] = stats["reasons"].get(r, 0) + 1
+            if (stats["kept"] + stats["dropped"]) % 50 == 0:
+                print(f"{time.strftime('%H:%M:%S')} kept {stats['kept']} dropped {stats['dropped']} "
+                      f"${meter.usd():.2f} {dict(sorted(stats['reasons'].items(), key=lambda x: -x[1])[:5])}", flush=True)
+
+    with ThreadPoolExecutor(workers) as pool:
+        list(pool.map(work, plans))
+    stats["usd"], stats["tokens"] = round(meter.usd(), 3), meter.tokens
+    return stats
+
+
+def split(src: Path, out: Path, seed: int, val: int, test: int, challenge: int) -> dict:
+    """Split by document (every document has its own fictional people), holding two families out entirely."""
+    docs = [json.loads(l) for l in src.read_text().splitlines() if l.strip()]
+    rng = random.Random(seed)
+    rng.shuffle(docs)
+    chal = [d for d in docs if d["family"] in CHALLENGE_FAMILIES][:challenge]
+    rest = [d for d in docs if d["family"] not in CHALLENGE_FAMILIES]
+    parts = {"test": rest[:test], "val": rest[test:test + val], "train": rest[test + val:], "challenge": chal}
+    out.mkdir(parents=True, exist_ok=True)
+    for name, ds in parts.items():
+        (out / f"{name}.docs.jsonl").write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in ds))
+    for name in ("train", "val"):
+        rows = [{"messages": R.messages(d["text"]) + [{"role": "assistant", "content": R.target_json(d["text"], d)}]}
+                for d in parts[name]]
+        (out / f"{name}.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
+    stats = {name: len(ds) for name, ds in parts.items()}
+    stats["families"] = {}
+    for d in docs:
+        stats["families"][d["family"]] = stats["families"].get(d["family"], 0) + 1
+    (out / "stats.json").write_text(json.dumps(stats, indent=1))
+    return stats
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="python -m muse_shield.resolution_data")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    b = sub.add_parser("build")
+    b.add_argument("--out", type=Path, default=Path("runs/er/gen"))
+    b.add_argument("--n", type=int, default=2000)
+    b.add_argument("--seed", type=int, default=7)
+    b.add_argument("--model", default="deepseek-flash")
+    b.add_argument("--workers", type=int, default=24)
+    b.add_argument("--budget-usd", type=float, default=4.5)
+    s = sub.add_parser("split")
+    s.add_argument("--src", type=Path, default=Path("runs/er/gen/docs.jsonl"))
+    s.add_argument("--out", type=Path, default=Path("runs/er/v1"))
+    s.add_argument("--seed", type=int, default=11)
+    s.add_argument("--val", type=int, default=60)
+    s.add_argument("--test", type=int, default=150)
+    s.add_argument("--challenge", type=int, default=80)
+    a = ap.parse_args(argv)
+    if a.cmd == "build":
+        print(json.dumps(build(a.out, a.n, a.seed, a.model, a.workers, a.budget_usd), indent=1))
+    else:
+        print(json.dumps(split(a.src, a.out, a.seed, a.val, a.test, a.challenge), indent=1))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,23 @@
+{
+ "test": 150,
+ "val": 60,
+ "train": 1237,
+ "challenge": 80,
+ "families": {
+  "ma_memo": 93,
+  "generic": 103,
+  "hr_compensation": 111,
+  "school_admission": 120,
+  "insurance_claim": 112,
+  "us_onboarding": 118,
+  "email_thread": 106,
+  "medical_referral": 144,
+  "kyc_update": 133,
+  "meeting_minutes": 101,
+  "hr_investigation": 184,
+  "loan_sanction": 137,
+  "legal_notice": 52,
+  "tenancy_agreement": 28,
+  "payroll_table": 53
+ }
+}
