@@ -1,0 +1,118 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] You are using a model of type `muse_glimmer` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+rendered 4719/4719 train rows; holdout 40 rows; example prompt tokens=768
+session=ts-79442c6bba154a6397467541aa80340a run=run-6c3d75393e884443bab5cc6fd8887f89
+prefill_queue_duration is unavailable; AdaptiveConcurrencyController is using HTTP 429/503 and transport-error congestion signals instead
+base: scored 10/40
+base: scored 20/40
+base: scored 30/40
+base: scored 40/40
+{"label": "base", "exact_match": 0.475, "unterminated": 1, "prompt_tokens": 31159, "sampled_tokens": 5783, "field_accuracy": {"entities": 0.55, "contexts": 0.875}}
+{"step": 1, "epoch": 1, "loss": 0.0808, "grad_norm:last": 912.0, "grad_norm": 912.0, "grad_norm_rms:last": 0.03149819357368377, "grad_norm_rms": 0.03149819357368377, "grad_norm_pre_norm:last": 912.0, "grad_norm_pre_norm": 912.0, "grad_norm_post_clip:last": 0.9999999989035087, "grad_norm_post_clip": 0.9999999989035087}
+{"step": 2, "epoch": 1, "loss": 0.0655, "grad_norm:last": 740.0, "grad_norm": 740.0, "grad_norm_rms:last": 0.025557744785664457, "grad_norm_rms": 0.025557744785664457, "grad_norm_pre_norm:last": 740.0, "grad_norm_pre_norm": 740.0, "grad_norm_post_clip:last": 0.9999999986486486, "grad_norm_post_clip": 0.9999999986486486}
+{"step": 3, "epoch": 1, "loss": 0.0654, "grad_norm:last": 752.0, "grad_norm": 752.0, "grad_norm_rms:last": 0.025972194701107666, "grad_norm_rms": 0.025972194701107666, "grad_norm_pre_norm:last": 752.0, "grad_norm_pre_norm": 752.0, "grad_norm_post_clip:last": 0.9999999986702128, "grad_norm_post_clip": 0.9999999986702128}
+{"step": 4, "epoch": 1, "loss": 0.0346, "grad_norm:last": 368.0, "grad_norm": 368.0, "grad_norm_rms:last": 0.012709797406925029, "grad_norm_rms": 0.012709797406925029, "grad_norm_pre_norm:last": 368.0, "grad_norm_pre_norm": 368.0, "grad_norm_post_clip:last": 0.9999999972826088, "grad_norm_post_clip": 0.9999999972826088}
+{"step": 5, "epoch": 1, "loss": 0.0544, "grad_norm:last": 652.0, "grad_norm": 652.0, "grad_norm_rms:last": 0.022518445405747604, "grad_norm_rms": 0.022518445405747604, "grad_norm_pre_norm:last": 652.0, "grad_norm_pre_norm": 652.0, "grad_norm_post_clip:last": 0.9999999984662578, "grad_norm_post_clip": 0.9999999984662578}
+{"step": 6, "epoch": 1, "loss": 0.0532, "grad_norm:last": 368.0, "grad_norm": 368.0, "grad_norm_rms:last": 0.012709797406925029, "grad_norm_rms": 0.012709797406925029, "grad_norm_pre_norm:last": 368.0, "grad_norm_pre_norm": 368.0, "grad_norm_post_clip:last": 0.9999999972826088, "grad_norm_post_clip": 0.9999999972826088}
+{"step": 7, "epoch": 1, "loss": 0.0359, "grad_norm:last": 888.0, "grad_norm": 888.0, "grad_norm_rms:last": 0.03066929374279735, "grad_norm_rms": 0.03066929374279735, "grad_norm_pre_norm:last": 888.0, "grad_norm_pre_norm": 888.0, "grad_norm_post_clip:last": 0.9999999988738738, "grad_norm_post_clip": 0.9999999988738738}
+{"step": 8, "epoch": 1, "loss": 0.0473, "grad_norm:last": 556.0, "grad_norm": 556.0, "grad_norm_rms:last": 0.019202846082201946, "grad_norm_rms": 0.019202846082201946, "grad_norm_pre_norm:last": 556.0, "grad_norm_pre_norm": 556.0, "grad_norm_post_clip:last": 0.9999999982014388, "grad_norm_post_clip": 0.9999999982014388}
+{"step": 9, "epoch": 1, "loss": 0.0393, "grad_norm:last": 1312.0, "grad_norm": 1312.0, "grad_norm_rms:last": 0.045313190755124015, "grad_norm_rms": 0.045313190755124015, "grad_norm_pre_norm:last": 1312.0, "grad_norm_pre_norm": 1312.0, "grad_norm_post_clip:last": 0.9999999992378047, "grad_norm_post_clip": 0.9999999992378047}
+{"step": 10, "epoch": 1, "loss": 0.028, "grad_norm:last": 396.0, "grad_norm": 396.0, "grad_norm_rms:last": 0.013676847209625845, "grad_norm_rms": 0.013676847209625845, "grad_norm_pre_norm:last": 396.0, "grad_norm_pre_norm": 396.0, "grad_norm_post_clip:last": 0.9999999974747475, "grad_norm_post_clip": 0.9999999974747475}
+{"step": 11, "epoch": 1, "loss": 0.0285, "grad_norm:last": 292.0, "grad_norm": 292.0, "grad_norm_rms:last": 0.010084947942451381, "grad_norm_rms": 0.010084947942451381, "grad_norm_pre_norm:last": 292.0, "grad_norm_pre_norm": 292.0, "grad_norm_post_clip:last": 0.9999999965753424, "grad_norm_post_clip": 0.9999999965753424}
+{"step": 12, "epoch": 1, "loss": 0.0263, "grad_norm:last": 318.0, "grad_norm": 318.0, "grad_norm_rms:last": 0.010982922759244998, "grad_norm_rms": 0.010982922759244998, "grad_norm_pre_norm:last": 318.0, "grad_norm_pre_norm": 318.0, "grad_norm_post_clip:last": 0.999999996855346, "grad_norm_post_clip": 0.999999996855346}
+{"step": 13, "epoch": 1, "loss": 0.0266, "grad_norm:last": 1416.0, "grad_norm": 1416.0, "grad_norm_rms:last": 0.04890509002229848, "grad_norm_rms": 0.04890509002229848, "grad_norm_pre_norm:last": 1416.0, "grad_norm_pre_norm": 1416.0, "grad_norm_post_clip:last": 0.9999999992937851, "grad_norm_post_clip": 0.9999999992937851}
+{"step": 14, "epoch": 1, "loss": 0.0128, "grad_norm:last": 176.0, "grad_norm": 176.0, "grad_norm_rms:last": 0.006078598759833709, "grad_norm_rms": 0.006078598759833709, "grad_norm_pre_norm:last": 176.0, "grad_norm_pre_norm": 176.0, "grad_norm_post_clip:last": 0.9999999943181818, "grad_norm_post_clip": 0.9999999943181818}
+{"step": 15, "epoch": 1, "loss": 0.0316, "grad_norm:last": 2320.0, "grad_norm": 2320.0, "grad_norm_rms:last": 0.08012698365235343, "grad_norm_rms": 0.08012698365235343, "grad_norm_pre_norm:last": 2320.0, "grad_norm_pre_norm": 2320.0, "grad_norm_post_clip:last": 0.9999999995689656, "grad_norm_post_clip": 0.9999999995689656}
+{"step": 16, "epoch": 1, "loss": 0.0348, "grad_norm:last": 708.0, "grad_norm": 708.0, "grad_norm_rms:last": 0.02445254501114924, "grad_norm_rms": 0.02445254501114924, "grad_norm_pre_norm:last": 708.0, "grad_norm_pre_norm": 708.0, "grad_norm_post_clip:last": 0.9999999985875706, "grad_norm_post_clip": 0.9999999985875706}
+{"step": 17, "epoch": 1, "loss": 0.0092, "grad_norm:last": 249.0, "grad_norm": 249.0, "grad_norm_rms:last": 0.008599835745446554, "grad_norm_rms": 0.008599835745446554, "grad_norm_pre_norm:last": 249.0, "grad_norm_pre_norm": 249.0, "grad_norm_post_clip:last": 0.9999999959839357, "grad_norm_post_clip": 0.9999999959839357}
+{"step": 18, "epoch": 1, "loss": 0.0211, "grad_norm:last": 1976.0, "grad_norm": 1976.0, "grad_norm_rms:last": 0.06824608607631483, "grad_norm_rms": 0.06824608607631483, "grad_norm_pre_norm:last": 1976.0, "grad_norm_pre_norm": 1976.0, "grad_norm_post_clip:last": 0.999999999493927, "grad_norm_post_clip": 0.999999999493927}
+{"step": 19, "epoch": 1, "loss": 0.0186, "grad_norm:last": 568.0, "grad_norm": 568.0, "grad_norm_rms:last": 0.01961729599764515, "grad_norm_rms": 0.01961729599764515, "grad_norm_pre_norm:last": 568.0, "grad_norm_pre_norm": 568.0, "grad_norm_post_clip:last": 0.9999999982394365, "grad_norm_post_clip": 0.9999999982394365}
+{"step": 20, "epoch": 1, "loss": 0.0214, "grad_norm:last": 580.0, "grad_norm": 580.0, "grad_norm_rms:last": 0.02003174591308836, "grad_norm_rms": 0.02003174591308836, "grad_norm_pre_norm:last": 580.0, "grad_norm_pre_norm": 580.0, "grad_norm_post_clip:last": 0.9999999982758621, "grad_norm_post_clip": 0.9999999982758621}
+{"step": 21, "epoch": 1, "loss": 0.0394, "grad_norm:last": 648.0, "grad_norm": 648.0, "grad_norm_rms:last": 0.0223802954339332, "grad_norm_rms": 0.0223802954339332, "grad_norm_pre_norm:last": 648.0, "grad_norm_pre_norm": 648.0, "grad_norm_post_clip:last": 0.9999999984567901, "grad_norm_post_clip": 0.9999999984567901}
+{"step": 22, "epoch": 1, "loss": 0.0447, "grad_norm:last": 1904.0, "grad_norm": 1904.0, "grad_norm_rms:last": 0.06575938658365559, "grad_norm_rms": 0.06575938658365559, "grad_norm_pre_norm:last": 1904.0, "grad_norm_pre_norm": 1904.0, "grad_norm_post_clip:last": 0.9999999994747899, "grad_norm_post_clip": 0.9999999994747899}
+{"step": 23, "epoch": 1, "loss": 0.0285, "grad_norm:last": 1784.0, "grad_norm": 1784.0, "grad_norm_rms:last": 0.061614887429223504, "grad_norm_rms": 0.061614887429223504, "grad_norm_pre_norm:last": 1784.0, "grad_norm_pre_norm": 1784.0, "grad_norm_post_clip:last": 0.9999999994394618, "grad_norm_post_clip": 0.9999999994394618}
+{"step": 24, "epoch": 1, "loss": 0.017, "grad_norm:last": 428.0, "grad_norm": 428.0, "grad_norm_rms:last": 0.014782046984141066, "grad_norm_rms": 0.014782046984141066, "grad_norm_pre_norm:last": 428.0, "grad_norm_pre_norm": 428.0, "grad_norm_post_clip:last": 0.9999999976635514, "grad_norm_post_clip": 0.9999999976635514}
+{"step": 25, "epoch": 1, "loss": 0.0763, "grad_norm:last": 1200.0, "grad_norm": 1200.0, "grad_norm_rms:last": 0.04144499154432074, "grad_norm_rms": 0.04144499154432074, "grad_norm_pre_norm:last": 1200.0, "grad_norm_pre_norm": 1200.0, "grad_norm_post_clip:last": 0.9999999991666665, "grad_norm_post_clip": 0.9999999991666665}
+{"step": 26, "epoch": 1, "loss": 0.0135, "grad_norm:last": 932.0, "grad_norm": 932.0, "grad_norm_rms:last": 0.03218894343275578, "grad_norm_rms": 0.03218894343275578, "grad_norm_pre_norm:last": 932.0, "grad_norm_pre_norm": 932.0, "grad_norm_post_clip:last": 0.9999999989270385, "grad_norm_post_clip": 0.9999999989270385}
+{"step": 27, "epoch": 1, "loss": 0.018, "grad_norm:last": 1904.0, "grad_norm": 1904.0, "grad_norm_rms:last": 0.06575938658365559, "grad_norm_rms": 0.06575938658365559, "grad_norm_pre_norm:last": 1904.0, "grad_norm_pre_norm": 1904.0, "grad_norm_post_clip:last": 0.9999999994747899, "grad_norm_post_clip": 0.9999999994747899}
+{"step": 28, "epoch": 1, "loss": 0.0147, "grad_norm:last": 221.0, "grad_norm": 221.0, "grad_norm_rms:last": 0.007632785942745737, "grad_norm_rms": 0.007632785942745737, "grad_norm_pre_norm:last": 221.0, "grad_norm_pre_norm": 221.0, "grad_norm_post_clip:last": 0.9999999954751132, "grad_norm_post_clip": 0.9999999954751132}
+{"step": 29, "epoch": 1, "loss": 0.0054, "grad_norm:last": 144.0, "grad_norm": 144.0, "grad_norm_rms:last": 0.0049733989853184895, "grad_norm_rms": 0.0049733989853184895, "grad_norm_pre_norm:last": 144.0, "grad_norm_pre_norm": 144.0, "grad_norm_post_clip:last": 0.9999999930555556, "grad_norm_post_clip": 0.9999999930555556}
+{"step": 30, "epoch": 1, "loss": 0.012, "grad_norm:last": 548.0, "grad_norm": 548.0, "grad_norm_rms:last": 0.018926546138573138, "grad_norm_rms": 0.018926546138573138, "grad_norm_pre_norm:last": 548.0, "grad_norm_pre_norm": 548.0, "grad_norm_post_clip:last": 0.9999999981751825, "grad_norm_post_clip": 0.9999999981751825}
+{"step": 31, "epoch": 1, "loss": 0.0033, "grad_norm:last": 97.5, "grad_norm": 97.5, "grad_norm_rms:last": 0.0033674055629760603, "grad_norm_rms": 0.0033674055629760603, "grad_norm_pre_norm:last": 97.5, "grad_norm_pre_norm": 97.5, "grad_norm_post_clip:last": 0.9999999897435898, "grad_norm_post_clip": 0.9999999897435898}
+{"step": 32, "epoch": 1, "loss": 0.0362, "grad_norm:last": 1696.0, "grad_norm": 1696.0, "grad_norm_rms:last": 0.058575588049306654, "grad_norm_rms": 0.058575588049306654, "grad_norm_pre_norm:last": 1696.0, "grad_norm_pre_norm": 1696.0, "grad_norm_post_clip:last": 0.9999999994103773, "grad_norm_post_clip": 0.9999999994103773}
+{"step": 33, "epoch": 1, "loss": 0.0091, "grad_norm:last": 252.0, "grad_norm": 252.0, "grad_norm_rms:last": 0.008703448224307356, "grad_norm_rms": 0.008703448224307356, "grad_norm_pre_norm:last": 252.0, "grad_norm_pre_norm": 252.0, "grad_norm_post_clip:last": 0.999999996031746, "grad_norm_post_clip": 0.999999996031746}
+{"step": 34, "epoch": 1, "loss": 0.017, "grad_norm:last": 118.5, "grad_norm": 118.5, "grad_norm_rms:last": 0.004092692915001674, "grad_norm_rms": 0.004092692915001674, "grad_norm_pre_norm:last": 118.5, "grad_norm_pre_norm": 118.5, "grad_norm_post_clip:last": 0.9999999915611816, "grad_norm_post_clip": 0.9999999915611816}
+{"step": 35, "epoch": 1, "loss": 0.0256, "grad_norm:last": 872.0, "grad_norm": 872.0, "grad_norm_rms:last": 0.03011669385553974, "grad_norm_rms": 0.03011669385553974, "grad_norm_pre_norm:last": 872.0, "grad_norm_pre_norm": 872.0, "grad_norm_post_clip:last": 0.999999998853211, "grad_norm_post_clip": 0.999999998853211}
+{"step": 36, "epoch": 1, "loss": 0.0268, "grad_norm:last": 398.0, "grad_norm": 398.0, "grad_norm_rms:last": 0.013745922195533047, "grad_norm_rms": 0.013745922195533047, "grad_norm_pre_norm:last": 398.0, "grad_norm_pre_norm": 398.0, "grad_norm_post_clip:last": 0.9999999974874372, "grad_norm_post_clip": 0.9999999974874372}
+{"step": 37, "epoch": 1, "loss": 0.02, "grad_norm:last": 792.0, "grad_norm": 792.0, "grad_norm_rms:last": 0.02735369441925169, "grad_norm_rms": 0.02735369441925169, "grad_norm_pre_norm:last": 792.0, "grad_norm_pre_norm": 792.0, "grad_norm_post_clip:last": 0.9999999987373738, "grad_norm_post_clip": 0.9999999987373738}
+{"step": 38, "epoch": 1, "loss": 0.0077, "grad_norm:last": 314.0, "grad_norm": 314.0, "grad_norm_rms:last": 0.010844772787430594, "grad_norm_rms": 0.010844772787430594, "grad_norm_pre_norm:last": 314.0, "grad_norm_pre_norm": 314.0, "grad_norm_post_clip:last": 0.9999999968152866, "grad_norm_post_clip": 0.9999999968152866}
+Serverless session closed; no deployment was created. Its training slot frees when the session expires, so a new run started right away may wait or get a 429.
+Traceback (most recent call last):
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 461, in _fetch_via_rest
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py", line 510, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 444, in _retrieve_response
+    async with retrieve_streaming(
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_response.py", line 643, in __aenter__
+    self.__response = await self._api_request
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/resources/futures.py", line 74, in retrieve
+    await self._post(
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1258, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/_base_client.py", line 1063, in request
+    raise self._make_status_error_from_response(err.response) from None
+fireworks.training.sdk._core._exceptions.APIStatusError: Error code: 412 - {'error': {'message': 'Account rohan-majji is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more information.', 'param': None, 'code': 'PRECONDITION_FAILED', 'type': 'error'}, 'request_id': 'dc1522ef-eff9-4b7f-ae06-93ca8a271e3b'}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Volumes/MajjiR/ai/fw-cookbook/training/examples/sft/muse_glimmer_starter.py", line 833, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/Volumes/MajjiR/ai/fw-cookbook/training/examples/sft/muse_glimmer_starter.py", line 829, in main
+    return cmd_launch_serverless(args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/fw-cookbook/training/examples/sft/muse_glimmer_starter.py", line 692, in cmd_launch_serverless
+    fb = training_client.forward_backward(batch, "cross_entropy").result()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 863, in result
+    return self._transform(self._inner.result(timeout))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/public_interfaces/api_future.py", line 127, in result
+    return self._future.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/public_interfaces/training_client.py", line 162, in run
+    return await coro
+           ^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/client.py", line 2164, in _forward_backward_async
+    return await combined_future
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 662, in result_async
+    results = await asyncio.gather(*[future.result_async(timeout) for future in self.futures])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 640, in result_async
+    return await self._future.result_async(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/public_interfaces/api_future.py", line 132, in result_async
+    return await asyncio.shield(asyncio.wrap_future(self._future))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 289, in _result_async
+    await self._handle_transport_error(fetched, state, iteration, start_time)
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 305, in _handle_transport_error
+    await self._handle_transport_error_impl(err, state, iteration, start_time)
+  File "/Volumes/MajjiR/ai/venv-fwtrain/lib/python3.12/site-packages/fireworks/training/sdk/_core/lib/api_future_impl.py", line 409, in _handle_transport_error_impl
+    raise ValueError(
+ValueError: Error retrieving result: Error code: 412 - {'error': {'message': 'Account rohan-majji is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more information.', 'param': None, 'code': 'PRECONDITION_FAILED', 'type': 'error'}, 'request_id': 'dc1522ef-eff9-4b7f-ae06-93ca8a271e3b'} with status 412 for self.request_id='run-6c3d75393e884443bab5cc6fd8887f89:fut:07dc49e143c54f4c8d254cf761dae267' and expected type self.model_cls=<class 'fireworks.training.sdk.types.forward_backward_output.ForwardBackwardOutput'>
+exit=1

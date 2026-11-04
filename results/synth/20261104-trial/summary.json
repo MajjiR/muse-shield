@@ -1,0 +1,23 @@
+{
+  "docs": 9,
+  "docs_by_sector": {
+    "ma_legal": 3,
+    "healthcare": 3,
+    "ecommerce": 3
+  },
+  "paragraph_rows_kept": 41,
+  "paragraphs_dropped_for_disagreement": 0,
+  "mean_agreement_kept": 0.948,
+  "seconds": {
+    "generate": 45.4,
+    "label": 267.0,
+    "total": 312.5
+  },
+  "usage": {
+    "gen_in": 782,
+    "gen_out": 15330,
+    "label_in": 66796,
+    "label_out": 184666
+  },
+  "cost_usd_upper_bound": 0.0468
+}

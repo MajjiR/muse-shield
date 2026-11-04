@@ -1,0 +1,17 @@
+{
+ "run": "dedicated-smoke",
+ "surface": "Fireworks Training API, dedicated trainer (cookbook sft_loop, serverless=False)",
+ "training_shape": "accounts/fireworks/trainingShapes/muse-glimmer-30b-131k-lora (1x NVIDIA B200 180GB)",
+ "trainer_job": "accounts/rohan-majji/rlorTrainerJobs/training-api-service-e5ad9c86",
+ "data": "first 480 rows of runs/train/pii-v1/train.jsonl, batch 16, LoRA rank 16, lr 1e-4, no checkpoints, 16-row eval",
+ "timing_utc": {"launch": "10:48:08", "trainer_created": "10:48:22", "lora_model_ready": "10:50:31", "step_1": "10:50:59",
+                "step_30": "10:52:05", "trainer_deleted": "10:52:10"},
+ "seconds_per_step": 2.27,
+ "tokens_per_step_avg": 9400,
+ "startup_seconds_to_step_1": 171,
+ "trainer_lifetime_seconds": 229,
+ "cost_estimate_usd": 0.83,
+ "cost_basis": "1 B200 x $13/GPU-hour (fireworks.ai/pricing as read 2026-11-03) x 229 s trainer lifetime; not yet confirmed on the billing page",
+ "serverless_comparison": {"pii1_same_data_rank16_b16_seconds_per_step": 9.02, "v2_rank8_b16_seconds_per_step": 4.4, "speedup_vs_pii1": 3.97},
+ "teardown": "trainer deleted by the cookbook on exit; rlorTrainerJobs list empty afterwards"
+}

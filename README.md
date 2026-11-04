@@ -177,6 +177,27 @@ cp .env.example .env               # add MODEL_API_KEY (Meta Model API)
 MUSE_SHIELD_DEV_RAW_ANALYSIS=1 .venv/bin/python -m muse_shield.app    # http://127.0.0.1:8765
 ```
 
+To detect with the fine-tuned Muse Glimmer instead of Muse Spark, point the app at your own
+Fireworks deployment. A LoRA is served only from an on-demand deployment; a live-merge deployment
+needs both full paths in the route. Replies still come from Muse Spark.
+
+```bash
+# .env
+MUSE_SHIELD_GLIMMER_MODEL=accounts/<you>/models/muse-shield-glimmer-lora-v2-full#accounts/<you>/deployments/<id>
+```
+
+```bash
+MUSE_SHIELD_DEV_RAW_ANALYSIS=1 MUSE_SHIELD_ANALYZER=glimmer PORT=8771 .venv/bin/python -m muse_shield.app
+```
+
+A deployment that has scaled to zero takes a few minutes to wake up on the first message.
+
+For an entity-resolution LoRA (`muse-shield-glimmer-er-*`), add `MUSE_SHIELD_GLIMMER_TASK=resolution`. Each message
+or document then goes to the model in one call. Every mention of a person ("Rohan Majji", "Rohan", "Mr. Majji") shares
+one placeholder, also on later turns. Pronouns and descriptions ("his", "the employee") stay readable. Owners
+(whose salary, whose phone) and relations (MANAGES, PARENT_OF, …) become vault links. This mode has no context
+blocks, because the resolution model wasn't trained on them. The contract is in `muse_shield/resolution.py`.
+
 The engine serves the built web app at `/`. To work on the UI with hot reload:
 
 ```bash

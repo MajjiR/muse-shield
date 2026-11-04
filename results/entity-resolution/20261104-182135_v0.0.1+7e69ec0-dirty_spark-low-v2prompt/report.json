@@ -1,0 +1,143 @@
+{
+ "backend": "muse_spark",
+ "model": "muse-spark-1.3",
+ "tag": "spark-low-v2prompt",
+ "git": "7e69ec0-dirty",
+ "sets": {
+  "test": {
+   "docs": 150,
+   "valid": 1.0,
+   "leak": 0.00668364099299809,
+   "core_leak": 0.0055996266915538965,
+   "person_leak": 0.0070242656449553,
+   "mention": {
+    "precision": 0.753795886988276,
+    "recall": 0.9351454458750597,
+    "f1": 0.834734489730765,
+    "tp": 3922,
+    "fp": 1281,
+    "fn": 272
+   },
+   "coref": {
+    "precision": 0.9890930646117368,
+    "recall": 0.8114180120599105,
+    "f1": 0.8914890206763904,
+    "tp": 8343,
+    "fp": 92,
+    "fn": 1939
+   },
+   "owner_acc": 0.9653543307086614,
+   "unknown_acc": null,
+   "type_acc": 0.9992389649923896,
+   "amount_role_acc": 0.9912280701754386,
+   "relations": {
+    "precision": 0.8290322580645161,
+    "recall": 0.8566666666666667,
+    "f1": 0.8426229508196722,
+    "tp": 257,
+    "fp": 53,
+    "fn": 43
+   },
+   "persons_resolved": 0.831858407079646,
+   "dropped_mentions": 0,
+   "seconds": 183.6,
+   "tokens": {
+    "prompt_tokens": 236579,
+    "completion_tokens": 435361
+   }
+  },
+  "challenge": {
+   "docs": 80,
+   "valid": 1.0,
+   "leak": 0.0036420395421436005,
+   "core_leak": 0.004231311706629055,
+   "person_leak": 0.004074979625101874,
+   "mention": {
+    "precision": 0.7346248462484625,
+    "recall": 0.9184928873510189,
+    "f1": 0.8163335041858877,
+    "tp": 2389,
+    "fp": 863,
+    "fn": 212
+   },
+   "coref": {
+    "precision": 0.9809303154517911,
+    "recall": 0.7576049552649691,
+    "f1": 0.854923889406648,
+    "tp": 5504,
+    "fp": 107,
+    "fn": 1761
+   },
+   "owner_acc": 0.9585365853658536,
+   "unknown_acc": 0.0,
+   "type_acc": 0.9987146529562982,
+   "amount_role_acc": 0.9878048780487805,
+   "relations": {
+    "precision": 0.9731182795698925,
+    "recall": 0.8701923076923077,
+    "f1": 0.9187817258883249,
+    "tp": 181,
+    "fp": 5,
+    "fn": 27
+   },
+   "persons_resolved": 0.7236842105263158,
+   "dropped_mentions": 0,
+   "seconds": 113.9,
+   "tokens": {
+    "prompt_tokens": 125763,
+    "completion_tokens": 247488
+   }
+  },
+  "tab": {
+   "docs": 127,
+   "valid": 1.0,
+   "leak": 0.28810408921933084,
+   "core_leak": 0.22127659574468084,
+   "person_leak": 0.02810304449648712,
+   "mention": {
+    "precision": 0.24435634841977755,
+    "recall": 0.8392586989409985,
+    "f1": 0.3785074626865672,
+    "tp": 2219,
+    "fp": 6862,
+    "fn": 425
+   },
+   "coref": {
+    "precision": 0.763323782234957,
+    "recall": 0.7359116022099448,
+    "f1": 0.749367088607595,
+    "tp": 1332,
+    "fp": 413,
+    "fn": 478
+   },
+   "owner_acc": null,
+   "unknown_acc": null,
+   "type_acc": 0.8007518796992481,
+   "amount_role_acc": null,
+   "relations": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "tp": 0,
+    "fp": 431,
+    "fn": 0
+   },
+   "persons_resolved": 0.8040540540540541,
+   "dropped_mentions": 0,
+   "seconds": 327.9,
+   "tokens": {
+    "prompt_tokens": 295441,
+    "completion_tokens": 781876
+   }
+  }
+ },
+ "settings": {
+  "max_tokens": 4000,
+  "workers": 24,
+  "data": "/Users/majjir/muse-shield/.worktrees/entity-engine/runs/er/v1",
+  "limit": 0,
+  "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)",
+  "relaxed": false
+ },
+ "rescored": "scripts/er_rescore.py (current scorer)"
+}

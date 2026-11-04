@@ -29,3 +29,84 @@ def test_export_files(tmp_path):
     assert (info["train"], info["val"]) == (45, 5)
     assert info["approx_longest_row_tokens"] < 2048  # Fireworks rejects rows over max-seq-len (default 2048)
     assert len((tmp_path / "train.jsonl").read_text().splitlines()) == 45
+
+
+# -- Nemotron + synthetic mix -------------------------------------------------
+
+from muse_shield.trainset import benchmark_paragraphs, build_mix, nemotron_rows  # noqa: E402
+
+LEAKED = "Leaked Person was seen at 1 Test Rd."
+def _span(text, part, label):
+    i = text.index(part)
+    return {"start": i, "end": i + len(part), "text": part, "label": label}
+
+
+def fake_fetch(off, n=100, split="test", tries=5):
+    assert split == "train"  # training must never read the benchmark's split
+    rows = []
+    for i in range(n):
+        k = off + i
+        street, pin = f"{k} Lake St", f"{7000 + k}"
+        text = (f"Asha Varma, born 1990-01-02, lives at {street}.\n\nShe is a nurse and her PIN is {pin}.\n\n"
+                + LEAKED + "\n\nNothing private here.")
+        spans = [_span(text, "Asha Varma", "first_name"), _span(text, "1990-01-02", "date_of_birth"),
+                 _span(text, street, "street_address"), _span(text, "nurse", "occupation"),
+                 _span(text, pin, "pin"), _span(text, "Leaked Person", "first_name")]
+        rows.append({"uid": f"{k}", "text": text, "domain": f"d{i % 3}", "locale": "us",
+                     "document_format": "unstructured", "spans": str(spans)})
+    return rows
+
+
+def _answer(r):
+    return json.loads(r["messages"][-1]["content"])
+
+
+def test_nemotron_rows_cover_new_types_and_skip_benchmark_text():
+    rows = nemotron_rows(30, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1)
+    assert rows and all(LEAKED not in r["messages"][3]["content"] for r in rows)
+    types = {e["type"] for r in rows for e in _answer(r)["entities"]}
+    assert {"PERSON", "DATE", "ADDRESS", "SENSITIVE_ATTRIBUTE", "SECRET"} <= types
+    assert all(_answer(r)["contexts"] == [] for r in rows)
+    # Runtime layout: system, worked example, numbered paragraph, gold answer.
+    assert [m["role"] for m in rows[0]["messages"]] == ["system", "user", "assistant", "user", "assistant"]
+    assert rows[0]["messages"][3]["content"].startswith("Known contexts: none\n[1] ")
+
+
+def test_empty_paragraphs_are_capped():
+    rows = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1, empty_share=0.1)
+    empty = sum(not _answer(r)["entities"] for r in rows)
+    assert empty <= 4
+
+
+def test_mix_keeps_contexts_and_excludes_test_paragraphs(tmp_path):
+    sample = tmp_path / "test.jsonl"
+    sample.write_text(json.dumps({"uid": "t1", "text": "Intro line.\n\n" + LEAKED, "spans": [], "domain": "x",
+                                  "locale": "us", "format": "unstructured"}) + "\n")
+    assert LEAKED in benchmark_paragraphs(sample)
+    rows = build_mix(sample, n_nemotron=20, n_synthetic=20, seed=2, fetch=fake_fetch)
+    prompts = [r["messages"][3]["content"] for r in rows]
+    assert 30 <= len(rows) <= 40 and len(prompts) == len(set(prompts))  # deduplicated
+    assert not any(LEAKED in r["messages"][3]["content"] for r in rows)
+    assert any(_answer(r)["contexts"] for r in rows)  # synthetic rows still teach context blocks
+
+
+def test_quasi_relabel_adds_to_nemotron_labels():
+    from muse_shield.trainset import para_key
+
+    rows = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1)
+    para_row = next(r for r in rows if "nurse" in r["messages"][3]["content"])
+    para = para_row["_meta"]["paragraph"]
+    # relabel finds "PIN" context-free nothing new but adds a job title phrase present in the text
+    extra = "her PIN"
+    rows2 = nemotron_rows(40, seed=1, exclude={LEAKED}, fetch=fake_fetch, pages=1, quasi_map={para_key(para): [extra]})
+    same = next(r for r in rows2 if r["_meta"]["paragraph"] == para)
+    texts = {e["text"] for e in _answer(same)["entities"]}
+    assert "nurse" in texts  # Nemotron's quasi label is kept
+    assert extra in texts  # and the relabel's span is added
+
+
+def test_specific_date_policy():
+    from muse_shield.trainset import specific_date
+
+    assert specific_date("2024-03-15") and specific_date("7:23 am") and specific_date("a quarter to four")
+    assert not any(map(specific_date, ["Departure Date", "120ms", "yet to be determined", "PST", "next quarter"]))

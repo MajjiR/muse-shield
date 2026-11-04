@@ -1,0 +1,1293 @@
+{
+  "runs": {
+    "base": "sectors-glimmer-base",
+    "v1c": "sectors-glimmer-v1c",
+    "v2full": "sectors-glimmer-v2full-preds",
+    "spark": "sectors-spark-contributor-low"
+  },
+  "base": {
+    "invalid": 49,
+    "entity": {
+      "extra": 181,
+      "boundary": 88,
+      "miss": 74,
+      "type": 2
+    },
+    "by_type": {
+      "DATE": {
+        "extra": 84,
+        "miss": 4,
+        "boundary": 2
+      },
+      "ID": {
+        "boundary": 21,
+        "type": 1,
+        "extra": 1
+      },
+      "AMOUNT": {
+        "miss": 2,
+        "boundary": 2,
+        "extra": 2
+      },
+      "ORG": {
+        "miss": 5,
+        "boundary": 1,
+        "extra": 63
+      },
+      "PERSON": {
+        "extra": 21,
+        "boundary": 60,
+        "miss": 6
+      },
+      "PROJECT": {
+        "extra": 4
+      },
+      "SENSITIVE_ATTRIBUTE": {
+        "miss": 55,
+        "extra": 5
+      },
+      "LOCATION": {
+        "miss": 2,
+        "extra": 1
+      },
+      "ADDRESS": {
+        "type": 1
+      },
+      "CONTACT": {
+        "boundary": 2
+      }
+    },
+    "extra_top": [
+      [
+        "ORG",
+        "HR",
+        13
+      ],
+      [
+        "ORG",
+        "granite.in",
+        3
+      ],
+      [
+        "ORG",
+        "E-commerce Support",
+        3
+      ],
+      [
+        "PERSON",
+        "Admin Executive",
+        3
+      ],
+      [
+        "DATE",
+        "22 March 2026",
+        2
+      ],
+      [
+        "DATE",
+        "15 March 2027",
+        2
+      ],
+      [
+        "DATE",
+        "7 November 2026",
+        2
+      ],
+      [
+        "DATE",
+        "tomorrow morning",
+        2
+      ],
+      [
+        "ORG",
+        "Legal Counsel",
+        2
+      ],
+      [
+        "DATE",
+        "1 September 2026",
+        2
+      ],
+      [
+        "DATE",
+        "22 January 2027",
+        2
+      ],
+      [
+        "DATE",
+        "26 January 2027",
+        2
+      ],
+      [
+        "ORG",
+        "Finance",
+        2
+      ],
+      [
+        "ORG",
+        "Healthcare division",
+        2
+      ],
+      [
+        "PERSON",
+        "Consultant Cardiologist",
+        2
+      ],
+      [
+        "DATE",
+        "11 November 2026",
+        2
+      ],
+      [
+        "ORG",
+        "Customer Support",
+        2
+      ],
+      [
+        "ORG",
+        "customer support",
+        2
+      ],
+      [
+        "PERSON",
+        "Support Lead",
+        2
+      ],
+      [
+        "ORG",
+        "Human Resources",
+        2
+      ],
+      [
+        "ORG",
+        "Admin",
+        2
+      ],
+      [
+        "DATE",
+        "20 July 2027",
+        1
+      ],
+      [
+        "DATE",
+        "8 March 2026",
+        1
+      ],
+      [
+        "DATE",
+        "7 July 2025",
+        1
+      ],
+      [
+        "DATE",
+        "5 November 2025",
+        1
+      ]
+    ],
+    "contexts": {
+      "kind ok": 173,
+      "extra": 51,
+      "wrong kind": 58,
+      "missed": 214
+    },
+    "ctx_missed_by_kind": {
+      "HR": 118,
+      "DECISION": 43,
+      "NEGOTIATION": 7,
+      "DEAL": 32,
+      "PLAN": 13,
+      "PROJECT": 1
+    },
+    "roles": {
+      "ok": 117,
+      "wrong": 44
+    },
+    "examples": {
+      "ctx_kind": [
+        "gold PLAN got DEAL",
+        "gold HR got PLAN",
+        "gold DECISION got DEAL",
+        "gold HR got PLAN",
+        "gold HR got DEAL",
+        "gold DECISION got PLAN",
+        "gold DECISION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold DECISION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got PLAN",
+        "gold HR got DECISION",
+        "gold HR got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got DECISION",
+        "gold HR got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold DECISION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got PLAN",
+        "gold DECISION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got DECISION",
+        "gold HR got PLAN",
+        "gold NEGOTIATION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got PLAN",
+        "gold NEGOTIATION got DEAL",
+        "gold HR got PLAN",
+        "gold HR got DEAL",
+        "gold HR got DEAL",
+        "gold HR got PLAN",
+        "gold HR got DEAL",
+        "gold PLAN got DECISION",
+        "gold DECISION got PROJECT",
+        "gold PLAN got DEAL"
+      ],
+      "boundary": [
+        "ID gold 'PJMPQ7981T' got 'PAN PJMPQ7981T'",
+        "ID gold '3156 1093 1034' got 'Aadhaar 3156 1093 1034'",
+        "ID gold 'MTAPZ5461W' got 'PAN MTAPZ5461W'",
+        "ID gold '5453 5457 3578' got 'Aadhaar 5453 5457 3578'",
+        "ORG gold 'Lumina Motors' got 'Lumina Motors Finance Committee'",
+        "AMOUNT gold '$178,321' got 'outstanding term facility of $178,321'",
+        "ID gold '5706 5503 5282' got 'Aadhaar 5706 5503 5282'",
+        "ID gold 'TNRPU5477E' got 'PAN TNRPU5477E'",
+        "PERSON gold 'Pranav' got 'Pranav Mukherjee'",
+        "PERSON gold 'Wen' got 'Wen Lindholm'",
+        "ID gold 'XALPK8499L' got 'PAN XALPK8499L'",
+        "ID gold '5427 8148 8772' got 'Aadhaar 5427 8148 8772'",
+        "ID gold 'DCRG0329457' got 'IFSC DCRG0329457'",
+        "PERSON gold 'Yusuf' got 'Yusuf Chakraborty'",
+        "ID gold '86278329858' got 'account_number 86278329858'",
+        "ID gold 'SQLU0255386' got 'IFSC SQLU0255386'",
+        "ID gold 'DBNPF9363D' got 'PAN DBNPF9363D'",
+        "ID gold '6306 1650 1009' got 'Aadhaar 6306 1650 1009'",
+        "PERSON gold 'Rukmini' got 'Rukmini Iyengar'",
+        "PERSON gold 'Imran' got 'Imran Dutta'",
+        "ID gold 'XCMPJ2832N' got 'PAN XCMPJ2832N'",
+        "ID gold '5938 3447 2771' got 'Aadhaar 5938 3447 2771'",
+        "ID gold 'BNIN0749507' got 'IFSC BNIN0749507'",
+        "PERSON gold 'Meenakshi Iyengar' got 'Dr. Meenakshi Iyengar'",
+        "PERSON gold 'Ishita Kulkarni' got 'Dr. Ishita Kulkarni'",
+        "PERSON gold 'Pranav Okonkwo' got 'Dr. Pranav Okonkwo'",
+        "PERSON gold 'Fatima Moreno' got 'Dr. Fatima Moreno'",
+        "PERSON gold 'Nandini Banerjee' got 'Dr. Nandini Banerjee'",
+        "PERSON gold 'Mihir Mehra' got 'Dr. Mihir Mehra'",
+        "PERSON gold 'Rukmini Fernandes' got 'Dr. Rukmini Fernandes'",
+        "PERSON gold 'Jasleen Bhattacharya' got 'Sister Jasleen Bhattacharya'",
+        "PERSON gold 'Ishita Lobo' got 'Ms. Ishita Lobo'",
+        "PERSON gold 'Rehan Narayanan' got 'Dr. Rehan Narayanan'",
+        "PERSON gold 'Yusuf Dutta' got 'Dr. Yusuf Dutta'",
+        "PERSON gold 'Clara Weber' got 'Sister Clara Weber'",
+        "PERSON gold 'Tanya Menon' got 'Dr. Tanya Menon'",
+        "PERSON gold 'Tobias Narayanan' got 'Mr. Tobias Narayanan'",
+        "PERSON gold 'Shreya Kulkarni' got 'Dr. Shreya Kulkarni'",
+        "PERSON gold 'Shreya Mehra' got 'Ms. Shreya Mehra'",
+        "PERSON gold 'Aarav D'Souza' got 'Dr. Aarav D'Souza'"
+      ],
+      "miss": [
+        "AMOUNT '$784,937'",
+        "ORG 'Maple Pharma'",
+        "ORG 'Indus Ventures'",
+        "DATE '17 May 2027'",
+        "AMOUNT '$39,883'",
+        "PERSON 'LM'",
+        "PERSON 'IO'",
+        "PERSON 'Arnav'",
+        "PERSON 'Diego'",
+        "SENSITIVE_ATTRIBUTE 'fitness clearance'",
+        "SENSITIVE_ATTRIBUTE 'cardiac workup'",
+        "SENSITIVE_ATTRIBUTE 'fitness for duty assessment'",
+        "SENSITIVE_ATTRIBUTE 'recurrent migraine'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "SENSITIVE_ATTRIBUTE 'cholesterol showing a mild borderline elevation'",
+        "SENSITIVE_ATTRIBUTE 'advised rest at home for a few days followed by light duties, with fitness to resume full duties subject to review'",
+        "DATE 'May'",
+        "SENSITIVE_ATTRIBUTE 'approved medical leave'",
+        "SENSITIVE_ATTRIBUTE 'inpatient treatment'",
+        "SENSITIVE_ATTRIBUTE 'liver and kidney function within normal limits'",
+        "SENSITIVE_ATTRIBUTE 'cholesterol only mildly above usual'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "SENSITIVE_ATTRIBUTE 'urgent cardiac evaluation'",
+        "SENSITIVE_ATTRIBUTE 'recurrent exertional discomfort and breathlessness'",
+        "SENSITIVE_ATTRIBUTE 'viral fever with dehydration'",
+        "SENSITIVE_ATTRIBUTE 'fever'",
+        "SENSITIVE_ATTRIBUTE 'general weakness'",
+        "DATE '1 July 2025'",
+        "SENSITIVE_ATTRIBUTE 'his condition'",
+        "LOCATION 'Kolkata'",
+        "SENSITIVE_ATTRIBUTE 'cough'",
+        "SENSITIVE_ATTRIBUTE 'low-grade fever'",
+        "SENSITIVE_ATTRIBUTE 'fatigue'",
+        "SENSITIVE_ATTRIBUTE 'resolving viral illness'",
+        "SENSITIVE_ATTRIBUTE 'breathing worsens'",
+        "SENSITIVE_ATTRIBUTE 'mildly elevated cholesterol'",
+        "SENSITIVE_ATTRIBUTE 'acute lower respiratory infection'",
+        "SENSITIVE_ATTRIBUTE 'dehydration'",
+        "SENSITIVE_ATTRIBUTE 'fatigue'",
+        "SENSITIVE_ATTRIBUTE 'sleep disturbance'"
+      ],
+      "role": [
+        "₹18 lakh: gold FEE, got BUDGET",
+        "₹74,440: gold LOAN, got OTHER",
+        "$8,421: gold OTHER, got FEE",
+        "₹50,598: gold OTHER, got FEE",
+        "$528,448: gold FEE, got OTHER",
+        "$274,877: gold FEE, got OTHER",
+        "₹54 lakh: gold SALARY, got OTHER",
+        "₹28,987: gold BUDGET, got OTHER",
+        "₹41,747: gold FEE, got OTHER",
+        "₹88 lakh: gold OTHER, got DEAL_VALUE",
+        "₹20,509: gold SALARY, got OTHER",
+        "₹1,166: gold FEE, got OTHER",
+        "₹59,103: gold PRICE, got OTHER",
+        "₹94,469: gold FEE, got OTHER",
+        "₹62,134: gold PRICE, got OTHER",
+        "$547,816: gold REVENUE, got OTHER",
+        "₹204 crore: gold PRICE, got OTHER",
+        "₹49,572: gold PRICE, got OTHER",
+        "$844,386: gold PRICE, got OTHER",
+        "₹78 lakh: gold PRICE, got OTHER",
+        "₹32 lakh: gold PRICE, got OTHER",
+        "₹66 lakh: gold PRICE, got OTHER",
+        "$533,329: gold REVENUE, got OTHER",
+        "$169,662: gold PRICE, got OTHER",
+        "₹91,875: gold PRICE, got OTHER",
+        "₹43 lakh: gold PRICE, got OTHER",
+        "₹13 lakh: gold DEAL_VALUE, got OTHER",
+        "₹10,456: gold PRICE, got OTHER",
+        "₹92,285: gold PRICE, got OTHER",
+        "$590,162: gold PRICE, got OTHER",
+        "₹534 crore: gold OTHER, got DEAL_VALUE",
+        "$807,293: gold REVENUE, got OTHER",
+        "₹779 crore: gold PRICE, got OTHER",
+        "₹51 lakh: gold DEAL_VALUE, got BUDGET",
+        "₹61,297: gold PRICE, got OTHER",
+        "₹614 crore: gold LOAN, got OTHER",
+        "₹51,375: gold OTHER, got BUDGET",
+        "₹46 lakh: gold FEE, got OTHER",
+        "$810,654: gold DEAL_VALUE, got OTHER",
+        "₹871 crore: gold OTHER, got REVENUE"
+      ],
+      "type": [
+        "8136 3615 2229: gold ID, got CONTACT",
+        "Hill Road: gold ADDRESS, got LOCATION"
+      ]
+    }
+  },
+  "v1c": {
+    "invalid": 0,
+    "entity": {
+      "extra": 467,
+      "split": 490,
+      "miss": 119,
+      "boundary": 16,
+      "type": 12
+    },
+    "by_type": {
+      "DATE": {
+        "extra": 108,
+        "miss": 1,
+        "boundary": 2
+      },
+      "PERSON": {
+        "split": 490,
+        "boundary": 10,
+        "type": 11,
+        "miss": 13
+      },
+      "SENSITIVE_ATTRIBUTE": {
+        "extra": 358,
+        "miss": 63
+      },
+      "AMOUNT": {
+        "miss": 31,
+        "boundary": 1
+      },
+      "ORG": {
+        "miss": 7,
+        "boundary": 3
+      },
+      "LOCATION": {
+        "miss": 4,
+        "extra": 1
+      },
+      "ADDRESS": {
+        "type": 1
+      }
+    },
+    "extra_top": [
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "General Counsel",
+        14
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "HR Manager",
+        9
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Customer Support Associate",
+        9
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Chief Financial Officer",
+        7
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Finance Lead",
+        7
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "General Practitioner",
+        7
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Support Associate",
+        7
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Team Lead",
+        7
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "VP Corporate Development",
+        6
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Associate",
+        5
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Legal Counsel",
+        5
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Consultant",
+        5
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Support Lead",
+        5
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Executive Assistant",
+        5
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Admin Executive",
+        5
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Care Coordinator",
+        4
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Consultant Pathologist",
+        4
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Support Associate",
+        4
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Support Specialist",
+        4
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "VP Finance",
+        3
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Manager",
+        3
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Finance",
+        3
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "CFO",
+        3
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Senior Legal Counsel",
+        3
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "Lab Supervisor",
+        3
+      ]
+    ],
+    "contexts": {
+      "missed": 494,
+      "extra": 1,
+      "kind ok": 9,
+      "wrong kind": 8
+    },
+    "ctx_missed_by_kind": {
+      "DEAL": 126,
+      "PLAN": 32,
+      "HR": 227,
+      "DECISION": 78,
+      "NEGOTIATION": 30,
+      "PROJECT": 1
+    },
+    "roles": {
+      "ok": 115,
+      "wrong": 48
+    },
+    "examples": {
+      "split": [
+        "'Leila Ramaswamy' -> ['Leila', 'Ramaswamy']",
+        "'Gaurav Ansari' -> ['Gaurav', 'Ansari']",
+        "'Bhavna Iyengar' -> ['Bhavna', 'Iyengar']",
+        "'Aarav Okonkwo' -> ['Aarav', 'Okonkwo']",
+        "'Shreya Narayanan' -> ['Shreya', 'Narayanan']",
+        "'Aarav Moreno' -> ['Aarav', 'Moreno']",
+        "'Mihir Chakraborty' -> ['Mihir', 'Chakraborty']",
+        "'Esther Pillai' -> ['Esther', 'Pillai']",
+        "'Aarav Moreno' -> ['Aarav', 'Moreno']",
+        "'Sameer Gill' -> ['Sameer', 'Gill']",
+        "'Tanya Thakur' -> ['Tanya', 'Thakur']",
+        "'Kenji Chakraborty' -> ['Kenji', 'Chakraborty']",
+        "'Jasleen Banerjee' -> ['Jasleen', 'Banerjee']",
+        "'Sameer Fernandes' -> ['Sameer', 'Fernandes']",
+        "'Imran Lindholm' -> ['Imran', 'Imran', 'Lindholm', 'Lindholm']",
+        "'Sven Saxena' -> ['Sven', 'Saxena']",
+        "'Rehan Chopra' -> ['Rehan', 'Chopra']",
+        "'Sven Weber' -> ['Sven', 'Weber']",
+        "'Oliver Kapoor' -> ['Oliver', 'Kapoor']",
+        "'Mihir Ansari' -> ['Mihir', 'Ansari']",
+        "'Sven Weber' -> ['Sven', 'Weber']",
+        "'Amara Dutta' -> ['Amara', 'Dutta']",
+        "'Amara Dutta' -> ['Amara', 'Dutta']",
+        "'Bhavna Mehra' -> ['Bhavna', 'Mehra']",
+        "'Bhavna Mehra' -> ['Bhavna', 'Mehra']",
+        "'Fatima Iyengar' -> ['Fatima', 'Iyengar', 'Iyengar']",
+        "'Arnav Iyengar' -> ['Iyengar', 'Iyengar', 'Arnav', 'Arnav']",
+        "'Tobias Iyengar' -> ['Tobias', 'Iyengar']",
+        "'Fatima Lindholm' -> ['Fatima', 'Lindholm']",
+        "'Tanya Venkatesh' -> ['Tanya', 'Venkatesh']",
+        "'Fatima Lindholm' -> ['Fatima', 'Lindholm']",
+        "'Tanya Venkatesh' -> ['Tanya', 'Venkatesh']",
+        "'Jasleen Rao' -> ['Jasleen', 'Rao']",
+        "'Jasleen Lindholm' -> ['Jasleen', 'Lindholm']",
+        "'Jasleen Lindholm' -> ['Jasleen', 'Lindholm']",
+        "'Rehan Venkatesh' -> ['Rehan', 'Venkatesh']",
+        "'Wen Lindholm' -> ['Wen', 'Wen', 'Lindholm']",
+        "'Esther Gill' -> ['Esther', 'Gill']",
+        "'Esther Gill' -> ['Esther', 'Gill']",
+        "'Keerthi Chakraborty' -> ['Keerthi', 'Chakraborty']"
+      ],
+      "miss": [
+        "AMOUNT '$708,331'",
+        "AMOUNT '$784,937'",
+        "ORG 'Lumina Motors'",
+        "AMOUNT '₹6,313'",
+        "AMOUNT '$518,903'",
+        "ORG 'Coral Retail'",
+        "AMOUNT '₹11,564'",
+        "AMOUNT '$475,268'",
+        "AMOUNT '$749,248'",
+        "AMOUNT '$656,367'",
+        "AMOUNT '$39,883'",
+        "AMOUNT '$34,749'",
+        "AMOUNT '$455,477'",
+        "PERSON 'Rukmini'",
+        "AMOUNT '₹84,738'",
+        "AMOUNT '$274,877'",
+        "AMOUNT '$735,911'",
+        "AMOUNT '$637,557'",
+        "SENSITIVE_ATTRIBUTE 'fitness clearance'",
+        "SENSITIVE_ATTRIBUTE 'cardiac workup'",
+        "SENSITIVE_ATTRIBUTE 'fitness for duty assessment'",
+        "SENSITIVE_ATTRIBUTE 'recurrent migraine'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "SENSITIVE_ATTRIBUTE 'cholesterol showing a mild borderline elevation'",
+        "SENSITIVE_ATTRIBUTE 'persistent exertional chest discomfort and breathlessness'",
+        "SENSITIVE_ATTRIBUTE 'advised rest at home for a few days followed by light duties, with fitness to resume full duties subject to review'",
+        "DATE 'May'",
+        "SENSITIVE_ATTRIBUTE 'approved medical leave'",
+        "SENSITIVE_ATTRIBUTE 'inpatient treatment'",
+        "SENSITIVE_ATTRIBUTE 'liver and kidney function within normal limits'",
+        "SENSITIVE_ATTRIBUTE 'cholesterol only mildly above usual'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "AMOUNT '₹10,241'",
+        "SENSITIVE_ATTRIBUTE 'urgent cardiac evaluation'",
+        "SENSITIVE_ATTRIBUTE 'recurrent exertional discomfort and breathlessness'",
+        "SENSITIVE_ATTRIBUTE 'viral fever with dehydration'",
+        "PERSON 'Jasleen Bhattacharya'",
+        "SENSITIVE_ATTRIBUTE 'fever'",
+        "SENSITIVE_ATTRIBUTE 'general weakness'",
+        "SENSITIVE_ATTRIBUTE 'his condition'"
+      ],
+      "ctx_kind": [
+        "gold HR got DECISION",
+        "gold DEAL got DECISION",
+        "gold HR got DEAL",
+        "gold NEGOTIATION got DECISION",
+        "gold HR got DECISION",
+        "gold DEAL got NEGOTIATION",
+        "gold DEAL got DECISION",
+        "gold DEAL got DECISION"
+      ],
+      "role": [
+        "$388,264: gold FEE, got OTHER",
+        "₹74,440: gold LOAN, got OTHER",
+        "₹5 lakh: gold OTHER, got SALARY",
+        "$277,442: gold OTHER, got DEAL_VALUE",
+        "$73,629: gold LOAN, got DEAL_VALUE",
+        "₹11,965: gold FEE, got OTHER",
+        "$8,421: gold OTHER, got FEE",
+        "₹94,944: gold FEE, got BUDGET",
+        "₹617 crore: gold OTHER, got DEAL_VALUE",
+        "₹32,831: gold OTHER, got PRICE",
+        "₹14 lakh: gold OTHER, got BUDGET",
+        "$528,448: gold FEE, got OTHER",
+        "₹28,987: gold BUDGET, got OTHER",
+        "₹60,765: gold FEE, got PRICE",
+        "₹88 lakh: gold OTHER, got DEAL_VALUE",
+        "₹37,995: gold FEE, got PRICE",
+        "₹20,509: gold SALARY, got OTHER",
+        "₹10 lakh: gold OTHER, got SALARY",
+        "₹98,323: gold OTHER, got FEE",
+        "₹8 lakh: gold OTHER, got BUDGET",
+        "₹1,166: gold FEE, got OTHER",
+        "₹657 crore: gold OTHER, got REVENUE",
+        "₹31,369: gold FEE, got OTHER",
+        "₹6,161: gold FEE, got PRICE",
+        "₹94,469: gold FEE, got OTHER",
+        "₹693 crore: gold OTHER, got REVENUE",
+        "₹32,774: gold OTHER, got PRICE",
+        "$844,330: gold OTHER, got REVENUE",
+        "$916,122: gold DEAL_VALUE, got REVENUE",
+        "₹37 lakh: gold OTHER, got DEAL_VALUE",
+        "$844,386: gold PRICE, got OTHER",
+        "$533,329: gold REVENUE, got OTHER",
+        "$169,662: gold PRICE, got OTHER",
+        "$110,814: gold DEAL_VALUE, got OTHER",
+        "₹62 lakh: gold OTHER, got REVENUE",
+        "₹13 lakh: gold DEAL_VALUE, got PRICE",
+        "₹10,456: gold OTHER, got PRICE",
+        "₹53 lakh: gold OTHER, got REVENUE",
+        "₹98,601: gold OTHER, got REVENUE",
+        "$590,162: gold PRICE, got OTHER"
+      ],
+      "boundary": [
+        "PERSON gold 'Pranav' got 'Pranav Mukherjee'",
+        "PERSON gold 'Imran' got 'Imran Dutta'",
+        "PERSON gold 'Ms. Clara Narayanan' got 'Clara Narayanan'",
+        "AMOUNT gold '₹36 lakh' got '₹36 lakh annually'",
+        "ORG gold 'Coral Retail' got 'Coral Retail healthcare support unit'",
+        "PERSON gold 'Gaurav' got 'Gaurav Mehra'",
+        "PERSON gold 'Kabir' got 'Kabir Okonkwo'",
+        "PERSON gold 'Nandini' got 'Nandini Rao'",
+        "ORG gold 'Evergreen Healthcare' got 'Evergreen Healthcare support'",
+        "PERSON gold 'Anika' got 'Anika Haddad'",
+        "ORG gold 'Konark Finserv' got 'Konark Finserv E-commerce Support'",
+        "PERSON gold 'Keerthi' got 'Keerthi Menon'",
+        "DATE gold '14 January 2025 at 11 am' got '14 January 2025'",
+        "PERSON gold 'Ishita' got 'Ishita Ansari'",
+        "DATE gold '21 January 2027 at 11 in the morning' got '21 January 2027'",
+        "PERSON gold 'Rukmini' got 'Rukmini Okonkwo'"
+      ],
+      "type": [
+        "WL: gold PERSON, got CONTACT",
+        "RV: gold PERSON, got CONTACT",
+        "LM: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "IO: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Fatima Iyengar: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Amara Saxena: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Hill Road: gold ADDRESS, got LOCATION",
+        "Lavanya Tanaka: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Harpreet Venkatesh: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Gaurav Saxena: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Esther Ansari: gold PERSON, got SENSITIVE_ATTRIBUTE",
+        "Meenakshi Mukherjee: gold PERSON, got SENSITIVE_ATTRIBUTE"
+      ]
+    }
+  },
+  "v2full": {
+    "invalid": 0,
+    "entity": {
+      "miss": 26,
+      "extra": 71,
+      "type": 2,
+      "boundary": 10,
+      "split": 1
+    },
+    "by_type": {
+      "DATE": {
+        "miss": 5,
+        "extra": 65
+      },
+      "PERSON": {
+        "type": 2,
+        "boundary": 3,
+        "split": 1
+      },
+      "SENSITIVE_ATTRIBUTE": {
+        "miss": 17,
+        "extra": 5,
+        "boundary": 7
+      },
+      "LOCATION": {
+        "miss": 2,
+        "extra": 1
+      },
+      "ORG": {
+        "miss": 2
+      }
+    },
+    "extra_top": [
+      [
+        "DATE",
+        "22 January 2027",
+        2
+      ],
+      [
+        "DATE",
+        "26 January 2027",
+        2
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "vegetarian",
+        2
+      ],
+      [
+        "DATE",
+        "7 July 2025",
+        1
+      ],
+      [
+        "DATE",
+        "19 May 2025",
+        1
+      ],
+      [
+        "DATE",
+        "16 January 2025",
+        1
+      ],
+      [
+        "DATE",
+        "26 March 2025",
+        1
+      ],
+      [
+        "DATE",
+        "19 July 2026",
+        1
+      ],
+      [
+        "DATE",
+        "16 September 2025",
+        1
+      ],
+      [
+        "DATE",
+        "18 March 2026",
+        1
+      ],
+      [
+        "DATE",
+        "7 January 2026",
+        1
+      ],
+      [
+        "DATE",
+        "13 September 2026",
+        1
+      ],
+      [
+        "DATE",
+        "3 January 2027",
+        1
+      ],
+      [
+        "DATE",
+        "17 November 2027",
+        1
+      ],
+      [
+        "DATE",
+        "16 May 2025",
+        1
+      ],
+      [
+        "DATE",
+        "18 September 2027",
+        1
+      ],
+      [
+        "DATE",
+        "20 March 2026",
+        1
+      ],
+      [
+        "DATE",
+        "6 November 2026",
+        1
+      ],
+      [
+        "DATE",
+        "19 November 2025",
+        1
+      ],
+      [
+        "DATE",
+        "4 November 2027",
+        1
+      ],
+      [
+        "DATE",
+        "22 March 2026",
+        1
+      ],
+      [
+        "DATE",
+        "28 September 2026",
+        1
+      ],
+      [
+        "DATE",
+        "7 January 2025",
+        1
+      ],
+      [
+        "DATE",
+        "21 May 2026",
+        1
+      ],
+      [
+        "DATE",
+        "9 March 2027",
+        1
+      ]
+    ],
+    "contexts": {
+      "kind ok": 308,
+      "extra": 52,
+      "missed": 165,
+      "wrong kind": 38
+    },
+    "ctx_missed_by_kind": {
+      "PLAN": 26,
+      "HR": 55,
+      "DEAL": 31,
+      "DECISION": 47,
+      "NEGOTIATION": 5,
+      "PROJECT": 1
+    },
+    "roles": {
+      "wrong": 58,
+      "ok": 137
+    },
+    "examples": {
+      "miss": [
+        "DATE '14 July 2026'",
+        "SENSITIVE_ATTRIBUTE 'fitness clearance'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "SENSITIVE_ATTRIBUTE 'advised rest at home for a few days followed by light duties, with fitness to resume full duties subject to review'",
+        "DATE 'May'",
+        "SENSITIVE_ATTRIBUTE 'approved medical leave'",
+        "SENSITIVE_ATTRIBUTE 'inpatient treatment'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "SENSITIVE_ATTRIBUTE 'urgent cardiac evaluation'",
+        "SENSITIVE_ATTRIBUTE 'his condition'",
+        "LOCATION 'Kolkata'",
+        "SENSITIVE_ATTRIBUTE 'fit for continued duty with no restrictions'",
+        "SENSITIVE_ATTRIBUTE 'allergy history'",
+        "SENSITIVE_ATTRIBUTE 'current adherence'",
+        "SENSITIVE_ATTRIBUTE 'inpatient hospitalization'",
+        "ORG 'Occupational Health Clinic'",
+        "ORG 'Occupational Health Clinic'",
+        "SENSITIVE_ATTRIBUTE 'fitness clearance for light duty'",
+        "SENSITIVE_ATTRIBUTE 'hospitalization'",
+        "SENSITIVE_ATTRIBUTE 'planned surgery'",
+        "SENSITIVE_ATTRIBUTE 'inpatient treatment'",
+        "SENSITIVE_ATTRIBUTE 'post-operative care'",
+        "DATE '25 May 2027'",
+        "DATE '25 November 2026'",
+        "LOCATION 'Lucknow'",
+        "DATE '25 November 2027'"
+      ],
+      "role": [
+        "₹93 lakh: gold FEE, got BUDGET",
+        "$388,264: gold FEE, got BUDGET",
+        "₹18 lakh: gold FEE, got BUDGET",
+        "₹72,774: gold OTHER, got BUDGET",
+        "₹67,908: gold DEAL_VALUE, got OTHER",
+        "₹5 lakh: gold OTHER, got SALARY",
+        "$277,442: gold OTHER, got DEAL_VALUE",
+        "$943,112: gold OTHER, got DEAL_VALUE",
+        "₹11,965: gold FEE, got OTHER",
+        "$8,421: gold OTHER, got FEE",
+        "₹32,831: gold OTHER, got DEAL_VALUE",
+        "₹50,598: gold OTHER, got FEE",
+        "$34,749: gold FEE, got OTHER",
+        "$528,448: gold FEE, got BUDGET",
+        "$274,877: gold FEE, got OTHER",
+        "₹22,960: gold OTHER, got PRICE",
+        "₹10,241: gold FEE, got PRICE",
+        "₹87,777: gold OTHER, got BUDGET",
+        "₹88 lakh: gold OTHER, got DEAL_VALUE",
+        "₹37,995: gold FEE, got PRICE",
+        "₹98,323: gold OTHER, got BUDGET",
+        "₹44 lakh: gold OTHER, got BUDGET",
+        "$826,232: gold OTHER, got BUDGET",
+        "₹444 crore: gold OTHER, got BUDGET",
+        "$919,337: gold OTHER, got PRICE",
+        "$55,351: gold OTHER, got BUDGET",
+        "₹94,521: gold OTHER, got PRICE",
+        "₹94,469: gold FEE, got PRICE",
+        "₹91,440: gold OTHER, got PRICE",
+        "₹32,774: gold OTHER, got PRICE",
+        "$844,330: gold OTHER, got REVENUE",
+        "₹19 lakh: gold OTHER, got PRICE",
+        "₹37 lakh: gold OTHER, got REVENUE",
+        "$22,859: gold OTHER, got PRICE",
+        "₹62,282: gold OTHER, got PRICE",
+        "₹95,173: gold OTHER, got PRICE",
+        "₹62 lakh: gold OTHER, got PRICE",
+        "$303,116: gold OTHER, got REVENUE",
+        "$708,584: gold OTHER, got PRICE",
+        "₹10,456: gold OTHER, got PRICE"
+      ],
+      "ctx_kind": [
+        "gold HR got DEAL",
+        "gold HR got DEAL",
+        "gold DECISION got DEAL",
+        "gold DECISION got DEAL",
+        "gold DECISION got DEAL",
+        "gold DECISION got DEAL",
+        "gold DECISION got HR",
+        "gold NEGOTIATION got DEAL",
+        "gold DECISION got DEAL",
+        "gold DECISION got NEGOTIATION",
+        "gold HR got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold DECISION got NEGOTIATION",
+        "gold DECISION got DEAL",
+        "gold NEGOTIATION got DEAL",
+        "gold DECISION got DEAL",
+        "gold DECISION got NEGOTIATION",
+        "gold DEAL got NEGOTIATION",
+        "gold DEAL got HR",
+        "gold DEAL got HR",
+        "gold PLAN got DEAL",
+        "gold DECISION got NEGOTIATION",
+        "gold DEAL got NEGOTIATION",
+        "gold DECISION got DEAL",
+        "gold DECISION got DEAL",
+        "gold PLAN got HR",
+        "gold DEAL got HR",
+        "gold PLAN got HR",
+        "gold DECISION got HR",
+        "gold HR got DECISION",
+        "gold DECISION got HR",
+        "gold DEAL got HR",
+        "gold DECISION got PLAN",
+        "gold PLAN got HR",
+        "gold PLAN got HR",
+        "gold HR got NEGOTIATION",
+        "gold PLAN got HR",
+        "gold DEAL got NEGOTIATION"
+      ],
+      "type": [
+        "LM: gold PERSON, got ORG",
+        "IO: gold PERSON, got ORG"
+      ],
+      "boundary": [
+        "SENSITIVE_ATTRIBUTE gold 'cholesterol showing a mild borderline elevation' got 'mild borderline elevation'",
+        "SENSITIVE_ATTRIBUTE gold 'liver and kidney function within normal limits' got 'liver and kidney function within normal limits and cholesterol only mildly above usual'",
+        "SENSITIVE_ATTRIBUTE gold 'cholesterol only mildly above usual' got 'liver and kidney function within normal limits and cholesterol only mildly above usual'",
+        "PERSON gold 'Dr. Imran Ramaswamy' got 'Imran Ramaswamy'",
+        "SENSITIVE_ATTRIBUTE gold 'resolving viral illness' got 'viral illness'",
+        "SENSITIVE_ATTRIBUTE gold 'breathing worsens' got 'breathing'",
+        "PERSON gold 'Mr. Vivek Weber' got 'Vivek Weber'",
+        "SENSITIVE_ATTRIBUTE gold 'fatigue' got 'work-related fatigue'",
+        "SENSITIVE_ATTRIBUTE gold 'cholesterol is borderline high' got 'borderline high'",
+        "PERSON gold 'Mr. Diego Mukherjee' got 'Diego Mukherjee'"
+      ],
+      "split": [
+        "'Sister Clara' -> ['Clara']"
+      ]
+    }
+  },
+  "spark": {
+    "invalid": 0,
+    "entity": {
+      "extra": 39,
+      "miss": 20,
+      "boundary": 11
+    },
+    "by_type": {
+      "DATE": {
+        "extra": 7,
+        "miss": 12,
+        "boundary": 1
+      },
+      "LOCATION": {
+        "extra": 18,
+        "miss": 2
+      },
+      "SENSITIVE_ATTRIBUTE": {
+        "extra": 14,
+        "miss": 6,
+        "boundary": 3
+      },
+      "PERSON": {
+        "boundary": 7
+      }
+    },
+    "extra_top": [
+      [
+        "LOCATION",
+        "Bengaluru",
+        5
+      ],
+      [
+        "LOCATION",
+        "Kolkata",
+        3
+      ],
+      [
+        "LOCATION",
+        "Hyderabad",
+        3
+      ],
+      [
+        "LOCATION",
+        "Ahmedabad",
+        2
+      ],
+      [
+        "DATE",
+        "16 September 2025",
+        1
+      ],
+      [
+        "DATE",
+        "3 January 2027",
+        1
+      ],
+      [
+        "DATE",
+        "19 November 2025",
+        1
+      ],
+      [
+        "LOCATION",
+        "Chennai",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "occupational health follow-up appointment",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "occupational health case",
+        1
+      ],
+      [
+        "LOCATION",
+        "Kochi",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "fatigue",
+        1
+      ],
+      [
+        "LOCATION",
+        "Lucknow",
+        1
+      ],
+      [
+        "DATE",
+        "11 November 2025",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "low dose maintenance therapy",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "recent procedure",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "medical leave",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "urgent cardiology specialist review",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "sick leave",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "complete blood count and kidney function are within expected range",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "fasting sugar is normal",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "allergy band",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "chronic care coverage",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "preventive health appointment",
+        1
+      ],
+      [
+        "SENSITIVE_ATTRIBUTE",
+        "screening summary",
+        1
+      ]
+    ],
+    "contexts": {
+      "kind ok": 476,
+      "extra": 160,
+      "wrong kind": 14,
+      "missed": 21
+    },
+    "ctx_missed_by_kind": {
+      "HR": 10,
+      "PLAN": 4,
+      "DEAL": 3,
+      "DECISION": 4
+    },
+    "roles": {
+      "ok": 173,
+      "wrong": 22
+    },
+    "examples": {
+      "ctx_kind": [
+        "gold PLAN got DEAL",
+        "gold DEAL got DECISION",
+        "gold DECISION got PLAN",
+        "gold DECISION got DEAL",
+        "gold HR got DEAL",
+        "gold DEAL got PLAN",
+        "gold DECISION got DEAL",
+        "gold PLAN got DEAL",
+        "gold DEAL got DECISION",
+        "gold NEGOTIATION got DECISION",
+        "gold HR got PLAN",
+        "gold DECISION got DEAL",
+        "gold PLAN got DECISION",
+        "gold HR got DECISION"
+      ],
+      "role": [
+        "₹5 lakh: gold OTHER, got SALARY",
+        "$277,442: gold OTHER, got FEE",
+        "$943,112: gold OTHER, got DEAL_VALUE",
+        "$752,656: gold OTHER, got DEAL_VALUE",
+        "$8,421: gold OTHER, got FEE",
+        "₹32,831: gold OTHER, got DEAL_VALUE",
+        "₹50,598: gold OTHER, got FEE",
+        "₹14 lakh: gold OTHER, got DEAL_VALUE",
+        "₹19,971: gold OTHER, got FEE",
+        "₹88 lakh: gold OTHER, got DEAL_VALUE",
+        "₹94,521: gold OTHER, got PRICE",
+        "₹94,469: gold FEE, got OTHER",
+        "$844,330: gold OTHER, got REVENUE",
+        "₹19 lakh: gold OTHER, got REVENUE",
+        "₹37 lakh: gold OTHER, got REVENUE",
+        "₹62,282: gold OTHER, got PRICE",
+        "₹62 lakh: gold OTHER, got PRICE",
+        "₹13 lakh: gold DEAL_VALUE, got PRICE",
+        "₹534 crore: gold OTHER, got DEAL_VALUE",
+        "₹51,375: gold OTHER, got PRICE",
+        "$810,654: gold DEAL_VALUE, got BUDGET",
+        "₹6,145: gold OTHER, got PRICE"
+      ],
+      "miss": [
+        "DATE '17 May 2027'",
+        "DATE '28 July 2025'",
+        "DATE '18 March 2025'",
+        "DATE '25 July 2025'",
+        "SENSITIVE_ATTRIBUTE 'medical leave'",
+        "SENSITIVE_ATTRIBUTE 'inpatient treatment'",
+        "SENSITIVE_ATTRIBUTE 'his condition'",
+        "LOCATION 'Kolkata'",
+        "SENSITIVE_ATTRIBUTE 'hospitalization'",
+        "SENSITIVE_ATTRIBUTE 'planned surgery'",
+        "SENSITIVE_ATTRIBUTE 'inpatient treatment'",
+        "DATE '1 November 2027'",
+        "DATE '28 January 2026'",
+        "DATE '16 January 2025'",
+        "DATE '21 March 2025'",
+        "LOCATION 'Lucknow'",
+        "DATE '5 March 2026'",
+        "DATE '23 November 2026'",
+        "DATE '18 March 2027'",
+        "DATE '11 March 2025'"
+      ],
+      "boundary": [
+        "SENSITIVE_ATTRIBUTE gold 'advised rest at home for a few days followed by light duties, with fitness to resume full duties subject to review' got 'has been advised rest at home for a few days followed by light duties, with fitness to resume full duties subject to review'",
+        "PERSON gold 'Dr. Imran Ramaswamy' got 'Imran Ramaswamy'",
+        "PERSON gold 'Shreya Kulkarni' got 'Dr. Shreya Kulkarni'",
+        "PERSON gold 'Shreya Mehra' got 'Ms. Shreya Mehra'",
+        "PERSON gold 'Aarav D'Souza' got 'Dr. Aarav D'Souza'",
+        "PERSON gold 'Rukmini D'Souza' got 'Dr. Rukmini D'Souza'",
+        "DATE gold '13 March 2027' got '13 March 2027 in the morning'",
+        "PERSON gold 'Yusuf Ansari' got 'Dr. Yusuf Ansari'",
+        "PERSON gold 'Wen Bhattacharya' got 'Dr. Wen Bhattacharya'",
+        "SENSITIVE_ATTRIBUTE gold 'post-operative care' got 'extended stay requiring continuous monitoring and post-operative care'",
+        "SENSITIVE_ATTRIBUTE gold 'ongoing exertional chest tightness' got 'exertional chest tightness'"
+      ]
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "name": "glimmer-lora-v2-full",
+  "model_id": "muse-shield-glimmer-lora-v2-full",
+  "attempts": [
+    {
+      "n": 1,
+      "start": 1793755119.3206809,
+      "resume_ref": "rohan-majji/run-84d1fe999b0b428a840be83c0f27c324/step-450",
+      "end": 1793756871.594168,
+      "exit": 0,
+      "last_step": 588,
+      "outcome": "completed"
+    }
+  ],
+  "sessions": [
+    "accounts/rohan-majji/trainingSessions/ts-9c31e22a67264855899e5149dbef3f66"
+  ],
+  "runs": [
+    "run-0aa3d323402a4dbd84481ac97d4c745a",
+    "run-84d1fe999b0b428a840be83c0f27c324"
+  ],
+  "outcome": "completed",
+  "params": {
+    "name": "glimmer-lora-v2-full",
+    "output_model_id": "",
+    "lr": 0.0001,
+    "batch": 16,
+    "epochs": 1,
+    "rank": 8,
+    "max_seq_len": 2048,
+    "warmup_steps": 0,
+    "max_examples": null,
+    "checkpoint_every": 25,
+    "max_attempts": 5,
+    "plateau_window": 75,
+    "plateau_min_improve": 0.02,
+    "min_steps": 150,
+    "no_early_stop": true,
+    "simulate_crash_at": 0
+  },
+  "train": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v2/train.jsonl",
+  "eval": "/Users/majjir/muse-shield/.worktrees/tuning/runs/train/mix-v2/val.jsonl",
+  "started": 1793752609.362994,
+  "resume_ref": "rohan-majji/run-84d1fe999b0b428a840be83c0f27c324/step-450",
+  "continues": {
+    "run": "glimmer-lora-v2",
+    "dir": "results/training/20261104-060649_v0.0.1+cf194ee_glimmer-lora-v2",
+    "from_step": 450,
+    "why": "v2 early-stopped on a smoothed TRAIN-loss plateau; the recipe only scores held-out loss at epoch end, so finish the epoch to get a held-out number comparable with v1c"
+  },
+  "promotion": {
+    "model_id": "muse-shield-glimmer-lora-v2-full",
+    "checkpoint": "step-588",
+    "job_id": "ts-9c31e22a67264855899e5149dbef3f66"
+  },
+  "session_cleanup": [
+    {
+      "deleted": "accounts/rohan-majji/trainingSessions/ts-9c31e22a67264855899e5149dbef3f66"
+    }
+  ],
+  "finished": 1793756873.515677
+}

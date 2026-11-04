@@ -1,5 +1,6 @@
 import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
+import { CategoryLine, ModeBadge, ModePicker } from "@/components/categories"
 import { DocumentCard } from "@/components/document-card"
 import { ImageCard, PendingImageCard } from "@/components/image-card"
 import { MessageView } from "@/components/message"
@@ -7,8 +8,8 @@ import { MaskedText, OriginalText } from "@/components/privacy-text"
 import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
-import { cn } from "@/lib/utils"
-import type { Ask, DocumentInfo, ImageInfo, Level, MaskResult, Turn } from "@muse-shield/core"
+import { cn, isGlimmer } from "@/lib/utils"
+import type { Ask, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowUp, Briefcase, FileText, FileUp, FlaskConical, KeyRound, Lock, PanelRight, Paperclip, ReceiptText, ScanEye, ShieldCheck, Sparkles, Wrench, X,
@@ -42,6 +43,14 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const [preview, setPreview] = useState<(MaskResult & { original: string }) | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [autoSend, setAutoSend] = useState(false)
+  // The mode a NEW chat starts in (remembered per browser); an existing chat stays in the mode it's locked to.
+  const [newMode, setNewMode] = useState<MaskMode | null>(() => {
+    try { return localStorage.getItem("ms-chat-mode") } catch { return null }
+  })
+  const chooseMode = (m: MaskMode) => {
+    setNewMode(m)
+    try { localStorage.setItem("ms-chat-mode", m) } catch { /* private window: keep it for this session only */ }
+  }
   const [ask, setAsk] = useState<Ask | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
   const threadRef = useRef<HTMLDivElement>(null)
@@ -108,7 +117,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
   async function mask(text: string) {
     setPhase("masking")
-    const m = await engine.mask(text, chatId)
+    const m = await engine.mask(text, chatId, mode)
     if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
     setPreview({ ...m, original: text })
     if (!chatId) onChat(m.chat_id)
@@ -132,6 +141,10 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const onPreview = () => run(async () => { if (input.trim()) await mask(input.trim()) })
 
   const docsAllowed = !!health.data?.analysis && health.data?.documents !== false
+  const modes = health.data?.modes ?? []
+  const chatMode = chatId ? (detail.data?.mode ?? chats.data?.find((c) => c.chat_id === chatId)?.mode ?? null) : null
+  const startMode = modes.some((m) => m.id === newMode) ? newMode : health.data?.default_mode ?? null
+  const mode: MaskMode | null = chatId ? null : startMode // the server keeps an existing chat's own mode
   const imagesAllowed = !!health.data?.images
   const filesAllowed = docsAllowed || imagesAllowed
   const statusOf = (d: DocumentInfo) => docStatus[d.doc_id] ?? d.status
@@ -144,7 +157,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
     let cid = chatId
     const list = Array.from(files)
     if (!cid && list.length > 1) {  // several files into a new conversation: one chat for all of them
-      cid = (await engine.newChat()).chat_id
+      cid = (await engine.newChat(startMode)).chat_id
       onChat(cid)
     }
     const adopt = (id: string) => {
@@ -207,7 +220,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       setPhase("masking")
       let m: MaskResult
       try {
-        m = await engine.mask(text, chatId)
+        m = await engine.mask(text, chatId, mode)
         if (!m.analysis_ok) throw new Error(`Not sent: ${m.error}`)
       } catch (e) {
         setInput(text) // give the text back so nothing is lost
@@ -260,7 +273,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
       {health.data?.analysis && (
         <div className="flex items-center justify-center gap-2 border-b bg-muted px-4 py-1.5 text-[12px] text-muted-foreground">
           <FlaskConical className="size-3.5" aria-hidden />
-          Prototype mode: finding sensitive details uses Muse Spark on your raw text. Use made-up data only.
+          Prototype mode: finding sensitive details uses {isGlimmer(health.data.analysis_model) ? "your fine-tuned Muse Glimmer (own Fireworks deployment)" : "Muse Spark"} on your raw text. Use made-up data only.
         </div>
       )}
 
@@ -269,6 +282,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
+          {chatId && <ModeBadge mode={chatMode} modes={modes} />}
           <span className="hidden items-center gap-1.5 rounded-full border border-foreground/30 bg-card px-3 py-1 font-mono text-[12px] tracking-[-0.01em] text-muted-foreground sm:flex">
             <ShieldCheck className="size-3.5 text-foreground" aria-hidden />
             {maskedCount > 0 ? <><span className="tabular font-medium text-foreground">{maskedCount}</span> items shielded</> : "Shield on"}
@@ -332,6 +346,14 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
               <DocumentCard key={d.doc_id} doc={d} align="start" onRemove={() => removeAttached(d)}
                 onStatus={(x) => setDocStatus((s) => (s[x.doc_id] === x.status ? s : { ...s, [x.doc_id]: x.status }))} />
             ))}
+          </div>
+        )}
+
+        {!chatId && modes.length > 1 && startMode && (
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+            <span>Masking mode for this chat</span>
+            <ModePicker modes={modes} value={startMode} onChange={chooseMode} disabled={!!phase} />
+            <span className="max-sm:hidden">· locked once you send; start a new chat to switch</span>
           </div>
         )}
 
@@ -408,6 +430,7 @@ function PreviewCard({ preview, autoSend, onClose }: { preview: MaskResult & { o
           </button>
         )}
       </div>
+      {!!preview.categories?.length && <CategoryLine categories={preview.categories} summary={preview.summary} className="border-b px-4 py-2" />}
       <div className="grid max-h-52 grid-cols-2 gap-0 overflow-y-auto max-md:grid-cols-1">
         <div className="border-r px-4 py-3 max-md:border-r-0 max-md:border-b">
           <div className="mb-1 eyebrow text-muted-foreground">You wrote</div>
@@ -461,6 +484,9 @@ function PendingMessage({ pending }: { pending: Pending }) {
           ))
         )}
       </div>
+      {!!masked?.categories?.length && (
+        <CategoryLine categories={masked.categories} summary={masked.summary} className="max-w-[min(42rem,85%)] justify-end" />
+      )}
       {masked && spans.length > 0 && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} transition={{ delay: 0.35 }}
           className="max-w-[min(42rem,85%)] overflow-hidden">

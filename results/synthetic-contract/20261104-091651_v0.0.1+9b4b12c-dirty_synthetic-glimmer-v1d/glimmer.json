@@ -1,0 +1,1161 @@
+{
+  "backend": "glimmer",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-lora-v1d#accounts/rohan-majji/deployments/ms-eval-v1d",
+  "n": 60,
+  "seconds": 9.4,
+  "contract": {
+    "valid_rate": 1.0,
+    "first_try_rate": 1.0,
+    "errors": 0
+  },
+  "entities": {
+    "precision": 0.9230769230769231,
+    "recall": 0.96,
+    "f1": 0.9411764705882353,
+    "tp": 144,
+    "fp": 12,
+    "fn": 6
+  },
+  "entities_by_type": {
+    "ADDRESS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 8,
+      "fp": 0,
+      "fn": 0
+    },
+    "AMOUNT": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 48,
+      "fp": 0,
+      "fn": 0
+    },
+    "LOCATION": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 13,
+      "fp": 0,
+      "fn": 0
+    },
+    "ORG": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 33,
+      "fp": 0,
+      "fn": 0
+    },
+    "PERSON": {
+      "precision": 0.7446808510638298,
+      "recall": 0.8536585365853658,
+      "f1": 0.7954545454545454,
+      "tp": 35,
+      "fp": 12,
+      "fn": 6
+    },
+    "PROJECT": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 7,
+      "fp": 0,
+      "fn": 0
+    }
+  },
+  "role_accuracy": 1.0,
+  "contexts": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "tp": 42,
+    "fp": 0,
+    "fn": 0
+  },
+  "context_kind_accuracy": 1.0,
+  "hallucinated_spans": 0,
+  "f1_by_template": {
+    "acceptance": 1.0,
+    "deal": 0.9047619047619048,
+    "hr": 0.9142857142857143,
+    "loan": 1.0,
+    "negative": 1.0,
+    "negotiation": 0.9387755102040817,
+    "plan": 1.0,
+    "price": 0.8,
+    "project": 1.0,
+    "salary_decision": 1.0
+  },
+  "latency_ms": {
+    "p50": 2236.115499981679,
+    "p95": 3291.498834034428
+  },
+  "tokens": {
+    "in": 45232,
+    "out": 5122,
+    "cached_in": 42240
+  },
+  "cost_usd": 0.020890150464450318,
+  "cost": {
+    "usd": 0.020890150464450318,
+    "basis": "gpu_time",
+    "detail": {
+      "seconds": 9.4,
+      "gpus": 1,
+      "accelerator": "NVIDIA_H200_141GB",
+      "usd_per_gpu_hour": 8.0,
+      "note": "deployment idle time between runs is billed but not attributed"
+    }
+  },
+  "failures": [
+    {
+      "id": "c002",
+      "template": "deal",
+      "missed": [
+        "Daniel Okafor"
+      ],
+      "extra": [
+        "Daniel",
+        "Okafor"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c031",
+      "template": "hr",
+      "missed": [
+        "Daniel Okafor"
+      ],
+      "extra": [
+        "Daniel",
+        "Okafor"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c038",
+      "template": "deal",
+      "missed": [
+        "Daniel Okafor"
+      ],
+      "extra": [
+        "Daniel",
+        "Okafor"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c039",
+      "template": "negotiation",
+      "missed": [
+        "Daniel Okafor"
+      ],
+      "extra": [
+        "Daniel",
+        "Okafor"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c043",
+      "template": "price",
+      "missed": [
+        "Sonia Mehta"
+      ],
+      "extra": [
+        "Mehta",
+        "Sonia"
+      ],
+      "hallucinated": []
+    },
+    {
+      "id": "c052",
+      "template": "price",
+      "missed": [
+        "Daniel Okafor"
+      ],
+      "extra": [
+        "Daniel",
+        "Okafor"
+      ],
+      "hallucinated": []
+    }
+  ],
+  "per_case": [
+    {
+      "id": "c000",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c001",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c002",
+      "valid": true,
+      "tp": 3,
+      "fp": 2,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c003",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c004",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c005",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c006",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c007",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c008",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c009",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c010",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c011",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c012",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c013",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c014",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c015",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c016",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c017",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c018",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c019",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c020",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c021",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c022",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c023",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c024",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c025",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c026",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c027",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c028",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c029",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c030",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c031",
+      "valid": true,
+      "tp": 1,
+      "fp": 2,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c032",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c033",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c034",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c035",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c036",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c037",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c038",
+      "valid": true,
+      "tp": 3,
+      "fp": 2,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c039",
+      "valid": true,
+      "tp": 2,
+      "fp": 2,
+      "fn": 1,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c040",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c041",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c042",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c043",
+      "valid": true,
+      "tp": 1,
+      "fp": 2,
+      "fn": 1,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c044",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c045",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c046",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c047",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c048",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c049",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c050",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c051",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c052",
+      "valid": true,
+      "tp": 1,
+      "fp": 2,
+      "fn": 1,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c053",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c054",
+      "valid": true,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        0,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c055",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c056",
+      "valid": true,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "c057",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "c058",
+      "valid": true,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "c059",
+      "valid": true,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "ctx": [
+        1,
+        0,
+        0
+      ],
+      "roles": [
+        1,
+        1
+      ]
+    }
+  ],
+  "span_recall": 0.96,
+  "span_precision": 0.9230769230769231,
+  "valid_rate": 1.0,
+  "docs": 60,
+  "recall_by_type": {
+    "ADDRESS": 1.0,
+    "AMOUNT": 1.0,
+    "LOCATION": 1.0,
+    "ORG": 1.0,
+    "PERSON": 0.8536585365853658,
+    "PROJECT": 1.0
+  }
+}

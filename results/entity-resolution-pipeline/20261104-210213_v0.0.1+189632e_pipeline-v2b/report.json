@@ -1,0 +1,59 @@
+{
+ "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b",
+ "route": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-er-pipe-1104-2102",
+ "git": "189632e",
+ "sets": {
+  "examples": {
+   "docs": 10,
+   "valid": 10,
+   "seconds": 33.2,
+   "calls_per_doc": 8.0,
+   "classify_valid": 10,
+   "seconds_per_doc": 25.3,
+   "prompt_categories_hit": 0.8,
+   "rule_categories_hit": 0.6
+  },
+  "test": {
+   "docs": 40,
+   "valid": 40,
+   "seconds": 81.4,
+   "calls_per_doc": 11.3,
+   "classify_valid": 40,
+   "seconds_per_doc": 34.9,
+   "prompt_categories_hit": 0.85,
+   "rule_categories_hit": 0.975,
+   "leak_before": 0.0011,
+   "leak_after": 0.0,
+   "fallback_spans": 5,
+   "fallback_false_alarms": 4
+  },
+  "challenge": {
+   "docs": 40,
+   "valid": 40,
+   "seconds": 83.1,
+   "calls_per_doc": 11.2,
+   "classify_valid": 40,
+   "seconds_per_doc": 37.9,
+   "prompt_categories_hit": 1.0,
+   "rule_categories_hit": 0.15,
+   "leak_before": 0.002,
+   "leak_after": 0.001,
+   "fallback_spans": 10,
+   "fallback_false_alarms": 5
+  },
+  "ambiguity": {
+   "docs": 40,
+   "valid": 40,
+   "seconds": 83.3,
+   "calls_per_doc": 12.8,
+   "classify_valid": 40,
+   "seconds_per_doc": 38.6,
+   "prompt_categories_hit": 0.9,
+   "rule_categories_hit": 0.975,
+   "leak_before": 0.003,
+   "leak_after": 0.001,
+   "fallback_spans": 7,
+   "fallback_false_alarms": 5
+  }
+ }
+}
