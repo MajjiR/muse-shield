@@ -262,7 +262,9 @@ class Masker:
         # would only make the pre-send guard refuse the chat (e.g. "the staging database password" masked on turn 2).
         mapped = set(self.vault.mapping(chat_id).values())
         seen = "\n".join(m["masked_text"] for m in self.vault.messages(chat_id))
-        already_sent = [e for e in kept if e["text"] not in mapped and e["text"] in seen] if seen else []
+        # Compared ignoring case, like the pre-send guard ("hdfc 2026 09" in an earlier listing, "HDFC" in a row now).
+        mapped_cf, seen_cf = {v.casefold() for v in mapped}, seen.casefold()
+        already_sent = [e for e in kept if e["text"].casefold() not in mapped_cf and e["text"].casefold() in seen_cf] if seen else []
         kept = [e for e in kept if e not in already_sent]
 
         spans: list[dict] = []

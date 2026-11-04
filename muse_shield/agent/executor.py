@@ -60,11 +60,12 @@ class Action:
 
 
 def remask(value, mapping: dict[str, str]):
-    """Replace every real vault value in a tool result with its placeholder (longest values first)."""
+    """Replace every real vault value in a tool result with its placeholder (longest values first), ignoring case
+    like the pre-send guard does: a name found in one field ("HDFC") is hidden in every other ("hdfc 2026 10")."""
     text = json.dumps(value, ensure_ascii=False)
     for label, real in sorted(mapping.items(), key=lambda kv: -len(kv[1])):
-        if len(real) >= 3:
-            text = text.replace(json.dumps(real, ensure_ascii=False)[1:-1], label)
+        if len(real.strip()) >= 3:
+            text = re.sub(re.escape(json.dumps(real.strip(), ensure_ascii=False)[1:-1]), lambda _: label, text, flags=re.I)
     return json.loads(text)
 
 

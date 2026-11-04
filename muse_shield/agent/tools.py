@@ -93,7 +93,7 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
         Param("operation", "string", description="sum, average, count, min or max"),
         Param("column", "string", required=False, description="the column to add up (not needed for count)"),
         Param("contains", "text", required=False, resolve=frozenset(CONTENT_TYPES),
-              description="keep only rows containing these words, e.g. 'swiggy' or 'debit'"),
+              description="keep only rows containing these words, e.g. 'debit' or a placeholder like <ORG_1>"),
         Param("contains_column", "string", required=False, description="look for `contains` only in this column"),
         Param("month", "string", required=False, description="keep only rows dated in this month, e.g. 2026-10"),
         Param("group_by", "string", required=False, description="a column to total separately for each value, e.g. description"),
