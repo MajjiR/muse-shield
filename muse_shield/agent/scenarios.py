@@ -8,7 +8,7 @@ confirmation, the loop confirms it, as the user would, and lets the model reply.
 asks to see a hidden passage, the loop shares its shape (the low-exposure default) and goes on. Checks:
     tool      the expected tool was (or wasn't) called
     never_seen no raw value from a read tool's result (the mock inbox) reached the chat model
-    outcome   the action ended as expected (done, refused, none)
+    outcome   the scenario's tool ended as expected (done, refused, none)
     recipients the executor resolved the expected real addresses
     leak      no raw vault value appeared in any request sent to the model (inspector audit)
 All data is invented.
@@ -153,7 +153,10 @@ def run_scenario(c: TestClient, sc: Scenario) -> dict:
                if a.chat_id == chat_id and a.created_at >= t_request]
 
     tools = [a["tool"] for a in actions]
-    final = actions[-1] if actions else None
+    # Judge by the last call of the tool the scenario is about: a refused send stays refused even if the model
+    # then looks the person up in contacts.
+    expected = [a for a in actions if a["tool"] == sc.tool]
+    final = (expected or actions)[-1] if actions else None
     outcome = final["status"] if final else "none"
     sent = [item for item in vault.outbox(chat_id) if item["tool"] in ("send_email", "create_calendar_event", "post_message")]
     sent_to = sorted({addr for item in sent for addr in (item["payload"].get("to") or item["payload"].get("attendees") or [])})
