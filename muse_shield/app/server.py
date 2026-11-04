@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .. import __version__, documents
-from ..backends import Backend, BackendError, MetaModelBackend
+from ..backends import Backend, BackendError, GlimmerBackend, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
 from ..agent.tools import catalog
@@ -34,8 +34,11 @@ META_URL = "https://api.meta.ai/v1"
 
 
 def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
-    """Call 1 analyzer: Muse Spark Standard. Returns (backend or None, reason it's off)."""
+    """Call 1 analyzer: Muse Spark Standard, or the fine-tuned Glimmer with MUSE_SHIELD_ANALYZER=glimmer.
+    Returns (backend or None, reason it's off)."""
     load_env()
+    if os.environ.get("MUSE_SHIELD_ANALYZER", "muse_spark") == "glimmer":
+        return glimmer_analyzer_from_env(client)
     model = os.environ.get("MUSE_SHIELD_MODEL", "muse-spark-1.3")
     if "contributor" in model:
         return None, f"{model} lets Meta train on prompts; the app only allows Standard models"
@@ -49,6 +52,29 @@ def analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | Non
                                 name="muse_spark", synthetic_only=True, reasoning_effort=effort, client=client), ""
     except BackendError as exc:
         return None, str(exc)
+
+
+def glimmer_analyzer_from_env(client: httpx.Client | None = None) -> tuple[Backend | None, str]:
+    """Muse Glimmer 30B with a Muse Shield LoRA, on the user's own Fireworks deployment.
+
+    MUSE_SHIELD_GLIMMER_MODEL is the full route '<model>#<deployment>', e.g.
+    accounts/<a>/models/muse-shield-glimmer-lora-v2-full#accounts/<a>/deployments/<id> (a live-merge
+    deployment needs both full paths). Raw text goes to that dedicated deployment, so the same
+    made-up-data gate as Spark applies. A deployment that scaled to zero answers 503 SCALING_UP;
+    the backend waits for it (cold start is a few minutes).
+    """
+    model = os.environ.get("MUSE_SHIELD_GLIMMER_MODEL", "")
+    if "#" not in model:
+        return None, ("MUSE_SHIELD_ANALYZER=glimmer needs MUSE_SHIELD_GLIMMER_MODEL=<model>#<deployment> "
+                      "(a fine-tuned LoRA is served only from an on-demand deployment)")
+    if os.environ.get("MUSE_SHIELD_DEV_RAW_ANALYSIS") != "1":
+        return None, ("analysis is off: call 1 sends raw text to the Glimmer deployment. Set "
+                      "MUSE_SHIELD_DEV_RAW_ANALYSIS=1 to enable it for fake data while prototyping")
+    key = os.environ.get("GLIMMER_API_KEY") or os.environ.get("FIREWORKS_API_KEY", "")
+    if not key:
+        return None, "MUSE_SHIELD_ANALYZER=glimmer needs FIREWORKS_API_KEY"
+    return GlimmerBackend(os.environ.get("GLIMMER_BASE_URL", "https://api.fireworks.ai/inference/v1"), model, key,
+                          client=client), ""
 
 
 def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel | None, str]:

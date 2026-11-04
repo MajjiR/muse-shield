@@ -13,6 +13,19 @@
       "port": 8765
     },
     {
+      "name": "muse-shield-glimmer",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "MUSE_SHIELD_DEV_RAW_ANALYSIS=1",
+        "MUSE_SHIELD_ANALYZER=glimmer",
+        "PORT=8771",
+        ".venv/bin/python",
+        "-m",
+        "muse_shield.app"
+      ],
+      "port": 8771
+    },
+    {
       "name": "muse-shield-web",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
