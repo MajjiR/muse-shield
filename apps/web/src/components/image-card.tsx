@@ -141,7 +141,7 @@ function ImageViewer({ image: d, src, onClose }: { image: ImageInfo; src: string
         </div>
         {d.masked_text && (
           <div className="max-h-28 overflow-y-auto border-t px-4 py-2.5 text-[12.5px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
-            <span className="mr-1 text-[11px] font-medium tracking-wide uppercase">Text Muse Spark gets</span>{d.masked_text}
+            <span className="mr-1 eyebrow">Text Muse Spark gets</span>{d.masked_text}
           </div>
         )}
       </motion.div>

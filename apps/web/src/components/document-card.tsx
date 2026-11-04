@@ -231,14 +231,14 @@ function DocumentPreview({ docId, onClose }: { docId: string; onClose: () => voi
         )}
         <div className="grid min-h-0 flex-1 grid-cols-2 overflow-y-auto max-md:grid-cols-1">
           <div className="border-r px-4 py-3 max-md:border-r-0 max-md:border-b">
-            <div className="mb-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">In your file</div>
+            <div className="mb-1.5 eyebrow text-muted-foreground">In your file</div>
             <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
               {local ? <OriginalText key={i} text={local.text} spans={local.spans} animate stagger={Math.min(110, 2500 / Math.max(1, local.spans.length))} />
                 : <span className="ms-analysing">Loading…</span>}
             </div>
           </div>
           <div className="bg-subtle px-4 py-3">
-            <div className="mb-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Muse Spark receives</div>
+            <div className="mb-1.5 eyebrow text-muted-foreground">Muse Spark receives</div>
             <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">{local && <MaskedText text={local.masked} kinds={kinds} />}</div>
           </div>
         </div>

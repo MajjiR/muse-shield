@@ -203,8 +203,8 @@ function rehypeSegments() {
 
 const md: Components = {
   p: ({ children }) => <div className="my-3 first:mt-0 last:mb-0">{children}</div>,
-  h1: ({ children }) => <h3 className="mt-5 mb-2 text-[18px] font-semibold tracking-tight first:mt-0">{children}</h3>,
-  h2: ({ children }) => <h3 className="mt-5 mb-2 text-[17px] font-semibold tracking-tight first:mt-0">{children}</h3>,
+  h1: ({ children }) => <h3 className="mt-6 mb-2 font-heading text-[24px] leading-tight font-normal tracking-[-0.02em] first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h3 className="mt-6 mb-2 font-heading text-[22px] leading-tight font-normal tracking-[-0.02em] first:mt-0">{children}</h3>,
   h3: ({ children }) => <h4 className="mt-4 mb-1.5 text-[16px] font-semibold first:mt-0">{children}</h4>,
   h4: ({ children }) => <h4 className="mt-4 mb-1.5 font-semibold first:mt-0">{children}</h4>,
   ul: ({ children }) => <ul className="my-3 list-disc space-y-1 pl-6 marker:text-muted-foreground">{children}</ul>,

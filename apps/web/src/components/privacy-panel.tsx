@@ -191,7 +191,7 @@ function Reveal({ chatId, label }: { chatId: string; label: string }) {
 function Section({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 flex items-center justify-between text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+      <h3 className="mb-2 flex items-center justify-between eyebrow text-muted-foreground">
         {title} {count != null && <span className="tabular">{count}</span>}
       </h3>
       <div className="space-y-1.5">{children}</div>
