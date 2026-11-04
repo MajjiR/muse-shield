@@ -34,12 +34,27 @@ from muse_shield.benchmarks.run import aggregate, analyze_doc  # noqa: E402
 from muse_shield.config import load_env  # noqa: E402
 from muse_shield.costs import run_cost  # noqa: E402
 from muse_shield.results import RESULTS, git_version, new_run_id  # noqa: E402
+import threading  # noqa: E402
+
+from muse_shield.backends import AzureFoundryBackend  # noqa: E402
 from muse_shield.synth import PACK_VALUE_KEYS, _CappedSpark  # noqa: E402
+
+AZURE_SLOTS = threading.BoundedSemaphore(int(os.environ.get("AZURE_CONCURRENCY", "8")))
+
+
+class _CappedAzure(AzureFoundryBackend):
+    def _call(self, messages):
+        with AZURE_SLOTS:
+            return super()._call(messages)
 
 TRAIN_ROWS = 50_000
 
 
 def labeller(name: str, spec: str):
+    if spec.startswith("azure:"):  # azure:<Foundry deployment name>
+        b = _CappedAzure(spec.split(":", 1)[1])
+        b.name = name
+        return b
     model, effort = spec.rsplit(":", 1)
     return _CappedSpark(os.environ.get("META_BASE_URL", "https://api.meta.ai/v1"), model, os.environ["MODEL_API_KEY"],
                         name=name, synthetic_only=True, reasoning_effort=effort, max_tokens=8192)
@@ -95,7 +110,7 @@ def planted_part(backend, docs: list[dict], workers: int) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("labellers", nargs="+", help="name=model:effort")
+    ap.add_argument("labellers", nargs="+", help="name=model:effort (Meta Model API) or name=azure:<deployment>")
     ap.add_argument("--nemotron-docs", type=int, default=60)
     ap.add_argument("--planted-docs", type=int, default=50)
     ap.add_argument("--workers", type=int, default=6)

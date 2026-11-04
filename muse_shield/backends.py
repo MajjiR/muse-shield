@@ -210,6 +210,32 @@ class MetaModelBackend(ChatBackend):
 
 MuseSparkBackend = MetaModelBackend  # backwards-compatible name
 
+
+class AzureFoundryBackend(ChatBackend):
+    """A model deployed in Azure AI Foundry (e.g. DeepSeek-V4-Pro), via its OpenAI-compatible v1 API.
+
+    For building and checking training data only (synthetic or public text): never real user data,
+    never at runtime. `model` is the Foundry deployment name; AZURE_OPENAI_ENDPOINT is the resource
+    endpoint, AZURE_OPENAI_API_KEY its key.
+    """
+
+    def __init__(self, deployment: str, *, endpoint: str | None = None, api_key: str | None = None, max_tokens: int = 8192, **kwargs):
+        load_env()
+        self.name = f"azure-{deployment}"
+        endpoint = (endpoint or os.environ.get("AZURE_OPENAI_ENDPOINT", "")).rstrip("/")
+        if not endpoint:
+            raise BackendError("AZURE_OPENAI_ENDPOINT is not set")
+        base = endpoint if endpoint.endswith("/openai/v1") else f"{endpoint}/openai/v1"
+        super().__init__(base, deployment, api_key or os.environ.get("AZURE_OPENAI_API_KEY", ""), max_tokens=max_tokens,
+                         timeout=kwargs.pop("timeout", 240.0), **kwargs)
+
+    def _post(self, messages: list[dict]) -> httpx.Response:
+        payload = {"model": self.model, "messages": messages, "temperature": 0, "max_tokens": self.max_tokens, **self.extra}
+        if self.json_mode:
+            payload["response_format"] = {"type": "json_object"}
+        return self._client.post(f"{self.base_url}/chat/completions", json=payload, timeout=self.timeout,
+                                 headers={"api-key": self.api_key})
+
 META_MODELS = {"muse_spark": ("CLOUD_MODEL", "muse-spark-1.3"), "muse_wonder": ("MUSE_WONDER_MODEL", "muse-wonder-1.0")}
 
 
