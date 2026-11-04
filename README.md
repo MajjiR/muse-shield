@@ -79,6 +79,7 @@ The full protocol is in [`CONTRACT.md`](CONTRACT.md).
 | **Documents (PDF, Word, PowerPoint)** | Attach a file to a chat or download a masked copy in the same format. Tracked changes, comments, links, images, charts and metadata are stripped first; PDFs are truly redacted (text under each box removed, the placeholder written back as selectable text); a verifier reopens every copy and refuses it if any masked value is left anywhere in the file | [`muse_shield/documents/`](muse_shield/documents/) |
 | **Chrome extension for meta.ai** | Replaces meta.ai's box with a Muse Shield composer the page can't read; Grammarly-style underlines; restored replies and consent cards inside the meta.ai chat | [`apps/extension/`](apps/extension/) |
 | **Agents over placeholders** | Muse Spark plans tool calls (`TOOL_CALL`) with placeholders; a confirm card shows the real values before anything runs; a local executor fills them in only for a call you confirmed; encrypted outbox, signed envelopes, sealed grants and an HMAC-chained audit log | [`muse_shield/agent/`](muse_shield/agent/) |
+| **Image masking** | Muse Spark (vision) reads the image and finds sensitive values, faces, codes and ID photos; SAM 3.1 finds faces precisely; faces are blurred and values covered with their vault placeholder; Spark re-scans the output | [`muse_shield/images/`](muse_shield/images/), `POST /images/mask` |
 | **Inspector and leak audit** | Every outbound request recorded (analysis vs answer), audited for leaked values, with tokens, latency and cost | `inspector.py`, `/inspector/audit` |
 | **Shared client** | TypeScript types and API client for the web app now, and Electron and React Native later | [`packages/core/`](packages/core/) |
 | **Evals and benchmarks** | Public PII benchmark, realistic multi-line and multi-turn loops, agent scenarios; every run versioned with data, charts and cost | [`muse_shield/benchmarks/`](muse_shield/benchmarks/), [`results/`](results/README.md) |
@@ -119,6 +120,16 @@ Recorded eval spend so far: **$6.05**.
 | Realistic PII loop | 10 multi-line messages (HR transfer, medical intake, card dispute, term sheet, travel, incident secrets, tax, school letter, rent, GST invoice) × 3 rounds | **0 of 231 must-mask values leaked**, 100% valid JSON | $0.13 |
 | Realistic conversations | 6 multi-turn chats across sectors, 18 turns | **0.0% leak**, 100% recall | $0.06 |
 | Agent scenarios | 16 tool-use scenarios (emails, invites, notes) through the executor | **16 of 16**, leak audit clean (15 of 16 before the fix for a false leak flag) | $0.19 |
+
+**Images** (5 synthetic images with pixel-exact gold, 36 values, plus 2 public sample photos), Muse Spark 1.3 + SAM 3.1:
+
+| Run | Values masked | Leaked after re-scan | Faces blurred | Harmless text hidden | Cost |
+|---|---|---|---|---|---|
+| refine v2 | **36/36** | 0 | 5/5 | 4.2% | $0.15 + 14 SAM calls |
+| refine v2, repeat | 35/36 | 1 bar under 80% coverage (re-scan couldn't read it) | 5/5 | 10.4% | $0.15 + 14 SAM calls |
+| first version, no refine pass | 20/36 | 17 | 5/5 | 6.2% | $0.08 |
+
+Spark's grounding on a full image can be a line off; asking it again on a crop around each value fixed most of that. About 25 s per image, p50.
 
 **Documents** (the same 10 messages, rendered as Word, PowerPoint and PDF with the hard cases on purpose: values
 split across runs, text in headers, tables and speaker notes, names wrapped across PDF lines; plus one 10-page
@@ -169,7 +180,8 @@ Offline agent demo, with no API key needed:
 ## Testing and evals
 
 ```bash
-.venv/bin/pytest                                            # 179 tests, offline
+.venv/bin/pytest                                            # 187 tests, offline
+MUSE_SHIELD_DEV_RAW_ANALYSIS=1 .venv/bin/python -m muse_shield.images.eval --photo street.jpg=4
 .venv/bin/python -m muse_shield.realistic --rounds 3 --tag my-run
 .venv/bin/python -m muse_shield.agent.scenarios --rounds 2
 .venv/bin/python -m muse_shield.document_eval --rounds 1     # the realistic set as PDF, Word and PowerPoint
@@ -217,7 +229,8 @@ against both the base model and Muse Spark.
 
 ### 4. Product
 - [ ] Graph and inspector views in the web app (the API is already there)
-- [ ] Images: Muse vision picks what's sensitive, SAM masks it, a re-scan checks the output
+- [x] Images: Muse Spark picks what's sensitive, SAM 3.1 finds faces, a re-scan checks the output
+- [ ] Images in the web app and the meta.ai extension (the engine endpoint is there); SAM pixel masks instead of boxes
 - [ ] Desktop app: Electron around the same web build, with the engine as a bundled Python
       sidecar, and the master key in the OS keychain
 - [ ] Mobile: React Native on [`packages/core`](packages/core/)
@@ -258,8 +271,9 @@ CONTRACT.md       the protocol every client codes against
 
 | Model | Via | Role |
 |---|---|---|
-| **Muse Spark 1.3** | Meta Model API | Call 1 analysis (for now) and call 2 answers; agent planning |
+| **Muse Spark 1.3** | Meta Model API | Call 1 analysis (for now) and call 2 answers; agent planning; reading images |
 | **Muse Glimmer 30B** | Fireworks on-demand deployment | Benchmarked baseline; the model we fine-tune for on-device or self-hosted analysis |
+| **SAM 3.1** | Meta Model API | Precise face and licence-plate boxes for image masking |
 | Muse Wonder 1.0 | Meta Model API | Smoke-tested on 5 docs; dropped (a coding and agentic model, at 3–5× Spark's price) |
 
 ## Licence

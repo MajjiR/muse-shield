@@ -1,0 +1,79 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image masking gallery</title><style>
+:root{--bg:#fff;--fg:#111;--muted:#666;--line:#e5e5e5}
+@media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#999;--line:#333}}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,system-ui,sans-serif;max-width:1200px;margin:0 auto;padding:24px 16px}
+h1{font-size:22px} h2{font-size:17px;margin:28px 0 4px} p,figcaption,li{color:var(--muted)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media (max-width:700px){.pair{grid-template-columns:1fr}}
+img{width:100%;border:1px solid var(--line)} pre{white-space:pre-wrap;font-size:13px} section{border-top:1px solid var(--line)}
+</style></head><body><h1>Image masking: Muse Spark + SAM 3.1</h1>
+<p>Synthetic images, made-up data. Bars carry the vault placeholder each value gets in chat.</p>
+<section><h2>id-card</h2>
+<p>7/7 values masked · leaked: none · over-masked: “&lt;&lt;”
+· re-scan ok · 28.2 s</p>
+<div class="pair"><figure><img src="id-card.png" alt=""><figcaption>original (synthetic)</figcaption></figure>
+<figure><img src="id-card.masked.png" alt=""><figcaption>what leaves the device after masking</figcaption></figure></div>
+<details><summary>Masked text</summary><pre>RESIDENT IDENTITY CARD
+Name &lt;PERSON_1&gt;
+Date of birth &lt;DATE_1&gt;
+ID no. &lt;ID_1&gt;
+Address &lt;ADDRESS_1&gt;
+IDIND&lt;PERSON_2&gt;&lt;&lt;&lt;PERSON_3&gt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;ID_2&gt;</pre></details></section><section><h2>chat-screenshot</h2>
+<p>8/8 values masked · leaked: none · over-masked: none
+· re-scan ok · 22.6 s</p>
+<div class="pair"><figure><img src="chat-screenshot.png" alt=""><figcaption>original (synthetic)</figcaption></figure>
+<figure><img src="chat-screenshot.masked.png" alt=""><figcaption>what leaves the device after masking</figcaption></figure></div>
+<details><summary>Masked text</summary><pre>&lt;PERSON_1&gt;
+Hi, it&#x27;s &lt;PERSON_2&gt; from the flat viewing
+My number is &lt;CONTACT_1&gt;
+Please send the &lt;AMOUNT_1&gt; deposit
+UPI: &lt;CONTACT_2&gt;
+Or card &lt;ID_1&gt; CVV &lt;SECRET_1&gt;
+The flat is &lt;ADDRESS_1&gt;
+Sounds good, see you Sunday</pre></details></section><section><h2>invoice</h2>
+<p>10/10 values masked · leaked: none · over-masked: “Pay to account”
+· re-scan ok · 30.0 s</p>
+<div class="pair"><figure><img src="invoice.png" alt=""><figcaption>original (synthetic)</figcaption></figure>
+<figure><img src="invoice.masked.png" alt=""><figcaption>what leaves the device after masking</figcaption></figure></div>
+<details><summary>Masked text</summary><pre>TAX INVOICE
+Invoice no. &lt;ID_1&gt;
+Billed to: &lt;PERSON_1&gt;
+&lt;ADDRESS_1&gt;
+GSTIN: &lt;ID_2&gt;
+PAN: &lt;ID_3&gt;
+Description
+Amount
+Consulting services, October
+&lt;AMOUNT_1&gt;
+GST 18%
+&lt;AMOUNT_2&gt;
+Total
+&lt;AMOUNT_3&gt;
+Pay to account &lt;ID_4&gt;
+IFSC &lt;ID_5&gt;
+Thank you for your business</pre></details></section><section><h2>terminal-env</h2>
+<p>4/4 values masked · leaked: none · over-masked: none
+· re-scan ok · 25.0 s</p>
+<div class="pair"><figure><img src="terminal-env.png" alt=""><figcaption>original (synthetic)</figcaption></figure>
+<figure><img src="terminal-env.masked.png" alt=""><figcaption>what leaves the device after masking</figcaption></figure></div>
+<details><summary>Masked text</summary><pre>$ cat .env
+PORT=8080
+DB_HOST=&lt;ID_1&gt;
+DB_PASSWORD=&lt;SECRET_1&gt;
+API_TOKEN=&lt;SECRET_2&gt;
+STAFF_EMAIL=&lt;CONTACT_1&gt;
+LOG_LEVEL=info</pre></details></section><section><h2>clinic-note</h2>
+<p>7/7 values masked · leaked: none · over-masked: none
+· re-scan ok · 21.7 s</p>
+<div class="pair"><figure><img src="clinic-note.png" alt=""><figcaption>original (synthetic)</figcaption></figure>
+<figure><img src="clinic-note.masked.png" alt=""><figcaption>what leaves the device after masking</figcaption></figure></div>
+<details><summary>Masked text</summary><pre>Clinic notes
+Patient: &lt;PERSON_1&gt;
+MRN: &lt;ID_1&gt;
+DOB: &lt;DATE_1&gt;
+Phone: &lt;CONTACT_1&gt;
+Diagnosis: &lt;SENSITIVE_ATTRIBUTE_1&gt;
+Also: &lt;SENSITIVE_ATTRIBUTE_2&gt;
+Advice: walk 30 minutes a day
+Follow up in 3 months
+Dr. &lt;PERSON_2&gt;</pre></details></section><h2>Real photos (images not published)</h2><ul><li>bus.jpg: 3 of 3 faces blurred, re-scan ok</li><li>zidane.jpg: 2 of 2 faces blurred, re-scan ok</li></ul></body></html>

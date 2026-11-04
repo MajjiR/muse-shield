@@ -1,0 +1,31 @@
+{
+  "run_id": "20261104-023813_v0.0.1+3a4b925-dirty_images5-spark-refine-v2-repeat",
+  "eval": "image-masking",
+  "tag": "images5-spark-refine-v2-repeat",
+  "created": "2026-11-04T02:38:13+0530",
+  "version": "0.0.1",
+  "git": "3a4b925-dirty",
+  "command": "/Users/majjir/muse-shield/.worktrees/images/muse_shield/images/eval.py --tag images5-spark-refine-v2-repeat --photo /Volumes/MajjiR/ai/images/bus.jpg=3 --photo /Volumes/MajjiR/ai/images/zidane.jpg=2",
+  "dataset": {
+    "name": "muse_shield.images.samples",
+    "synthetic": 5,
+    "photos": 2,
+    "gold_values": 36,
+    "harmless_lines": 48
+  },
+  "settings": {
+    "muse_spark+sam": {
+      "vision_model": "muse-spark-1.3",
+      "reasoning_effort": "minimal",
+      "sam_concepts": [
+        "face",
+        "license plate"
+      ],
+      "masked_at": 0.8,
+      "overmasked_at": 0.5
+    }
+  },
+  "backends": [
+    "muse_spark+sam"
+  ]
+}

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import os
 from pathlib import Path
 
@@ -16,12 +18,13 @@ from ..backends import Backend, BackendError, MetaModelBackend
 from ..config import load_env
 from ..agent.executor import Executor
 from ..agent.tools import catalog
+from ..images import ImageMasker, image_models_from_env
 from .chat import ChatEngine, ChatError, ChatModel, find_leaks
 from .documents import add_document_routes
 from .engine import Masker, rehydrate, segments
 from .extension import add_extension_routes
 from .inspector import Inspector, user_text
-from .schemas import ChatRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
+from .schemas import ChatRequest, ImageMaskRequest, MaskRequest, RevealRequest, UnmaskRequest, VaultRevealRequest
 from .vault import Vault
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -58,7 +61,8 @@ def chat_model_from_env(client: httpx.Client | None = None) -> tuple[ChatModel |
 
 
 def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat_model: ChatModel | None = None,
-               inspector: Inspector | None = None, documents_sync: bool = False) -> FastAPI:
+               inspector: Inspector | None = None, image_masker: ImageMasker | None = None,
+               documents_sync: bool = False) -> FastAPI:
     inspector = inspector or Inspector()
     off_reason = chat_off = ""
     if analyzer is None:
@@ -69,6 +73,10 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     masker = Masker(vault, analyzer) if analyzer else None
     executor = Executor(vault)
     engine = ChatEngine(vault, masker, chat_model, inspector=inspector, executor=executor) if masker and chat_model else None
+    images_off = ""
+    if image_masker is None:
+        vision, sam, images_off = image_models_from_env(inspector.client("image"))
+        image_masker = ImageMasker(vault, vision, sam) if vision else None
 
     app = FastAPI(title="Muse Shield", version=__version__, docs_url="/docs")
     # The React dev server (and later the Electron renderer) call the engine from another local origin.
@@ -87,7 +95,8 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     def health():
         return {"ok": True, "version": __version__, "analysis": bool(masker), "chat": bool(engine),
                 "analysis_model": getattr(analyzer, "model", None), "chat_model": getattr(chat_model, "model", None),
-                "analysis_off_reason": off_reason, "chat_off_reason": chat_off, "documents": documents.available()}
+                "analysis_off_reason": off_reason, "chat_off_reason": chat_off,
+                "images": bool(image_masker), "images_off_reason": images_off, "documents": documents.available()}
 
     @app.post("/mask")
     def mask(body: MaskRequest):
@@ -100,6 +109,25 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
             return {**masked.to_dict(), "mask_id": mask_id}
         chat_id = vault.ensure_chat(body.chat_id)
         return {**masker.mask(body.text, chat_id).to_dict(), "mask_id": None}
+
+    @app.post("/images/mask")
+    def mask_image(body: ImageMaskRequest):
+        """Faces blurred, sensitive text covered with its vault placeholder. Returns the masked PNG."""
+        if not image_masker:
+            raise HTTPException(503, images_off or "image masking is off")
+        raw = body.image.split(",", 1)[1] if body.image.startswith("data:") else body.image
+        try:
+            data = base64.b64decode(raw, validate=True)
+        except (binascii.Error, ValueError):
+            raise HTTPException(400, "image must be base64 or a data: URL")
+        if len(data) > 20_000_000:
+            raise HTTPException(413, "image over 20 MB")
+        try:
+            return image_masker.mask(data, body.chat_id, verify=body.verify).to_dict()
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+        except BackendError as exc:
+            raise HTTPException(502, str(exc))
 
     @app.post("/unmask")
     def unmask(body: UnmaskRequest):

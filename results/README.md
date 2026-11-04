@@ -2,7 +2,7 @@
 
 Every eval run, newest first. Each row links to its folder: manifest (code version, git commit, settings, dataset hash), full reports, raw predictions, comparison table and charts (`report.html`).
 
-Total recorded eval spend: **$6.42** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
+Total recorded eval spend: **$7.11** (token cost for API models; run time x GPU rate for on-demand deployments, excluding idle time between runs).
 
 Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), CC BY 4.0.
 
@@ -14,6 +14,11 @@ Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nem
 | [20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal](document-pii/20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal/report.html) | document-pii | docs10-spark-minimal | muse_spark-docx `muse-spark-1.3` | 11 | 0.0% | – | 100.0% | – | 100.0% | $0.06 |
 | [20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal](document-pii/20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal/report.html) | document-pii | docs10-spark-minimal | muse_spark-pptx `muse-spark-1.3` | 11 | 1.3% | – | 98.7% | – | 100.0% | $0.07 |
 | [20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal](document-pii/20261104-031015_v0.0.1+6b8b7b2-dirty_docs10-spark-minimal/report.html) | document-pii | docs10-spark-minimal | muse_spark-pdf `muse-spark-1.3` | 11 | 1.9% | – | 98.1% | – | 100.0% | $0.05 |
+| [20261104-023813_v0.0.1+3a4b925-dirty_images5-spark-refine-v2-repeat](image-masking/20261104-023813_v0.0.1+3a4b925-dirty_images5-spark-refine-v2-repeat/report.html) | image-masking | images5-spark-refine-v2-repeat | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 2.8% | – | 97.2% | – | 100.0% | $0.15 |
+| [20261104-023647_v0.0.1+3a4b925-dirty_images5-spark-refine-v2](image-masking/20261104-023647_v0.0.1+3a4b925-dirty_images5-spark-refine-v2/report.html) | image-masking | images5-spark-refine-v2 | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 0.0% | – | 100.0% | – | 100.0% | $0.15 |
+| [20261104-023352_v0.0.1+3a4b925-dirty_images5-spark-refine-pad](image-masking/20261104-023352_v0.0.1+3a4b925-dirty_images5-spark-refine-pad/report.html) | image-masking | images5-spark-refine-pad | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 5.6% | – | 94.4% | – | 100.0% | $0.14 |
+| [20261104-023213_v0.0.1+3a4b925-dirty_images5-spark-refine](image-masking/20261104-023213_v0.0.1+3a4b925-dirty_images5-spark-refine/report.html) | image-masking | images5-spark-refine | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 11.1% | – | 88.9% | – | 100.0% | $0.16 |
+| [20261104-022833_v0.0.1+3a4b925-dirty_images5-spark-minimal](image-masking/20261104-022833_v0.0.1+3a4b925-dirty_images5-spark-minimal/report.html) | image-masking | images5-spark-minimal | muse_spark+sam `muse-spark-1.3 + sam-3.1` | 7 | 47.2% | – | 55.6% | – | 100.0% | $0.08 |
 | [20261103-235957_v0.0.1+0ef8370_agent-scenarios-spark](agent-scenarios/20261103-235957_v0.0.1+0ef8370_agent-scenarios-spark/report.html) | agent-scenarios | agent-scenarios-spark | muse_spark `muse-spark-1.3` | 16 | 0.0% | – | – | – | 100.0% | $0.19 |
 | [20261103-235936_v0.0.1+c0cba9b_full500-spark-contributor-high](nemotron-pii/20261103-235936_v0.0.1+c0cba9b_full500-spark-contributor-high/report.html) | nemotron-pii | full500-spark-contributor-high | muse_spark `muse-spark-1.3-contributor` | 500 | 16.7% | 14.6% | 82.1% | 85.9% | 100.0% | $1.06 |
 | [20261103-234713_v0.0.1+25a6375-dirty_conversations6-spark-minimal-v2](realistic-conversations/20261103-234713_v0.0.1+25a6375-dirty_conversations6-spark-minimal-v2/report.html) | realistic-conversations | conversations6-spark-minimal-v2 | muse_spark `muse-spark-1.3` | 18 | 0.0% | – | 100.0% | – | 100.0% | $0.06 |
