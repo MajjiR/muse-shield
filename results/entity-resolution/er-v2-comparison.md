@@ -1,11 +1,12 @@
 # Entity resolution: v2 results
 
-Base Glimmer and Spark use the v2 prompt (amount roles defined, worked example). er-v1 was scored with the v1 prompt;
-er-v2a/er-v2b with the v2 prompt without the worked example (as trained). Test and challenge sets are the v1 sets, unchanged.
+All runs re-scored with the same scorer (scripts/er_rescore.py). Base Glimmer and Spark use the v2 prompt
+(amount roles defined, worked example); er-v1 was run with the v1 prompt; er-v2a/er-v2b with the v2 prompt
+without the worked example (as trained). Test and challenge are the unchanged v1 sets.
 
 ## test
 
-| Metric | Base Glimmer | Muse Spark (low) | er-v1 | er-v2a | **er-v2b** |
+| Metric | Base Glimmer | Muse Spark | er-v1 | er-v2a | **er-v2b** |
 |---|---|---|---|---|---|
 | Valid JSON | 80.7% | 100.0% | 100.0% | 100.0% | 100.0% |
 | Core leak | 24.7% | 0.6% | 0.2% | 0.2% | 0.1% |
@@ -18,7 +19,7 @@ er-v2a/er-v2b with the v2 prompt without the worked example (as trained). Test a
 
 ## challenge
 
-| Metric | Base Glimmer | Muse Spark (low) | er-v1 | er-v2a | **er-v2b** |
+| Metric | Base Glimmer | Muse Spark | er-v1 | er-v2a | **er-v2b** |
 |---|---|---|---|---|---|
 | Valid JSON | 93.8% | 100.0% | 100.0% | 100.0% | 100.0% |
 | Core leak | 10.9% | 0.4% | 0.3% | 0.1% | 0.3% |
@@ -31,7 +32,7 @@ er-v2a/er-v2b with the v2 prompt without the worked example (as trained). Test a
 
 ## ambiguity
 
-| Metric | Base Glimmer | Muse Spark (low) | er-v1 | er-v2a | **er-v2b** |
+| Metric | Base Glimmer | Muse Spark | er-v1 | er-v2a | **er-v2b** |
 |---|---|---|---|---|---|
 | Valid JSON | — | 100.0% | — | 100.0% | 100.0% |
 | Core leak | — | 0.5% | — | 0.3% | 0.2% |
@@ -44,10 +45,10 @@ er-v2a/er-v2b with the v2 prompt without the worked example (as trained). Test a
 
 ## TAB, real court judgments (127), people only
 
-| Metric | Base Glimmer | Muse Spark (low) | er-v2a | **er-v2b** |
+| Metric | Base Glimmer | Muse Spark | er-v2a | **er-v2b** |
 |---|---|---|---|---|
 | Person leak | 84.9% | 2.9% | 7.1% | 3.3% |
 | Coreference F1 | 0.083 | 0.815 | 0.758 | 0.854 |
 | People resolved to one ID | 13.5% | 80.5% | 73.9% | 79.5% |
 
-All TAB entity types (organisations included): coreference F1 Base Glimmer 0.024, Muse Spark (low) 0.749, er-v2a 0.386, **er-v2b** 0.548.
+All TAB entity types (organisations included): coreference F1 Base Glimmer 0.024, Muse Spark 0.749, er-v2a 0.386, **er-v2b** 0.548.

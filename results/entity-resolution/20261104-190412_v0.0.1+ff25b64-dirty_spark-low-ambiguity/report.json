@@ -39,7 +39,7 @@
     "fn": 26
    },
    "persons_resolved": 0.789272030651341,
-   "dropped_mentions": 5,
+   "dropped_mentions": 0,
    "seconds": 90.1,
    "tokens": {
     "prompt_tokens": 129038,
@@ -54,5 +54,6 @@
   "limit": 0,
   "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)",
   "relaxed": false
- }
+ },
+ "rescored": "scripts/er_rescore.py (current scorer)"
 }

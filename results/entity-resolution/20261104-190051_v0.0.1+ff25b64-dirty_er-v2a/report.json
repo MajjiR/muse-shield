@@ -39,7 +39,7 @@
     "fn": 1
    },
    "persons_resolved": 0.9646017699115044,
-   "dropped_mentions": 5,
+   "dropped_mentions": 0,
    "seconds": 61.4,
    "tokens": {
     "prompt_tokens": 158579,
@@ -81,7 +81,7 @@
     "fn": 0
    },
    "persons_resolved": 0.9539473684210527,
-   "dropped_mentions": 3,
+   "dropped_mentions": 0,
    "seconds": 37.6,
    "tokens": {
     "prompt_tokens": 84163,
@@ -123,7 +123,7 @@
     "fn": 0
    },
    "persons_resolved": 0.7378378378378379,
-   "dropped_mentions": 94,
+   "dropped_mentions": 0,
    "seconds": 78.6,
    "tokens": {
     "prompt_tokens": 206491,
@@ -138,5 +138,6 @@
   "limit": 0,
   "prompt": "muse_shield.resolution.messages without the worked example",
   "relaxed": false
- }
+ },
+ "rescored": "scripts/er_rescore.py (current scorer)"
 }

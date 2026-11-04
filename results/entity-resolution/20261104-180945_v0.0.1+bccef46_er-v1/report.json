@@ -9,6 +9,7 @@
    "valid": 1.0,
    "leak": 0.0022278803309993636,
    "core_leak": 0.0018665422305179655,
+   "person_leak": 0.0019157088122605363,
    "mention": {
     "precision": 0.9871397951893308,
     "recall": 0.9883166428230806,
@@ -38,7 +39,7 @@
     "fn": 4
    },
    "persons_resolved": 0.9557522123893806,
-   "dropped_mentions": 7,
+   "dropped_mentions": 0,
    "seconds": 78.0,
    "tokens": {
     "prompt_tokens": 230129,
@@ -50,6 +51,7 @@
    "valid": 1.0,
    "leak": 0.004162330905306972,
    "core_leak": 0.0028208744710860366,
+   "person_leak": 0.0008149959250203749,
    "mention": {
     "precision": 0.9766997708174179,
     "recall": 0.9830834294502114,
@@ -79,7 +81,7 @@
     "fn": 88
    },
    "persons_resolved": 0.9506578947368421,
-   "dropped_mentions": 6,
+   "dropped_mentions": 0,
    "seconds": 46.6,
    "tokens": {
     "prompt_tokens": 122323,
@@ -93,5 +95,6 @@
   "data": "/Users/majjir/muse-shield/.worktrees/entity-engine/runs/er/v1",
   "limit": 0,
   "prompt": "muse_shield.resolution.messages (system + worked example + numbered units)"
- }
+ },
+ "rescored": "scripts/er_rescore.py (current scorer)"
 }
