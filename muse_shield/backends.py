@@ -267,6 +267,10 @@ def backend_from_env(name: str | None = None, client: httpx.Client | None = None
             client=client,
         )
         b.task = os.environ.get("ANALYSIS_TASK", "full")
+        if b.task == "resolution":  # an entity-resolution LoRA (er-*): its own contract, mentions flattened to spans
+            from .resolution import ResolutionAnalyzer
+            b.max_tokens = 4000
+            return ResolutionAnalyzer(b)
         return b
     if name in META_MODELS:
         env_var, default = META_MODELS[name]

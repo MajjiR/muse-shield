@@ -8,6 +8,7 @@ Benchmark data: [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nem
 
 | run | eval | tag | model | docs | leak ↓ | core leak ↓ | recall ↑ | precision ↑ | valid JSON | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
+| [20261105-011127_v0.0.1+c0a5c1d-dirty_full500-glimmer-er-v2b](nemotron-pii/20261105-011127_v0.0.1+c0a5c1d-dirty_full500-glimmer-er-v2b/report.html) | nemotron-pii | full500-glimmer-er-v2b | glimmer-resolution `accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-eval-er-v2b-1105-0108` | 500 | 31.3% | 25.4% | 74.7% | 88.8% | 99.9% | – GPU |
 | [20261104-231445_v0.0.1+0835ef1-dirty_web-search-consent](agent-scenarios/20261104-231445_v0.0.1+0835ef1-dirty_web-search-consent/report.html) | agent-scenarios | web-search-consent | muse_spark `muse-spark-1.3` | 18 | 0.0% | – | – | – | 100.0% | $0.23 |
 | [20261104-225332_v0.0.1+11bcd6b_after-compute-fix](agent-scenarios/20261104-225332_v0.0.1+11bcd6b_after-compute-fix/report.html) | agent-scenarios | after-compute-fix | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 94.1% | $0.23 |
 | [20261104-224035_v0.0.1+1eb1c8f_after-main-merge](agent-scenarios/20261104-224035_v0.0.1+1eb1c8f_after-main-merge/report.html) | agent-scenarios | after-main-merge | muse_spark `muse-spark-1.3` | 17 | 0.0% | – | – | – | 88.2% | $0.24 |
