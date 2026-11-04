@@ -29,14 +29,17 @@ Sensitive details in the conversation were replaced on the user's device with pl
 - <DEAL_1>, <DECISION_1>, <PLAN_1>, <NEGOTIATION_1>, <PROJECT_1>, <HR_1>: a whole passage about a deal, decision, plan, negotiation, project or HR matter, hidden as one block.
 Rules:
 1. Value placeholders (<PERSON_1>, <ORG_2>, <SALARY_1>, ...) stand for one real value. Write them exactly as given, with the angle brackets, wherever you refer to them. Never guess or invent the real value behind one, and never invent new placeholders.
-2. Passage placeholders (<DEAL_1>, <PLAN_1>, <HR_1>, ...) stand for whole hidden sentences, not a word. Never write one inside a sentence or a document: refer to the passage in plain words ("the incident", "the offer", "the plan") instead, or ask to see it with rule 4.
+2. Passage placeholders (<DEAL_1>, <PLAN_1>, <HR_1>, ...) stand for whole hidden sentences, not a word. Never write one inside a sentence or a document: refer to the passage in plain words ("the incident", "the offer", "the plan") instead, or ask to see it with rule 5.
 3. Answer directly whenever you can. Most requests (drafting, summarizing, explaining, planning) work fine with placeholders. If the user asks you not to name or reveal someone or something, leave that placeholder out of your answer entirely.
-4. When the answer must be built from a hidden passage (an RCA about an incident, a summary of a deal, advice on an offer), ask for its shape rather than writing a generic template with blanks. To ask, reply with exactly one line and nothing else:
+4. When a good answer depends on what a value placeholder actually is, ask to see it before answering: for example judging or researching a location, address, company or place; checking whether an ID, date or amount is plausible or how it compares; or anything a placeholder would make generic. Don't answer with a generic checklist and don't search or use a tool with the placeholder in place of the value. Reply with exactly one line and nothing else:
+NEED_CONTEXT: <LABEL> full <short reason the real value is needed>
+You'll then get the real value if the user allows it (use it only for this answer and its tools), or a note that they declined (then answer as well as you can with placeholders). Never ask for a value the request doesn't need.
+5. When the answer must be built from a hidden passage (an RCA about an incident, a summary of a deal, advice on an offer), ask for its shape rather than writing a generic template with blanks. To ask, reply with exactly one line and nothing else:
 NEED_CONTEXT: <LABEL> <level> <short reason>
 where level is shape (the passage's structure with inner details still masked), summary (a one-line gist) or full (the real text).
 Ask for the least you need: shape before summary before full. Ask for at most one label per reply.
-5. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name.
-6. A message starting "[Image n, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered."""
+6. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name.
+7. A message starting "[Image n, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered."""
 
 # Models sometimes drop the angle brackets ("NEED_CONTEXT: DEAL_1 summary ..."): accept both.
 AGENT_PROMPT = """
@@ -45,8 +48,9 @@ You can also act for the user with these tools:
 To use one, reply with exactly one line and nothing else:
 TOOL_CALL: {{"tool": "<name>", "args": {{...}}}}
 Write people, contacts and values as their placeholders, for example "to": ["<PERSON_1>"]. Never write a real or guessed
-email address, phone number or value: the user's device fills those in, and only after the user confirms. Use one tool per
-reply. You'll then get the tool's result (also masked); after that, answer the user."""
+email address, phone number or value: the user's device fills those in, and only after the user confirms. A placeholder means
+nothing to a search engine: if a web_search needs the real value, ask for it first with NEED_CONTEXT (rule 4), then search
+with the value you were shown. Use one tool per reply. You'll then get the tool's result (also masked); after that, answer the user."""
 
 NEED = re.compile(r"^\s*NEED_CONTEXT:\s*<?([A-Z][A-Z_]*_\d+)>?\s+(shape|summary|full)\b\s*(.*)$", re.I | re.M)
 LEVELS = ("shape", "summary", "full")
