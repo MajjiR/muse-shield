@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS entity_links (
     src TEXT NOT NULL, dst TEXT NOT NULL, rel TEXT NOT NULL, weight INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (src, dst, rel)
 );
+CREATE TABLE IF NOT EXISTS entity_origin (
+    entity_id TEXT PRIMARY KEY, origin TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS outbox (
     id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, tool TEXT NOT NULL, nonce BLOB NOT NULL, payload_ct BLOB NOT NULL, created_at REAL NOT NULL
 );
@@ -250,6 +253,28 @@ class Vault:
                 nonce, ct = self._seal(f"entity:{entity_id}", value.encode())
                 self._db.execute("INSERT INTO entities VALUES (?,?,?,?,?,?)", (entity_id, etype, vh, nonce, ct, time.time()))
         return self._mint(chat_id, base or etype, "entity", entity_id), entity_id
+
+    def find_entity(self, etype: str, value: str) -> str | None:
+        row = self._db.execute("SELECT id FROM entities WHERE type=? AND value_hash=?", (etype, self.value_hash(etype, value))).fetchone()
+        return row[0] if row else None
+
+    # Provenance: a value first seen in a tool result (an email someone sent you, a page) may have been planted
+    # there. Such values can fill in content, but never pick who a message goes to, until you write them yourself.
+    def mark_from_tool(self, entity_ids: list[str]) -> None:
+        with self._lock, self._db:
+            for e in entity_ids:
+                self._db.execute("INSERT OR IGNORE INTO entity_origin VALUES (?, 'tool')", (e,))
+
+    def trust_entities(self, entity_ids: list[str]) -> None:
+        """You wrote these values yourself, so they're yours now, wherever they first came from."""
+        with self._lock, self._db:
+            for e in entity_ids:
+                self._db.execute("DELETE FROM entity_origin WHERE entity_id=?", (e,))
+
+    def from_tool(self, chat_id: str, label: str) -> bool:
+        target = self._target(chat_id, label)
+        return bool(target and target[0] == "entity" and self._db.execute(
+            "SELECT 1 FROM entity_origin WHERE entity_id=?", (target[1],)).fetchone())
 
     def add_context(self, chat_id: str, kind: str, subtype: str | None, text: str, shape: str, summary: str) -> str:
         context_id = "x_" + uuid.uuid4().hex[:12]

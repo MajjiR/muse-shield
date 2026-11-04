@@ -66,7 +66,8 @@ def mask_document(data: bytes, masker: Masker, chat_id: str, *, max_unit_chars: 
     dt = build(h.blocks(doc), max_unit_chars)
     if len(dt.text) > MAX_CHARS:
         raise DocumentError("too_large", f"up to {MAX_CHARS:,} characters of text", 413)
-    masked = masker.mask(dt.text, chat_id, propagate=True, contexts=contexts, on_progress=on_progress, title=False)
+    masked = masker.mask(dt.text, chat_id, propagate=True, contexts=contexts, on_progress=on_progress, title=False,
+                         origin="document")
     if not masked.analysis_ok:
         raise DocumentError("analysis_failed", masked.error, 502)
     # Values the model already saw in this chat stay readable in the chat, but not in a file someone may share.

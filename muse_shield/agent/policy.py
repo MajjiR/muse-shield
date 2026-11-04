@@ -70,15 +70,22 @@ def _recipients(vault: Vault, chat_id: str, value, where: str, out: Checked) -> 
         label = written = labels[0]
         typ = _type_of(vault, chat_id, label)
         if typ == "CONTACT":
+            if vault.from_tool(chat_id, label):
+                out.violations.append(f"{where}: {label} came from a tool result (like an email you received), not from you; "
+                                      "write the address yourself to send to it")
+                continue
             address = vault.resolve(chat_id, label)
             person = None
         elif typ == "PERSON":
             emails = [c for c in vault.contacts_for(chat_id, label) if c["kind"] == "email"]
-            if not emails:
-                out.violations.append(f"{where}: no email address is known for {label}")
+            yours = [c for c in emails if not vault.from_tool(chat_id, c["label"])]
+            if not yours:
+                out.violations.append(f"{where}: no email address is known for {label}" if not emails else
+                                      f"{where}: the only address for {label} came from a tool result (like an email you "
+                                      "received), not from you; write the address yourself to send to it")
                 continue
-            address, person = emails[0]["value"], vault.resolve(chat_id, label)
-            label = emails[0]["label"]
+            address, person = yours[0]["value"], vault.resolve(chat_id, label)
+            label = yours[0]["label"]
         else:
             out.violations.append(f"{where}: {label} is a {typ or 'unknown placeholder'}, not a person or contact")
             continue

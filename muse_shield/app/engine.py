@@ -133,10 +133,12 @@ class Masker:
                 self.vault.link_entities(c["entity_id"], best["entity_id"], "identifies")
 
     def mask(self, text: str, chat_id: str, *, propagate: bool = False, contexts: bool = True, on_progress=None,
-             title: bool = True) -> Masked:
+             title: bool = True, origin: str = "user") -> Masked:
         """Mask `text` for `chat_id`. Documents pass propagate=True (mask every occurrence of a found value),
         contexts=False (a passage block would swallow most of a page), on_progress(done, total) per analysed
-        unit, and title=False (a document shouldn't name the chat)."""
+        unit, and title=False (a document shouldn't name the chat).
+        origin: "user" (you typed it: every value in it is yours), "tool" (a tool result: values seen here
+        first are marked as coming from a tool) or "document" (neither)."""
         t0 = time.perf_counter()
         paras = paragraphs(text)
         try:
@@ -187,10 +189,18 @@ class Masker:
         kept = [e for e in kept if e not in already_sent]
 
         spans: list[dict] = []
+        first_seen: list[str] = []
         for e in kept:
+            known = origin != "tool" or self.vault.find_entity(e["type"], e["text"]) is not None
             label, entity_id = self.vault.entity_placeholder(chat_id, e["type"], e["text"], placeholder_base(e["type"], e["role"]))
             spans.append({**e, "placeholder": label, "entity_id": entity_id, "kind": "entity",
                           "source": "policy" if e["type"] in ALWAYS_MASK else "model"})
+            if not known:
+                first_seen.append(entity_id)
+        if origin == "tool":
+            self.vault.mark_from_tool(first_seen)
+        elif origin == "user":
+            self.vault.trust_entities([s["entity_id"] for s in spans])
         self._link_contacts(text, chat_id, spans)
 
         contexts = []

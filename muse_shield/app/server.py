@@ -72,7 +72,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         chat_model, chat_off = chat_model_from_env(inspector.client("chat"))
     vault = vault or Vault.open()
     masker = Masker(vault, analyzer) if analyzer else None
-    executor = Executor(vault)
+    executor = Executor(vault, masker=masker)
     engine = ChatEngine(vault, masker, chat_model, inspector=inspector, executor=executor) if masker and chat_model else None
     images_off = ""
     if image_masker is None:

@@ -32,6 +32,7 @@ class Tool:
     side_effect: bool  # True: the user confirms a preview with real values before it runs
     external: bool = True  # True: arguments leave the device when it runs
     tags: tuple[str, ...] = field(default_factory=tuple)
+    reads_private: bool = False  # True: its result holds new private data, so the masker runs on it before any agent sees it
 
     def param(self, name: str) -> Param | None:
         return next((p for p in self.params if p.name == name), None)
@@ -59,6 +60,10 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
         Param("title", "text", resolve=frozenset(CONTENT_TYPES)),
         Param("body", "text", resolve=frozenset(CONTENT_TYPES)),
     ), side_effect=False, external=False),
+    Tool("read_inbox", "Read the user's recent emails, newest first. Names, addresses and other details come back as placeholders.", (
+        Param("query", "text", required=False, resolve=frozenset(CONTENT_TYPES | {"CONTACT"}),
+              description="optional words, a <PERSON_n> or a <CONTACT_n> to filter by"),
+    ), side_effect=False, external=False, reads_private=True),
     Tool("web_search", "Search the public web. The query leaves the device, so it stays masked.", (
         Param("query", "text"),
     ), side_effect=False),
