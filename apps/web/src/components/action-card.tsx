@@ -30,6 +30,19 @@ const TOOLS: Record<string, { icon: typeof Mail; wants: string; run: string; don
 }
 export const toolMeta = (tool: string) => TOOLS[tool] ?? { icon: Wrench, wants: `use ${tool}`, run: "Run", done: tool }
 
+/** What a running tool is doing, for the live status line while Muse Spark works. */
+const DOING: Record<string, string> = {
+  read_inbox: "Accessing your mail", search_contacts: "Looking up your contacts", list_events: "Checking your calendar",
+  list_folder: "Opening your documents folder", search_files: "Searching your documents", read_file: "Reading the document",
+  query_table: "Adding up the table on your device", compute: "Calculating on your device", read_transactions: "Reading your bank statement",
+  read_health_records: "Reading your medical reports", read_channel: "Reading the team chat", web_search: "Searching the web",
+}
+export const toolDoing = (tool: string, google = false) =>
+  tool === "read_inbox" && google ? "Accessing your Gmail"
+    : (tool === "list_events" || tool === "search_contacts") && google ? `${DOING[tool]} on Google`
+    : DOING[tool] ?? `Running ${toolMeta(tool).done.toLowerCase()}`
+export const CALC_TOOLS = new Set(["compute", "query_table"])
+
 const FIELD_LABEL: Record<string, string> = {
   to: "To", attendees: "Invite", subject: "Subject", title: "Title", body: "Body", start: "When",
   duration_minutes: "Minutes", location: "Where", query: "Query", channel: "Channel", text: "Message", event_id: "Event",

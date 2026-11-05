@@ -24,8 +24,14 @@ export function Sidebar({ chatId, onSelect, onNew, onConnections }: {
 }) {
   const connections = useQuery({ queryKey: ["connections"], queryFn: engine.connections })
   const linked = connections.data ? [connections.data.google, connections.data.telegram, connections.data.folder].filter((c) => c.connected).length : 0
+  const connectedNames = connections.data
+    ? [connections.data.google.connected && "Gmail", connections.data.telegram.connected && "Telegram", connections.data.folder.connected && "Folder"]
+        .filter(Boolean).join(" · ")
+    : ""
   const chats = useQuery({ queryKey: ["chats"], queryFn: engine.chats })
-  const health = useQuery({ queryKey: ["health"], queryFn: engine.health, refetchInterval: 15000 })
+  // While the engine is starting (it brings up the masking model first), check every 3 s instead of 15 s.
+  const health = useQuery({ queryKey: ["health"], queryFn: engine.health, retry: false,
+                            refetchInterval: (query) => (query.state.data?.analysis ? 15000 : 3000) })
   const [q, setQ] = useState("")
   const qc = useQueryClient()
   const remove = async (id: string, title: string) => {
@@ -109,14 +115,39 @@ export function Sidebar({ chatId, onSelect, onNew, onConnections }: {
       <button type="button" onClick={onConnections}
         className="mx-3 flex items-center justify-between gap-2 rounded-md border border-sidebar-border bg-card px-3 py-2 text-left text-[13px] transition-colors hover:bg-subtle">
         <span className="flex items-center gap-2"><Plug className="size-4" aria-hidden /> Connections</span>
-        <span className="tabular text-[11.5px] text-muted-foreground">{linked ? `${linked} connected` : "Sample data"}</span>
+        <span className="tabular text-[11.5px] text-muted-foreground">{linked ? <span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />{connectedNames}</span> : "Connect"}</span>
       </button>
 
       <div className="m-3 space-y-2 rounded-md border border-sidebar-border bg-card p-3 text-[12px]">
-        {health.isError && <p className="font-medium">Engine unreachable</p>}
+        {!h && (
+          <div className="space-y-1.5">
+            <p className="flex items-center gap-2 font-medium">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+              </span>
+              Connecting to the engine…
+            </p>
+            <p className="text-[11.5px] text-muted-foreground">Starting the masking model can take a few minutes.</p>
+            <button type="button" onClick={() => health.refetch()} disabled={health.isFetching}
+              className="text-[11.5px] font-medium text-foreground underline underline-offset-2 disabled:opacity-50">
+              {health.isFetching ? "Checking…" : "Check connection"}
+            </button>
+          </div>
+        )}
         {h && (
           <>
-            <Status ok={h.analysis} label="Masking" value={modelLabel(h.analysis_model)} />
+            {!h.analysis && h.analysis_off_reason?.startsWith("starting") ? (
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+                </span>
+                Starting the masking model…
+              </p>
+            ) : (
+              <Status ok={h.analysis} label="Masking" value={modelLabel(h.analysis_model)} />
+            )}
             <Status ok={h.chat} label="Answers" value={h.chat_model ?? "off"} />
           </>
         )}

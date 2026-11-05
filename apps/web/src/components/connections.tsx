@@ -54,7 +54,7 @@ export function ConnectionsDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="border-t bg-subtle px-5 py-3 text-[11.5px] leading-snug text-muted-foreground">
-          Sign-ins are kept encrypted in your vault on this device. Until a service is connected, its tools use sample data.
+          Sign-ins are kept encrypted in your vault on this device.
           Finding what to hide sends the text to your masking model's deployment, so use test accounts while prototyping.
         </p>
       </motion.div>
@@ -75,7 +75,7 @@ function Card({ icon: Icon, title, status, children }: {
             {title}
             {status.connected
               ? <span className="flex items-center gap-1 rounded-sm border px-1.5 text-[11px] font-medium"><Check className="size-3" /> Connected</span>
-              : <span className="rounded-sm border border-dashed px-1.5 text-[11px] font-normal text-muted-foreground">Sample data</span>}
+              : <span className="rounded-sm border border-dashed px-1.5 text-[11px] font-normal text-muted-foreground">Not connected</span>}
           </div>
           <div className="truncate text-[12.5px] text-muted-foreground">
             {status.connected && status.account ? status.account : (status.services ?? []).join(" · ")}
