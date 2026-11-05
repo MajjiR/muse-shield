@@ -178,6 +178,7 @@ class ChatEngine:
 
     def __init__(self, vault: Vault, masker: Masker, model: ChatModel, max_ask_rounds: int = 2, inspector=None, executor=None):
         self.vault, self.masker, self.model, self.max_rounds = vault, masker, model, max_ask_rounds
+        self.progress: dict[str, dict] = {}  # chat_id -> what this turn is doing right now (GET /chats/{id}/progress)
         self.inspector, self.executor = inspector, executor
         self.pending: dict[str, Ask] = {}
         self.masks: dict[str, Masked] = {}  # mask previews, so Mask & send doesn't analyze twice
@@ -247,6 +248,7 @@ class ChatEngine:
         t0 = time.perf_counter()
         if self.inspector:
             self.inspector.for_chat(chat_id)
+        self.progress[chat_id] = {"stage": "thinking"}
         content, usage = self.model.complete(messages)
         tokens = {"in": usage.get("prompt_tokens", 0), "out": usage.get("completion_tokens", 0),
                   "cached_in": (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0)}
@@ -291,6 +293,7 @@ class ChatEngine:
         from ..agent.executor import remask
 
         turn.tool_rounds += 1
+        self.progress[chat_id] = {"stage": "tool", "tool": call["tool"]}
         line = "TOOL_CALL: " + json.dumps(remask(call, mapping), ensure_ascii=False)  # never store a raw value in the clear column
         action = self.executor.propose(chat_id, call["tool"], call["args"], origin="chat")
         self.vault.add_message(chat_id, "tool_call", line, meta={"tool": call["tool"], "action_id": action.action_id})

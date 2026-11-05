@@ -83,6 +83,15 @@ def _mode_entries(analyzer) -> dict[str, tuple[Backend, bool]]:
     return {"custom": (analyzer, False)}  # an analyzer passed in directly (tests, embedders)
 
 
+# The services the app itself connects to. Their names are in tool names, results and the user's own words
+# ("check my Telegram"), so they're public: masking one in a tool result would only make the guard refuse the chat.
+SERVICE_NAMES = {"Telegram", "Gmail", "Google", "Google Calendar", "Google Contacts"}
+
+
+def public_names() -> set[str]:
+    return channel_names() | SERVICE_NAMES
+
+
 def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[Backend, bool]], str, str]:
     """All masking modes this server runs: (mode -> (analyzer, classify), default mode, reason analysis is off).
 
@@ -113,6 +122,10 @@ def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[
         analyzer, off = analyzer_from_env(client)
         if analyzer:
             modes = _mode_entries(analyzer)
+        elif os.environ.get("MUSE_SHIELD_GLIMMER_STARTING"):
+            off = "starting: bringing up the fine-tuned Glimmer masking model (a few minutes)"
+        elif os.environ.get("MUSE_SHIELD_GLIMMER_FAILED"):
+            off = f"the fine-tuned Glimmer didn't start: {os.environ['MUSE_SHIELD_GLIMMER_FAILED']}"
     default = os.environ.get("MUSE_SHIELD_DEFAULT_MODE", "")
     return modes, default if default in modes else next(iter(modes), ""), off
 
@@ -161,7 +174,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     # One Masker per analyzer; each chat is locked to one mode (ModeMasker routes by the chat's stored mode).
     # Your chat channel names are workspace structure, never masked.
     maskers: dict[int, Masker] = {}
-    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a, public=channel_names)), classify) for m, (a, classify) in modes.items()}
+    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a, public=public_names)), classify) for m, (a, classify) in modes.items()}
     masker = ModeMasker(vault, masker_for, default_mode) if masker_for else None
     analyzer = masker.analyzer if masker else None
     executor = Executor(vault, masker=masker)
@@ -342,6 +355,11 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         except KeyError as exc:
             raise HTTPException(404, "unknown or already handled action") from exc
         return {"chat_id": a.chat_id, "action": a.for_user()}
+
+    @app.get("/chats/{chat_id}/progress")
+    def chat_progress(chat_id: str):
+        """What the running turn is doing (Muse Spark thinking, or which tool runs on this device), for the UI."""
+        return engine.progress.get(chat_id, {}) if engine else {}
 
     @app.get("/chats/{chat_id}/actions")
     def chat_actions(chat_id: str):

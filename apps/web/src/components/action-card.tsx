@@ -27,8 +27,24 @@ const TOOLS: Record<string, { icon: typeof Mail; wants: string; run: string; don
   post_message: { icon: Send, wants: "post in a team chat channel", run: "Post message", done: "Message" },
   compute: { icon: Calculator, wants: "calculate on your device", run: "Calculate", done: "Calculator" },
   web_search: { icon: Globe, wants: "search the web", run: "Search", done: "Search" },
+  read_telegram: { icon: MessagesSquare, wants: "read your Telegram", run: "Read", done: "Telegram" },
+  send_telegram: { icon: Send, wants: "send a Telegram message", run: "Send message", done: "Telegram message" },
 }
 export const toolMeta = (tool: string) => TOOLS[tool] ?? { icon: Wrench, wants: `use ${tool}`, run: "Run", done: tool }
+
+/** What a running tool is doing, for the live status line while Muse Spark works. */
+const DOING: Record<string, string> = {
+  read_inbox: "Accessing your mail", search_contacts: "Looking up your contacts", list_events: "Checking your calendar",
+  list_folder: "Opening your documents folder", search_files: "Searching your documents", read_file: "Reading the document",
+  query_table: "Adding up the table on your device", compute: "Calculating on your device", read_transactions: "Reading your bank statement",
+  read_health_records: "Reading your medical reports", read_channel: "Reading the team chat", web_search: "Searching the web",
+  read_telegram: "Reading your Telegram", send_telegram: "Sending on Telegram",
+}
+export const toolDoing = (tool: string, google = false) =>
+  tool === "read_inbox" && google ? "Accessing your Gmail"
+    : (tool === "list_events" || tool === "search_contacts") && google ? `${DOING[tool]} on Google`
+    : DOING[tool] ?? `Running ${toolMeta(tool).done.toLowerCase()}`
+export const CALC_TOOLS = new Set(["compute", "query_table"])
 
 const FIELD_LABEL: Record<string, string> = {
   to: "To", attendees: "Invite", subject: "Subject", title: "Title", body: "Body", start: "When",

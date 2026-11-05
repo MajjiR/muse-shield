@@ -178,11 +178,17 @@ The full protocol is in [`CONTRACT.md`](CONTRACT.md).
 | **Documents (PDF, Word, PowerPoint)** | Attach a file to a chat or download a masked copy in the same format. Tracked changes, comments, links, images, charts and metadata are stripped first; PDFs are truly redacted (text under each box removed, the placeholder written back as selectable text); a verifier reopens every copy and refuses it if any masked value is left anywhere in the file | [`muse_shield/documents/`](muse_shield/documents/) |
 | **Chrome extension for meta.ai** | Replaces meta.ai's box with a Muse Shield composer the page can't read; Grammarly-style underlines; restored replies and consent cards inside the meta.ai chat | [`apps/extension/`](apps/extension/) |
 | **Agents over placeholders** | Muse Spark plans tool calls (`TOOL_CALL`) with placeholders; a confirm card shows the real values before anything runs; a local executor fills them in only for a call you confirmed; encrypted outbox, signed envelopes, sealed grants and an HMAC-chained audit log | [`muse_shield/agent/`](muse_shield/agent/) |
-| **Connections** | Anyone signs in from the app: Google (Gmail, Calendar, Contacts) with Google's own sign-in, Telegram with phone and code, and a documents folder. Sign-ins are kept encrypted in the vault; reads are masked, sends need your OK. Setup for the app's keys: [docs/connections.md](docs/connections.md) | [`muse_shield/connectors/`](muse_shield/connectors/), `connections_api.py` |
+| **Connections** | Anyone signs in from the app: Google (Gmail, Calendar, Contacts) with Google's own sign-in, Telegram with phone and code, and a folder of files picked with the Mac's own folder picker (PDF, Word, PowerPoint, text, CSV). Sign-ins are kept encrypted in the vault; reads are masked, sends need your OK. Setup for the app's keys: [docs/connections.md](docs/connections.md) | [`muse_shield/connectors/`](muse_shield/connectors/), `connections_api.py` |
 | **Image masking** | SAM 3.1 finds faces, licence plates, ID and bank cards, documents, signatures and QR codes; faces are blurred and the rest covered with their vault placeholder (`<LICENSE_PLATE_1>`). Muse Spark can ask for one region ("just the plate") and you see a preview before you allow it | [`muse_shield/images/`](muse_shield/images/), `POST /images/mask` |
 | **Inspector and leak audit** | Every outbound request recorded (analysis vs answer), audited for leaked values, with tokens, latency and cost | `inspector.py`, `/inspector/audit` |
 | **Shared client** | TypeScript types and API client for the web app now, and Electron and React Native later | [`packages/core/`](packages/core/) |
 | **Evals and benchmarks** | Public PII benchmark, realistic multi-line and multi-turn loops, agent scenarios; every run versioned with data, charts and cost | [`muse_shield/benchmarks/`](muse_shield/benchmarks/), [`results/`](results/README.md) |
+
+**While it works, you see what it's doing.** A live status names the step that's running on your device ("Accessing
+your Gmail", "Reading your Telegram", "Calculating on your device"). Calculations show as numbered steps, with what Muse
+Spark planned using placeholders above the same sum with your real amounts. The app opens at once, so you can sign in
+to Connections while the masking model starts. Long text (a bank statement, a long document) is masked in parallel
+chunks: a 2,000-character statement takes about 16 s instead of about 60 s.
 
 **Masking modes** (chosen per chat): **Entity resolution** (er-v3a), **Entity resolution + classify** (the same model
 also names the document's category and its extra sensitive details), and **PII + context** (`lora-v2-full`: whole

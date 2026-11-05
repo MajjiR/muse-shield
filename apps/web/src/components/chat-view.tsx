@@ -1,4 +1,5 @@
-import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
+import { ActionCard, CALC_TOOLS, StepLine, toolDoing, toolMeta } from "@/components/action-card"
+import { CalcCard } from "@/components/calc-card"
 import { AskCard } from "@/components/ask-card"
 import { CategoryLine, ModeBadge, ModePicker } from "@/components/categories"
 import { DocumentCard } from "@/components/document-card"
@@ -9,7 +10,7 @@ import { toneForType, toneVars, type Tone } from "@/lib/tones"
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
 import { cn } from "@/lib/utils"
-import type { Ask, AskChoice, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
+import type { AgentAction, Ask, AskChoice, DocumentInfo, ImageInfo, Level, MaskMode, MaskResult, Turn } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowUp, Briefcase, FileUp, HeartPulse, Landmark, Mail, PanelRight, Paperclip, ShieldCheck, Sparkles, Wrench,
@@ -65,11 +66,24 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
 
   const detail = useQuery({ queryKey: ["chat", chatId], queryFn: () => engine.chatDetail(chatId!), enabled: !!chatId })
   const health = useQuery({ queryKey: ["health"], queryFn: engine.health })
+  const conns = useQuery({ queryKey: ["connections"], queryFn: engine.connections })
   const chats = useQuery({ queryKey: ["chats"], queryFn: engine.chats })
   const vault = useQuery({ queryKey: ["vault", chatId], queryFn: () => engine.vault(chatId!), enabled: !!chatId })
   const actions = useQuery({ queryKey: ["actions", chatId], queryFn: () => engine.actions(chatId!), enabled: !!chatId })
   const actionById = useMemo(() => Object.fromEntries((actions.data ?? []).map((a) => [a.action_id, a])), [actions.data])
   const messages = useMemo(() => (chatId ? detail.data?.messages ?? [] : []), [chatId, detail.data])
+  // Calculations in a row (compute / query_table, with their results between them) show as one card of steps.
+  const calcGroups = useMemo(() => {
+    const out: Record<string, AgentAction[] | "skip"> = {}
+    let lead: string | null = null
+    for (const m of messages) {
+      const a = m.role === "tool_call" && m.meta.action_id ? actionById[m.meta.action_id] : undefined
+      if (a && CALC_TOOLS.has(a.tool) && a.status !== "pending") {
+        if (lead) { (out[lead] as AgentAction[]).push(a); out[m.message_id] = "skip" } else { lead = m.message_id; out[lead] = [a] }
+      } else if (!(m.role === "tool_result" && m.meta.action_id)) lead = null
+    }
+    return out
+  }, [messages, actionById])
   // How each tool call ended, from the thread itself (used when the engine restarted and no longer has the action).
   const endedAs = useMemo(() => Object.fromEntries(messages.filter((m) => m.role === "tool_result" && m.meta.action_id)
     .map((m) => [m.meta.action_id!, m.meta.status ?? "finished"])), [messages])
@@ -297,6 +311,9 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
             <>
               {messages.map((m) => {
                 if (m.role === "tool_call") {
+                  const calc = calcGroups[m.message_id]
+                  if (calc === "skip") return null
+                  if (calc && chatId) return <CalcCard key={m.message_id} actions={calc} chatId={chatId} />
                   const a = m.meta.action_id ? actionById[m.meta.action_id] : undefined
                   return a
                     ? <ActionCard key={m.message_id} action={a} busy={!!phase} onDecide={(d) => onAction(a.action_id, d)} />
@@ -315,7 +332,9 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
                 return <MessageView key={m.message_id} m={m} kinds={kinds} />
               })}
               {pending && <PendingMessage pending={pending} />}
-              {(phase === "sending" || phase === "revealing" || phase === "acting") && <Thinking label={PHASE_TEXT[phase]} />}
+              {(phase === "sending" || phase === "revealing" || phase === "acting") && (
+                <Working chatId={chatId} fallback={PHASE_TEXT[phase]} google={!!conns.data?.google.connected} />
+              )}
               <AnimatePresence>{ask && !phase && <AskCard key={ask.ask_id} ask={ask} busy={!!phase} onDecide={onDecide} />}</AnimatePresence>
             </>
           )}
@@ -467,6 +486,41 @@ function Hero({ onPick }: { onPick: (text: string) => void }) {
           </motion.button>
         ))}
       </div>
+    </motion.div>
+  )
+}
+
+/** The live status while a turn runs: which tool is working on this device (polled from the engine), else Muse Spark. */
+function Working({ chatId, fallback, google }: { chatId: string | null; fallback: string; google: boolean }) {
+  const progress = useQuery({ queryKey: ["progress", chatId], queryFn: () => engine.progress(chatId!), enabled: !!chatId,
+                              refetchInterval: 500 })
+  const tool = progress.data?.stage === "tool" ? progress.data.tool : undefined
+  if (!tool) return <Thinking label={fallback} />
+  const Icon = toolMeta(tool).icon
+  const calc = CALC_TOOLS.has(tool)
+  return (
+    <motion.div key={tool} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      className="flex items-center gap-3 rounded-md border bg-card px-3.5 py-3 shadow-soft">
+      <span className="relative grid size-8 place-items-center">
+        <motion.span className="absolute inset-0 rounded-full bg-emerald-400/30"
+          animate={{ scale: [0.8, 1.35], opacity: [0.7, 0] }} transition={{ duration: 1.2, repeat: Infinity }} />
+        <span className="relative grid size-8 place-items-center rounded-full bg-foreground text-background"><Icon className="size-4" aria-hidden /></span>
+      </span>
+      <span className="min-w-0">
+        <span className="flex items-center gap-2 text-[13.5px] font-medium">
+          {toolDoing(tool, google)}
+          <span className="flex gap-1" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <motion.span key={i} className="size-1 rounded-full bg-foreground/60"
+                animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }} />
+            ))}
+          </span>
+        </span>
+        <span className="block text-[12px] text-muted-foreground">
+          {calc ? "With the real amounts, on this device. Muse Spark only gets the result as a placeholder."
+            : "Everything it reads is masked by your Glimmer before Muse Spark sees it."}
+        </span>
+      </span>
     </motion.div>
   )
 }

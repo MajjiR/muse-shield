@@ -312,5 +312,6 @@ export interface ConnectionStatus {
 export interface Connections {
   google: ConnectionStatus;
   telegram: ConnectionStatus;
-  folder: { configured: boolean; connected: boolean; path: string | null; sample: string | null };
+  folder: { configured: boolean; connected: boolean; path: string | null; sample: string | null;
+            files?: { count: number; names: string[] } | null; can_browse?: boolean };
 }

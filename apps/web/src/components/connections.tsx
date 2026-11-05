@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { engine } from "@/lib/engine"
 import { cn } from "@/lib/utils"
-import type { ConnectionStatus } from "@muse-shield/core"
+import type { Connections, ConnectionStatus } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Check, FolderOpen, Loader2, Mail, Send, X } from "lucide-react"
+import { Check, FileText, FolderOpen, Loader2, Mail, Send, X } from "lucide-react"
 import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -48,13 +48,13 @@ export function ConnectionsDialog({ onClose }: { onClose: () => void }) {
             <>
               <GoogleCard status={c.google} onChange={refresh} />
               <TelegramCard status={c.telegram} onChange={refresh} />
-              <FolderCard path={c.folder.path} onChange={refresh} />
+              <FolderCard folder={c.folder} onChange={refresh} />
             </>
           )}
         </div>
 
         <p className="border-t bg-subtle px-5 py-3 text-[11.5px] leading-snug text-muted-foreground">
-          Sign-ins are kept encrypted in your vault on this device. Until a service is connected, its tools use sample data.
+          Sign-ins are kept encrypted in your vault on this device.
           Finding what to hide sends the text to your masking model's deployment, so use test accounts while prototyping.
         </p>
       </motion.div>
@@ -75,7 +75,7 @@ function Card({ icon: Icon, title, status, children }: {
             {title}
             {status.connected
               ? <span className="flex items-center gap-1 rounded-sm border px-1.5 text-[11px] font-medium"><Check className="size-3" /> Connected</span>
-              : <span className="rounded-sm border border-dashed px-1.5 text-[11px] font-normal text-muted-foreground">Sample data</span>}
+              : <span className="rounded-sm border border-dashed px-1.5 text-[11px] font-normal text-muted-foreground">Not connected</span>}
           </div>
           <div className="truncate text-[12.5px] text-muted-foreground">
             {status.connected && status.account ? status.account : (status.services ?? []).join(" · ")}
@@ -195,33 +195,63 @@ function TelegramCard({ status, onChange }: { status: ConnectionStatus; onChange
   )
 }
 
-function FolderCard({ path, onChange }: { path: string | null; onChange: () => void }) {
+function FolderCard({ folder, onChange }: { folder: Connections["folder"]; onChange: () => void }) {
   const [value, setValue] = useState("")
-  const [busy, setBusy] = useState(false)
-  const choose = async () => {
-    setBusy(true)
+  const [busy, setBusy] = useState<null | "type" | "browse">(null)
+  const path = folder.path
+  const run = async (how: "type" | "browse") => {
+    setBusy(how)
     try {
-      await engine.chooseFolder(value)
+      await (how === "browse" ? engine.pickFolder() : engine.chooseFolder(value))
       setValue("")
       onChange()
     } catch (e) {
-      toast.error((e as Error).message)
+      const msg = (e as Error).message
+      if (!msg.includes("no folder chosen")) toast.error(msg)
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
   return (
-    <Card icon={FolderOpen} title="Documents folder" status={{ connected: !!path, account: path, services: ["Files", "PDFs", "Statements"] }}>
+    <Card icon={FolderOpen} title="Folders and files" status={{ connected: !!path, account: path, services: ["Documents", "PDFs", "Spreadsheets"] }}>
       {path ? (
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[12.5px] text-muted-foreground">Browsed by id, masked when read, totals worked out on this device.</span>
-          <Button variant="ghost" size="sm" onClick={async () => { await engine.disconnect("folder"); onChange() }}>Use samples</Button>
+        <div className="space-y-2">
+          {folder.files && (
+            <div className="rounded-md border bg-subtle px-3 py-2">
+              <div className="mb-1 text-[11.5px] text-muted-foreground">
+                <span className="tabular font-medium text-foreground">{folder.files.count}</span> file{folder.files.count === 1 ? "" : "s"} Muse Shield can open
+              </div>
+              <ul className="space-y-0.5">
+                {folder.files.names.map((n) => (
+                  <li key={n} className="flex items-center gap-1.5 truncate font-mono text-[12px]"><FileText className="size-3 shrink-0" aria-hidden />{n}</li>
+                ))}
+                {folder.files.count > folder.files.names.length && (
+                  <li className="text-[11.5px] text-muted-foreground">and {folder.files.count - folder.files.names.length} more</li>
+                )}
+              </ul>
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[12.5px] text-muted-foreground">Files are masked when read; totals are worked out on this device.</span>
+            <div className="flex gap-1">
+              {folder.can_browse && <Button variant="ghost" size="sm" disabled={!!busy} onClick={() => run("browse")}>Change…</Button>}
+              <Button variant="ghost" size="sm" onClick={async () => { await engine.disconnect("folder"); onChange() }}>Disconnect</Button>
+            </div>
+          </div>
         </div>
       ) : (
-        <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); choose() }}>
-          <Field label="Folder on this computer" value={value} onChange={setValue} placeholder="~/Documents/Finance" />
-          <Button size="sm" type="submit" disabled={busy || !value}>{busy && <Loader2 className="animate-spin" />} Use folder</Button>
-        </form>
+        <div className="space-y-2">
+          {folder.can_browse && (
+            <Button size="sm" disabled={!!busy} onClick={() => run("browse")}>
+              {busy === "browse" ? <Loader2 className="animate-spin" /> : <FolderOpen />} Choose a folder…
+            </Button>
+          )}
+          <form className="flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); run("type") }}>
+            <Field label={folder.can_browse ? "Or type its path" : "Folder on this computer"} value={value} onChange={setValue} placeholder="~/Documents/Finance" />
+            <Button size="sm" variant="outline" type="submit" disabled={!!busy || !value}>{busy === "type" && <Loader2 className="animate-spin" />} Use folder</Button>
+          </form>
+          <p className="text-[11.5px] text-muted-foreground">PDF, Word, PowerPoint, text, CSV and TSV files, in this folder and its subfolders.</p>
+        </div>
       )}
     </Card>
   )

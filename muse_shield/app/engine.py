@@ -11,6 +11,7 @@ If any paragraph's analysis fails, the whole message is reported unmasked-and-bl
 
 from __future__ import annotations
 
+import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -22,6 +23,11 @@ from ..backends import Backend, BackendError
 from ..costs import run_cost
 from .vault import Vault
 
+# Entity resolution writes about 3 output tokens per input character on dense text (a statement: every date, amount
+# and payee is an entry), so one call over a long text takes minutes. Longer text is masked in parallel chunks:
+# small ones for tool results and documents, larger for your own messages (they keep names linked across a message).
+ER_CHUNK_CHARS = int(os.environ.get("MUSE_SHIELD_ER_CHUNK", "1200"))
+ER_CHUNK_CHARS_READ = int(os.environ.get("MUSE_SHIELD_ER_CHUNK_READ", "300"))
 ALWAYS_MASK = {"PERSON", "ID", "CONTACT", "SECRET", "ADDRESS"}  # hard rules; the model can't keep these
 _PARA = re.compile(r"(?:[^\n]|\n(?![ \t]*\n))+")
 _NUMBER = re.compile(r"\d[\d,.]*")
@@ -106,6 +112,44 @@ class Masker:
                 for done, _ in enumerate(as_completed(futures), 1):
                     on_progress(done, len(futures))
             return [f.result() for f in futures]
+
+    @staticmethod
+    def _units(paras: list[tuple[int, str]], size: int) -> list[tuple[int, str]]:
+        """Paragraphs, with any paragraph longer than a chunk split at its line breaks (a bank statement is one
+        long paragraph of lines), so long text can be masked in pieces."""
+        out = []
+        for off, p in paras:
+            if len(p) <= size or "\n" not in p:
+                out.append((off, p))
+                continue
+            cursor = 0
+            for line in p.split("\n"):
+                if line.strip():
+                    out.append((off + cursor + (len(line) - len(line.lstrip())), line.strip()))
+                cursor += len(line) + 1
+        return out
+
+    def _analyze_chunked(self, text: str, paras: list[tuple[int, str]], size: int):
+        """Entity resolution in one call for short text; long text (a statement, a 10-page document) in chunks of
+        about ER_CHUNK_CHARS, masked in parallel. One call over everything is slow (the answer lists every value)
+        and can run out of room. The vault still gives a value the same placeholder in every chunk."""
+        if len(text) <= size or len(paras) == 1:
+            return self.analyzer.analyze_document(text, paras)
+        chunks, cur = [], []
+        for off, p in paras:
+            if cur and (off + len(p) - cur[0][0]) > size:
+                chunks.append(cur)
+                cur = []
+            cur.append((off, p))
+        chunks.append(cur)
+
+        def run(chunk):
+            start, end = chunk[0][0], chunk[-1][0] + len(chunk[-1][1])
+            return self.analyzer.analyze_document(text[start:end], [(off - start, p) for off, p in chunk])
+
+        with ThreadPoolExecutor(max_workers=min(8, len(chunks))) as pool:
+            parts = list(pool.map(run, chunks))
+        return [a for part in parts for a in part]  # each chunk's usage sits on its first analysis; mask() sums them
 
     @staticmethod
     def _propagate(text: str, entities: list[dict]) -> list[dict]:
@@ -200,7 +244,9 @@ class Masker:
                         analyses = self.analyzer.analyze_document(text, paras)
                         cls = pending.result()
                 else:
-                    analyses = self.analyzer.analyze_document(text, paras) if paras else []
+                    size = ER_CHUNK_CHARS_READ if origin != "user" or propagate else ER_CHUNK_CHARS
+                    paras = self._units(paras, size)
+                    analyses = self._analyze_chunked(text, paras, size) if paras else []
                 if on_progress:
                     on_progress(1, 1)
             else:
