@@ -114,3 +114,43 @@ def test_deleting_an_image_removes_its_original(tmp_path):
     assert vault.image_original(info["image_id"]) == picture()
     assert c.post(f"/images/{info['image_id']}/delete").json()["ok"]
     assert vault.image_original(info["image_id"]) is None and c.get(f"/images/{info['image_id']}/original").status_code == 404
+
+
+def make_sam_only(tmp_path, replies=()):
+    from test_images import FACE_BOX, NAME_BOX
+    scripted = ScriptedModel(list(replies))
+    model = ChatModel("https://api.meta.test/v1", "muse-spark-1.3", "k", client=httpx.Client(transport=scripted.transport()))
+    vault = Vault(tmp_path / "v.db", b"\x67" * 32)
+    _, sam, _ = fake_meta(sam_faces=(FACE_BOX,), sam_plates=(NAME_BOX,))
+    app = create_app(vault, fake_values({}), model, image_masker=ImageMasker(vault, None, sam))
+    return TestClient(app), scripted, vault
+
+
+def test_a_sam_only_picture_goes_to_spark_masked_and_lists_its_covered_parts(tmp_path):
+    c, m, _ = make_sam_only(tmp_path, ["A damaged car."])
+    info = upload(c, name="car.jpg").json()
+    c.post("/chat", json={"message": "What's this?", "chat_id": info["chat_id"], "image_ids": [info["image_id"]]})
+    sent = m.payloads[0]["messages"][-2]["content"]  # the image message, before the question
+    assert isinstance(sent, list) and sent[0]["type"] == "image_url"  # the masked picture itself, not just its text
+    assert "Covered: <FACE_1> (face, blurred), <LICENSE_PLATE_1> (license plate)" in sent[1]["text"]
+
+
+def test_spark_asks_for_just_the_plate_and_the_face_stays_blurred(tmp_path):
+    import base64
+    from muse_shield.images import render_partial
+    c, m, vault = make_sam_only(tmp_path, ["NEED_CONTEXT: <LICENSE_PLATE_1> full the claim needs the vehicle number",
+                                           "Dear insurer, my car (number in the photo) was damaged."])
+    info = upload(c, name="car.jpg").json()
+    ask = c.post("/chat", json={"message": "Draft a mail to my insurer about this accident.", "chat_id": info["chat_id"],
+                                "image_ids": [info["image_id"]]}).json()["ask"]
+    assert ask["kind"] == "image_region" and ask["label"] == "<LICENSE_PLATE_1>" and "faces" in ask["preview"]
+    shown = c.get(ask["previews"]["full"]).content
+    expected = render_partial(picture(), vault.image(info["image_id"])["regions"], {"<LICENSE_PLATE_1>"})
+    assert shown == expected and shown != picture()  # the card shows exactly what would go: only the plate uncovered
+    done = c.post("/reveal", json={"ask_id": ask["ask_id"], "decision": "allow"}).json()
+    assert done["reply"].startswith("Dear insurer")
+    second = json.dumps(m.payloads[1]["messages"])
+    assert base64.b64encode(expected).decode()[:200] in second  # that partial copy went, and the original didn't
+    assert base64.b64encode(picture()).decode()[:200] not in second and "faces and every other covered part" in second
+    assert vault.consents(info["chat_id"])[-1]["label"] == "<LICENSE_PLATE_1>"
+    assert c.get(f"/images/{info['image_id']}/reveal", params={"labels": "<PASSPORT_9>"}).status_code == 404

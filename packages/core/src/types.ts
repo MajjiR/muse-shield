@@ -55,7 +55,7 @@ export interface MaskResult {
 /** One value, passage or picture Muse Spark asked to see. */
 export interface AskItem {
   label: string;
-  kind: "entity" | "context" | "image";
+  kind: "entity" | "context" | "image" | "image_region"; // image_region: one covered part of a picture
   level: Level;
   reason: string;
   preview: string;

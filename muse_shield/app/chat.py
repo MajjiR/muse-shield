@@ -13,6 +13,7 @@ import json
 import os
 import re
 import time
+import urllib.parse
 import uuid
 from dataclasses import dataclass, field
 
@@ -41,7 +42,7 @@ Ask for the least you need: shape before summary before full. If the answer need
 (a tax comparison needs the salary, the deductions and the premiums), ask for all of them in the same reply, one
 NEED_CONTEXT line each and nothing else, so the user decides once. Never ask for one you don't need.
 6. A message starting "[Document n · …]" is a file the user attached, masked the same way. Refer to it as "the document" or by its number, never by a file name.
-7. A message starting "[<IMAGE_n>, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden values: don't try to identify anyone or read what is covered. If a good answer needs what the masking hides (who or what is in it, a covered card or plate), ask to see the original picture with exactly one line: NEED_CONTEXT: <IMAGE_n> full <short reason>. Otherwise answer from what you can see."""
+7. A message starting "[<IMAGE_n>, …]" is a picture the user attached. Faces in it are blurred on purpose and labelled bars cover hidden parts (it lists them, e.g. <LICENSE_PLATE_1>): don't try to identify anyone or read what is covered. If a good answer needs one covered part (the number plate for an insurance claim, a card), ask for just that part, so everything else stays hidden: NEED_CONTEXT: <LICENSE_PLATE_1> full <short reason>. Ask for the whole original picture (NEED_CONTEXT: <IMAGE_n> full <short reason>) only if you truly need everything it hides, faces included. Otherwise answer from what you can see."""
 
 def _mime(data: bytes) -> str:
     return next((m for sig, m in ((b"\x89PNG", "image/png"), (b"\xff\xd8", "image/jpeg"), (b"GIF8", "image/gif"),
@@ -207,6 +208,10 @@ class ChatEngine:
                     msgs.append({"role": "user", "content": m["masked_text"]})
             elif m["role"] == "reveal" and m["meta"].get("image_id"):
                 original = self.vault.image_original(m["meta"]["image_id"])
+                if original and m["meta"].get("reveal"):  # only the parts you allowed, re-masked from the original
+                    from ..images import render_partial
+                    regions = (self.vault.image(m["meta"]["image_id"]) or {}).get("regions", [])
+                    original = render_partial(original, regions, set(m["meta"]["reveal"]))
                 if original:  # you allowed it on the consent card
                     url = f"data:{_mime(original)};base64," + base64.b64encode(original).decode()
                     msgs.append({"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}},
@@ -385,8 +390,10 @@ class ChatEngine:
             if not info or info["chat_id"] != chat_id:
                 raise ChatError("unknown image for this chat")
             read = info.get("masked_text", "").strip()
+            parts = ", ".join(f"{r['label']} ({r['kind'].replace('_', ' ')}{', blurred' if r['kind'] in ('face', 'photo_id') else ''})"
+                              for r in info.get("regions", []))
             text = (f"[<IMAGE_{info['n']}>, masked like the rest of this chat: faces blurred, cards, plates and values "
-                    f"covered]")
+                    f"covered{f'. Covered: {parts}' if parts else ''}]")
             if read:
                 text += f"\nText in the image: {read}"
             attached.add(image_id)
@@ -435,8 +442,23 @@ class ChatEngine:
             turn.error = str(exc)
         return turn
 
+    def _region_for(self, chat_id: str, label: str) -> dict | None:
+        """<LICENSE_PLATE_1> -> the latest image of this chat that covers a part with that label (its original kept)."""
+        for image in sorted(self.vault.images(chat_id), key=lambda i: -i["n"]):
+            info = self.vault.image(image["image_id"])
+            if info and any(r["label"] == label and r["kind"] != "text" for r in info.get("regions", [])) \
+                    and self.vault.image_original(image["image_id"]):  # a covered name is a value: it reveals as text
+                return info
+        return None
+
     def _ask_item(self, chat_id: str, label: str, level: str, reason: str, mapping: dict) -> dict | None:
         """One value, passage or picture asked for, with exactly what each level would send; None if unknown."""
+        region = None if re.fullmatch(r"<IMAGE_\d+>", label) else self._region_for(chat_id, label)
+        if region:
+            kind = next(r["kind"] for r in region["regions"] if r["label"] == label).replace("_", " ")
+            return {"label": label, "kind": "image_region", "level": "full", "reason": reason, "image_id": region["image_id"],
+                    "preview": f"<IMAGE_{region['n']}> with only the {kind} {label} uncovered; faces and every other part stay hidden.",
+                    "previews": {"full": f"/images/{region['image_id']}/reveal?labels={urllib.parse.quote(label)}"}}
         image = self._image_for(chat_id, label)
         if image:
             return {"label": label, "kind": "image", "level": "full", "reason": reason,
@@ -451,11 +473,27 @@ class ChatEngine:
         previews = {lv: self.vault.resolve(chat_id, label, lv) for lv in (LEVELS if kind == "context" else ("full",))}
         return {"label": label, "kind": kind, "level": level, "reason": reason, "preview": previews[level], "previews": previews}
 
+    def _reveal_parts(self, chat_id: str, image_id: str, items: list[dict]) -> None:
+        """Covered parts of one picture you allowed: one copy goes out with exactly those parts uncovered."""
+        labels = [i["label"] for i in items]
+        for i in items:
+            self.vault.consent(chat_id, i["label"], "full", "allow", i["reason"])
+        n = (self.vault.image(image_id) or {}).get("n", "?")
+        note = (f"[The user let you see {', '.join(labels)} in <IMAGE_{n}>, uncovered in this copy; faces and every other "
+                "covered part are still hidden]")
+        self.vault.add_message(chat_id, "reveal", note, meta={"label": ", ".join(labels), "level": "full", "decision": "allow",
+                                                              "image_id": image_id, "reveal": labels})
+
     def _reveal_one(self, chat_id: str, item: dict, decision: str, level: str | None) -> None:
         """Log the consent for one value and tell the model: the value (at the chosen level), or that it was declined."""
         label, kind = item["label"], item["kind"]
         if decision not in ("allow", "deny"):
             decision = "deny"
+        if kind == "image_region":  # declined here; allowed parts go through _reveal_parts
+            self.vault.consent(chat_id, label, "full", "deny", item["reason"])
+            self.vault.add_message(chat_id, "reveal", f"[The user declined to show {label}. Answer from the masked picture.]",
+                                   meta={"label": label, "level": "full", "decision": "deny"})
+            return
         if level and level != item["level"] and kind == "context" and level in item["previews"]:
             item = {**item, "level": level, "preview": item["previews"][level]}
         self.vault.consent(chat_id, label, item["level"], decision, item["reason"])
@@ -486,10 +524,16 @@ class ChatEngine:
         ask = self.pending.pop(ask_id, None)
         if ask is None:
             raise ChatError("unknown or already answered ask")
+        parts: dict[str, list[dict]] = {}
         for item in ask.items or [{"label": ask.label, "kind": ask.kind, "level": ask.level, "reason": ask.reason,
                                    "preview": ask.preview, "previews": ask.previews}]:
             choice = (items or {}).get(item["label"]) or {"decision": decision, "level": level}
+            if item["kind"] == "image_region" and choice.get("decision", decision) == "allow":
+                parts.setdefault(item["image_id"], []).append(item)  # one copy per picture, every allowed part shown
+                continue
             self._reveal_one(ask.chat_id, item, choice.get("decision", decision), choice.get("level"))
+        for image_id, allowed in parts.items():
+            self._reveal_parts(ask.chat_id, image_id, allowed)
         turn = Turn(ask.chat_id)
         try:
             self._send(ask.chat_id, turn)

@@ -77,6 +77,19 @@ def add_image_routes(app: FastAPI, vault: Vault, image_masker, images_off: str) 
                                       (b"RIFF", "image/webp")) if data.startswith(sig)), "application/octet-stream")
         return Response(data, media_type=kind, headers={"Cache-Control": "no-store"})
 
+    @app.get("/images/{image_id}/reveal")
+    def partial_png(image_id: str, labels: str = ""):
+        """The picture with only the parts named in `labels` uncovered, for the consent card on this device only."""
+        from ..images import render_partial
+
+        info, data = vault.image(image_id), vault.image_original(image_id)
+        if not info or data is None:
+            raise HTTPException(404, "no original kept for this image")
+        wanted = {x.strip() for x in labels.split(",") if x.strip()}
+        if not wanted <= {r["label"] for r in info.get("regions", [])}:
+            raise HTTPException(404, "that part isn't covered in this image")
+        return Response(render_partial(data, info["regions"], wanted), media_type="image/png", headers={"Cache-Control": "no-store"})
+
     @app.post("/images/{image_id}/delete")
     def delete_image(image_id: str):
         if not vault.image(image_id):

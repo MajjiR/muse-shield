@@ -8,7 +8,7 @@ import httpx
 
 from ..backends import BackendError
 from ..config import load_env
-from .masker import ImageMasked, ImageMasker, ImageRefused
+from .masker import ImageMasked, ImageMasker, ImageRefused, render_partial
 from .meta import Box, GlimmerTextCheck, Sam, SparkVision
 
 META_URL = "https://api.meta.ai/v1"
@@ -37,5 +37,5 @@ def image_models_from_env(client: httpx.Client | None = None) -> tuple[SparkVisi
         return None, None, str(exc)
 
 
-__all__ = ["Box", "GlimmerTextCheck", "ImageMasked", "ImageMasker", "ImageRefused", "Sam", "SparkVision",
+__all__ = ["Box", "GlimmerTextCheck", "ImageMasked", "ImageMasker", "ImageRefused", "Sam", "render_partial", "SparkVision",
            "image_models_from_env"]
