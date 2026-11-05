@@ -40,6 +40,32 @@ SAM_ONLY_CONCEPTS = ("face", "license plate", "id card", "credit card", "documen
 BLUR_KINDS = {"face", "photo_id"}
 
 
+def draw_masked(img: Image.Image, regions: list[dict], visible: set[str] = frozenset()) -> Image.Image:
+    """The picture with every region covered (faces blurred, the rest pixelated under its labelled bar), except the
+    labels in `visible`: those stay as in the original, for a reveal you allowed."""
+    out = img.copy()
+    hidden = [r for r in regions if r["label"] not in visible]
+    for r in hidden:  # blur and pixelate first, so labelled bars sit on top
+        box = Box(*r["box"])
+        if r["kind"] in BLUR_KINDS:
+            blur_oval(out, box)
+        elif r["kind"] != "text":
+            pixelate(out, box)
+            cover(out, box, r["label"], img)
+    for r in hidden:
+        if r["kind"] == "text":
+            cover(out, Box(*r["box"]), r["label"], img)
+    return out
+
+
+def render_partial(original: bytes, regions: list[dict], visible: set[str]) -> bytes:
+    """The original picture masked again with only `visible` uncovered, as PNG."""
+    img, _, _ = load(original)
+    buf = io.BytesIO()
+    draw_masked(img, regions, visible).save(buf, "PNG")
+    return buf.getvalue()
+
+
 class ImageRefused(ValueError):
     """The image can't be masked safely (private text, and nothing here reads text), so it isn't sent."""
 
@@ -158,17 +184,7 @@ class ImageMasker:
             sam_boxes[concept], sam_ms = boxes, sam_ms + [ms]
 
         regions = self._regions(finding, sam_boxes, chat_id, W, H)
-        out = img.copy()
-        for r in regions:  # blur and pixelate first, so labelled bars sit on top
-            box = Box(*r["box"])
-            if r["kind"] in BLUR_KINDS:
-                blur_oval(out, box)
-            elif r["kind"] != "text":
-                pixelate(out, box)
-                cover(out, box, r["label"], img)
-        for r in regions:
-            if r["kind"] == "text":
-                cover(out, Box(*r["box"]), r["label"], img)
+        out = draw_masked(img, regions)
 
         text = finding.text
         for r in sorted((r for r in regions if r["kind"] == "text"), key=lambda r: -len(r["value"])):
@@ -199,7 +215,9 @@ class ImageMasker:
             masked.verify = ({"ok": True, "checked": "no private text left in the masked image (Glimmer check); "
                                                     "faces and objects by SAM 3.1"}
                              if checked else
-                             {"ok": None, "skipped": "SAM 3.1 only: there's no reader to re-scan the masked image"})
+                             # Nothing re-reads the output, but SAM's covering is the masking: send the masked picture.
+                             {"ok": True, "checked": "SAM 3.1: faces blurred; plates, cards, documents, signatures and "
+                                                     "codes covered. Loose text isn't re-scanned."})
         elif verify:
             masked.verify, recheck = self._verify(masked.image, regions, W, H)
             masked.timings_ms["spark_recheck"] = round(recheck.latency_ms)

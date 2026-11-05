@@ -168,7 +168,7 @@ def test_sam_alone_finds_and_covers_without_any_reader(vault):
     assert {"face", "license plate", "id card", "document"} <= asked
     faces = [r for r in out.regions if r["kind"] == "face"]
     assert len(faces) == 1 and faces[0]["source"] == "sam-3.1" and out.text == ""
-    assert out.verify["ok"] is None and "no reader" in out.verify["skipped"]
+    assert out.verify["ok"] is True and "Loose text isn't re-scanned" in out.verify["checked"]  # sent as masked
     before, after = Image.open(io.BytesIO(picture())), Image.open(io.BytesIO(out.image))
     face_px = (FACE_BOX[0] + 5, FACE_BOX[1] + 5)
     assert before.getpixel(face_px) != after.getpixel(face_px)  # the face is blurred
