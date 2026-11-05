@@ -3,6 +3,7 @@
     .venv/bin/python scripts/seed_google_demo.py --dry-run     # show what it would add
     .venv/bin/python scripts/seed_google_demo.py               # sign in (browser), add everything
     .venv/bin/python scripts/seed_google_demo.py --clean       # remove only what this script added
+    .venv/bin/python scripts/seed_google_demo.py --only contacts,calendar   # just some of it
 
 Uses the app's Desktop OAuth client (MUSE_SHIELD_GOOGLE_CLIENT_FILE) with its own one-time consent, because
 seeding needs more than the app ever asks for: placing mail in the inbox (gmail.modify), creating contacts
@@ -174,7 +175,16 @@ class Google:
 
 
 # -- seed and clean -----------------------------------------------------------------------------------------------
-def seed(g: Google, me: str) -> None:
+def seed(g: Google, me: str, only: set[str]) -> None:
+    if "mail" in only:
+        seed_mail(g, me)
+    if "contacts" in only:
+        seed_contacts(g, me)
+    if "calendar" in only:
+        seed_calendar(g, me)
+
+
+def seed_mail(g: Google, me: str) -> None:
     label = g.label_id(create=True)
     for m in emails(me):
         msg = EmailMessage()
@@ -185,6 +195,9 @@ def seed(g: Google, me: str) -> None:
         g("POST", f"{GMAIL}/messages", params={"internalDateSource": "dateHeader"},
           json={"raw": raw, "labelIds": ["INBOX", "UNREAD", label]})
         print(f"  mail     {m['subject']}  (from {m['from']})")
+
+
+def seed_contacts(g: Google, me: str) -> None:
     group = g.group(create=True)
     made = []
     for slug, (name, org, phone) in PEOPLE_DATA.items():
@@ -194,6 +207,9 @@ def seed(g: Google, me: str) -> None:
         made.append(g("POST", f"{PEOPLE}/people:createContact", json=body)["resourceName"])
         print(f"  contact  {name} <{addr(me, slug)}>")
     g("POST", f"{PEOPLE}/{group}/members:modify", json={"resourceNamesToAdd": made})
+
+
+def seed_calendar(g: Google, me: str) -> None:
     for ev in events(me):
         end = ev["start"] + timedelta(minutes=ev["minutes"])
         body = {"summary": ev["summary"], "start": {"dateTime": ev["start"].isoformat()}, "end": {"dateTime": end.isoformat()},
@@ -229,6 +245,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="show what would be added, without signing in")
     ap.add_argument("--clean", action="store_true", help="remove everything this script added")
     ap.add_argument("--me", help="your Gmail address, for --dry-run's + aliases")
+    ap.add_argument("--only", default="mail,contacts,calendar", help="which parts to seed, comma-separated")
     args = ap.parse_args()
     for line in Path(__file__).resolve().parents[1].joinpath(".env").read_text().splitlines():
         if "=" in line and not line.lstrip().startswith("#"):
@@ -249,7 +266,7 @@ def main() -> int:
     print(f"Signed in as {me}")
     if not me.endswith("@gmail.com"):
         print("  note: '+' aliases are a Gmail feature; on other domains demo addresses may not deliver")
-    (clean if args.clean else seed)(g, me)
+    clean(g) if args.clean else seed(g, me, {x.strip() for x in args.only.split(",")})
     print("Done." if not args.clean else "Cleaned.")
     return 0
 
