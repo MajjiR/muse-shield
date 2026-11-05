@@ -75,3 +75,38 @@ def test_first_name_on_a_later_turn_keeps_the_label(tmp_path):
     later = masker.mask("Can Rohan start on Monday?", "chat-1")
     rohan = next(s["placeholder"] for s in first.spans if s["text"] == "Rohan Majji")
     assert later.masked_text == f"Can {rohan} start on Monday?"
+
+
+def test_long_text_is_masked_in_parallel_chunks(monkeypatch):
+    """A long statement goes to the model in chunks; every chunk's values are found, offsets stay right."""
+    from muse_shield.app import engine as eng
+    from muse_shield.app.engine import Masker
+    from muse_shield.app.vault import Vault
+    import tempfile, pathlib
+
+    monkeypatch.setattr(eng, "ER_CHUNK_CHARS", 60)
+    monkeypatch.setattr(eng, "ER_CHUNK_CHARS_READ", 60)
+    seen = []
+
+    class Fake:
+        model = "fake"
+
+        def analyze_document(self, text, paras):
+            from muse_shield.analysis import Analysis, Span
+            seen.append(text)
+            out = []
+            for _, p in paras:
+                a = Analysis(p, [p])
+                for name in ("Asha Rao", "Vikram Shah"):
+                    if name in p:
+                        a.entities.append(Span(name, "PERSON", p.index(name), p.index(name) + len(name)))
+                a.usage = {"prompt_tokens": 1, "completion_tokens": 1}
+                out.append(a)
+            return out
+
+    text = "\n".join(f"01 Oct  UPI to Asha Rao  ₹{i}00  ref {i}" if i % 2 else f"02 Oct  paid Vikram Shah  ₹{i}50" for i in range(1, 9))
+    vault = Vault(pathlib.Path(tempfile.mkdtemp()) / "v.db", b"\x37" * 32)
+    m = Masker(vault, Fake()).mask(text, vault.create_chat())
+    assert len(seen) > 1 and all(len(t) <= 60 for t in seen)
+    assert "Asha Rao" not in m.masked_text and "Vikram Shah" not in m.masked_text
+    assert m.masked_text.count("<PERSON_1>") == 4 and m.masked_text.count("<PERSON_2>") == 4
