@@ -383,7 +383,7 @@ def segments(text: str, chat_id: str, vault: Vault) -> list[dict]:
 MODES = {
     "pii_context": {"label": "PII + context", "detail": "Fine-tuned Glimmer (v2-full): names, values and whole confidential "
                     "passages, paragraph by paragraph"},
-    "resolution": {"label": "Entity resolution", "detail": "Fine-tuned Glimmer (er-v2b): one identity per person across the "
+    "resolution": {"label": "Entity resolution", "detail": "Fine-tuned Glimmer (er-v3a): one identity per person across the "
                    "text, owners and relations, in one call"},
     "resolution_classify": {"label": "Entity resolution + classify", "detail": "Entity resolution plus a second prompt on the "
                             "same model: the document's category and its extra private details"},

@@ -1,14 +1,14 @@
 """Bring up the fine-tuned Glimmer for masking when the app starts, and take it down when it stops.
 
 `python -m muse_shield.app` calls `up()` before serving: it creates a live-merge deployment of the
-masking LoRA (default: muse-shield-glimmer-er-v2b, the best entity-resolution model) on one H200, waits
+masking LoRA (default: muse-shield-glimmer-er-v3a-s250, the best entity-resolution model) on one H200, waits
 until it really answers, and returns the '<model>#<deployment>' route the masker uses. `down()` deletes
 it again, so nothing bills after you stop the app. A deployment this app left running (a crash, a killed
 terminal) is reused instead of starting a second one.
 
 Plain REST against api.fireworks.ai, so it runs in the project venv. Settings:
     FIREWORKS_API_KEY                  required
-    MUSE_SHIELD_GLIMMER_LORA           model id or full path (default muse-shield-glimmer-er-v2b)
+    MUSE_SHIELD_GLIMMER_LORA           model id or full path (default muse-shield-glimmer-er-v3a-s250)
     MUSE_SHIELD_FIREWORKS_ACCOUNT      account id (default: the API key's first account)
     MUSE_SHIELD_GLIMMER_SHAPE          deployment shape (default: the H200 BF16 live-merge shape)
 """
@@ -23,7 +23,7 @@ import httpx
 
 API = "https://api.fireworks.ai/v1"
 INFERENCE = "https://api.fireworks.ai/inference/v1"
-DEFAULT_LORA = "muse-shield-glimmer-er-v2b"
+DEFAULT_LORA = "muse-shield-glimmer-er-v3a-s250"
 DEFAULT_SHAPE = "accounts/fireworks/deploymentShapes/dkuwotf7"  # 1x H200, BF16: what Glimmer live-merge uses
 PREFIX = "ms-app-"  # deployments this app owns
 GONE = {"DELETING", "DELETED", "FAILED"}
