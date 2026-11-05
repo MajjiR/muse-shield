@@ -78,6 +78,7 @@ export function createEngine(baseUrl = "") {
     telegramStart: (phone: string) => call<ConnectionStatus>("/connections/telegram/start", { phone }),
     telegramVerify: (code: string, password = "") => call<ConnectionStatus>("/connections/telegram/verify", { code, password }),
     chooseFolder: (path: string) => call<{ connected: boolean; path: string }>("/connections/folder", { path }),
+    pickFolder: () => call<{ connected: boolean; path: string }>("/connections/folder/pick", {}),
     disconnect: (service: "google" | "telegram" | "folder") => remove<ConnectionStatus>(`/connections/${service}`),
     deleteChat: (chatId: string) => call<{ ok: boolean; removed: Record<string, number> }>(`/chats/${chatId}/delete`, {}),
     /** The verified masked copy, with the download name the engine chose. */

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import html
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -49,6 +51,20 @@ def apply_folder(vault: Vault) -> None:
         os.environ["MUSE_SHIELD_FILES"] = chosen["path"]
 
 
+def folder_files(path: str, limit: int = 2000) -> dict:
+    """What Muse Spark can open in a folder: how many supported files, and the first few names (for the card)."""
+    names, count = [], 0
+    for i, p in enumerate(sorted(Path(path).rglob("*"))):
+        if i >= limit:
+            break
+        if any(part.startswith(".") for part in p.relative_to(path).parts) or p.is_dir() or not folder._kind(p):
+            continue
+        count += 1
+        if len(names) < 6:
+            names.append(str(p.relative_to(path)))
+    return {"count": count, "names": names}
+
+
 def add_connection_routes(app: FastAPI, vault: Vault) -> None:
     apply_folder(vault)
 
@@ -57,7 +73,9 @@ def add_connection_routes(app: FastAPI, vault: Vault) -> None:
         chosen = vault.secret(FOLDER)
         return {"google": google.status(vault), "telegram": telegram.status(vault),
                 "folder": {"configured": True, "connected": bool(chosen), "path": (chosen or {}).get("path"),
-                           "sample": str(folder.root()) if not chosen else None}}
+                           "sample": str(folder.root()) if not chosen else None,
+                           "files": folder_files(chosen["path"]) if chosen and Path(chosen["path"]).is_dir() else None,
+                           "can_browse": sys.platform == "darwin"}}
 
     # -- Google ----------------------------------------------------------------------------
     @app.post("/connections/google/start")
@@ -112,6 +130,17 @@ def add_connection_routes(app: FastAPI, vault: Vault) -> None:
         vault.save_secret(FOLDER, {"path": str(path.resolve())})  # a path can say a lot about you; kept encrypted too
         apply_folder(vault)
         return {"connected": True, "path": str(path.resolve())}
+
+    @app.post("/connections/folder/pick")
+    def pick_folder():
+        """Open the Mac's own folder picker on this computer (the engine runs here, so it can) and use the choice."""
+        if sys.platform != "darwin":
+            raise HTTPException(400, "the folder picker is Mac only; type the folder's path instead")
+        r = subprocess.run(["osascript", "-e", 'POSIX path of (choose folder with prompt "Pick a folder for Muse Shield to read")'],
+                           capture_output=True, text=True, timeout=300)
+        if r.returncode != 0 or not r.stdout.strip():
+            raise HTTPException(400, "no folder chosen")
+        return choose_folder(FolderChoice(path=r.stdout.strip()))
 
     @app.delete("/connections/folder")
     def forget_folder():
