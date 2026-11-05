@@ -1,6 +1,6 @@
 import { ActionCard, StepLine, toolMeta } from "@/components/action-card"
 import { AskCard } from "@/components/ask-card"
-import { CategoryLine } from "@/components/categories"
+import { CategoryLine, ModeBadge, ModePicker } from "@/components/categories"
 import { DocumentCard } from "@/components/document-card"
 import { ImageCard, PendingImageCard } from "@/components/image-card"
 import { MessageView } from "@/components/message"
@@ -42,6 +42,14 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   const qc = useQueryClient()
   const [input, setInput] = useState("")
   const [pending, setPending] = useState<Pending | null>(null)
+  // The mode a NEW chat starts in (remembered per browser); an existing chat stays in the mode it's locked to.
+  const [newMode, setNewMode] = useState<MaskMode | null>(() => {
+    try { return localStorage.getItem("ms-chat-mode") } catch { return null }
+  })
+  const chooseMode = (m: MaskMode) => {
+    setNewMode(m)
+    try { localStorage.setItem("ms-chat-mode", m) } catch { /* private window: keep it for this session only */ }
+  }
   const [ask, setAsk] = useState<Ask | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
   const threadRef = useRef<HTMLDivElement>(null)
@@ -119,7 +127,10 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
   }
 
   const docsAllowed = !!health.data?.analysis && health.data?.documents !== false
-  const mode: MaskMode | null = chatId ? null : health.data?.default_mode ?? null // an existing chat keeps its own mode
+  const modes = health.data?.modes ?? []
+  const chatMode = chatId ? (detail.data?.mode ?? chats.data?.find((c) => c.chat_id === chatId)?.mode ?? null) : null
+  const startMode = modes.some((m) => m.id === newMode) ? newMode : health.data?.default_mode ?? null
+  const mode: MaskMode | null = chatId ? null : startMode // the server keeps an existing chat's own mode
   const imagesAllowed = !!health.data?.images
   const filesAllowed = docsAllowed || imagesAllowed
   const statusOf = (d: DocumentInfo) => docStatus[d.doc_id] ?? d.status
@@ -268,6 +279,7 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           {title ? <MaskedText text={title} plain /> : "New chat"}
         </h1>
         <div className="flex items-center gap-2">
+          {chatId && <ModeBadge mode={chatMode} modes={modes} />}
           <span className="hidden items-center gap-1.5 rounded-full border border-emerald-600/35 bg-emerald-50 px-3 py-1 text-[12.5px] font-medium text-emerald-700 sm:flex dark:border-emerald-400/30 dark:bg-emerald-950/60 dark:text-emerald-300">
             <ShieldCheck className="size-4" aria-hidden />
             {maskedCount > 0 ? <><span className="tabular">{maskedCount}</span> shielded</> : "Shield on"}
@@ -324,6 +336,13 @@ export function ChatView({ chatId, onChat, panelOpen, onTogglePanel }: {
           </div>
         )}
 
+        {!chatId && modes.length > 1 && startMode && (
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+            <span>Masking mode</span>
+            <ModePicker modes={modes} value={startMode} onChange={chooseMode} disabled={!!phase} />
+            <span className="max-sm:hidden">· set for this chat once you send</span>
+          </div>
+        )}
 
         <form
           onSubmit={(e) => { e.preventDefault(); onSend() }}
