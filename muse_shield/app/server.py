@@ -83,6 +83,15 @@ def _mode_entries(analyzer) -> dict[str, tuple[Backend, bool]]:
     return {"custom": (analyzer, False)}  # an analyzer passed in directly (tests, embedders)
 
 
+# The services the app itself connects to. Their names are in tool names, results and the user's own words
+# ("check my Telegram"), so they're public: masking one in a tool result would only make the guard refuse the chat.
+SERVICE_NAMES = {"Telegram", "Gmail", "Google", "Google Calendar", "Google Contacts"}
+
+
+def public_names() -> set[str]:
+    return channel_names() | SERVICE_NAMES
+
+
 def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[Backend, bool]], str, str]:
     """All masking modes this server runs: (mode -> (analyzer, classify), default mode, reason analysis is off).
 
@@ -165,7 +174,7 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
     # One Masker per analyzer; each chat is locked to one mode (ModeMasker routes by the chat's stored mode).
     # Your chat channel names are workspace structure, never masked.
     maskers: dict[int, Masker] = {}
-    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a, public=channel_names)), classify) for m, (a, classify) in modes.items()}
+    masker_for = {m: (maskers.setdefault(id(a), Masker(vault, a, public=public_names)), classify) for m, (a, classify) in modes.items()}
     masker = ModeMasker(vault, masker_for, default_mode) if masker_for else None
     analyzer = masker.analyzer if masker else None
     executor = Executor(vault, masker=masker)

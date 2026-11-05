@@ -143,3 +143,14 @@ def test_already_sent_ignores_case(tmp_path):
     masker, chat = Masker(vault, fake_spark(answers)), vault.create_chat()
     vault.add_message(chat, "tool_result", masker.mask(first, chat).masked_text)
     assert masker.mask(second, chat).masked_text == second
+
+
+def test_service_names_stay_public(tmp_path):
+    """'Telegram' in Telegram's own login message isn't private: the app's tool is called read_telegram."""
+    from muse_shield.app.server import public_names
+
+    text = "Do not give this code to anyone, even if they say they are from Telegram!"
+    answers = {text: {"entities": [{"text": "Telegram", "type": "ORG"}], "contexts": []}}
+    vault = Vault(tmp_path / "v.db", b"\x36" * 32)
+    masker = Masker(vault, fake_spark(answers), public=public_names)
+    assert masker.mask(text, vault.create_chat()).masked_text == text
