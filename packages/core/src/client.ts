@@ -1,5 +1,5 @@
 // Engine API client: plain fetch, so it works in the browser, Electron and React Native.
-import type { AgentAction, Ask, AskChoice, AuditChain, ChatDetail, ChatSummary, DocumentDetail, DocumentInfo, Graph, ImageInfo, Health, InspectorRecord, LeakAudit, Level, MaskMode, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
+import type { AgentAction, Ask, AskChoice, AuditChain, ChatDetail, ChatSummary, DocumentDetail, DocumentInfo, Graph, ImageInfo, Connections, ConnectionStatus, Health, InspectorRecord, LeakAudit, Level, MaskMode, MaskResult, Metrics, OutboxItem, Turn, VaultItems } from "./types";
 
 export class EngineError extends Error {
   readonly status: number;
@@ -16,6 +16,12 @@ export function createEngine(baseUrl = "") {
       headers: body === undefined ? undefined : { "content-type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new EngineError((data as { detail?: string }).detail ?? r.statusText, r.status);
+    return data as T;
+  }
+  async function remove<T>(path: string): Promise<T> {
+    const r = await fetch(baseUrl + path, { method: "DELETE" });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new EngineError((data as { detail?: string }).detail ?? r.statusText, r.status);
     return data as T;
@@ -65,6 +71,13 @@ export function createEngine(baseUrl = "") {
     deleteDocument: (docId: string) => call<{ ok: boolean }>(`/documents/${docId}/delete`, {}),
     deleteImage: (imageId: string) => call<{ ok: boolean }>(`/images/${imageId}/delete`, {}),
     /** Deletes the chat and everything in it (messages, files, images, hidden values only it used). */
+    connections: () => call<Connections>("/connections"),
+    /** Returns Google's sign-in page; open it, and Google sends the user back to the engine. */
+    googleStart: () => call<{ url: string }>("/connections/google/start", {}),
+    telegramStart: (phone: string) => call<ConnectionStatus>("/connections/telegram/start", { phone }),
+    telegramVerify: (code: string, password = "") => call<ConnectionStatus>("/connections/telegram/verify", { code, password }),
+    chooseFolder: (path: string) => call<{ connected: boolean; path: string }>("/connections/folder", { path }),
+    disconnect: (service: "google" | "telegram" | "folder") => remove<ConnectionStatus>(`/connections/${service}`),
     deleteChat: (chatId: string) => call<{ ok: boolean; removed: Record<string, number> }>(`/chats/${chatId}/delete`, {}),
     /** The verified masked copy, with the download name the engine chose. */
     downloadMasked: async (docId: string) => {

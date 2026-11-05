@@ -18,7 +18,7 @@ NEVER = {"SECRET", "ID"}  # never leave the vault through a tool, whatever the t
 @dataclass(frozen=True)
 class Param:
     name: str
-    kind: str  # recipients | text | string | datetime | channel
+    kind: str  # recipients | text | string | datetime | channel | telegram_chat
     required: bool = True
     resolve: frozenset[str] = frozenset()  # placeholder types the executor may unmask here
     description: str = ""
@@ -117,6 +117,14 @@ TOOLS: dict[str, Tool] = {t.name: t for t in [
                                                                             "comparisons, min/max/sum/abs/round"),
         Param("unit", "string", required=False, description="money (default when amounts are involved), percent or number"),
     ), side_effect=False, external=False),
+    Tool("read_telegram", "Read the user's Telegram: with no chat_id, their recent chats; with a chat_id, that chat's "
+                          "latest messages. Only works once Telegram is connected.", (
+        Param("chat_id", "string", required=False, description="an id from the chat list"),
+    ), side_effect=False, external=False, reads_private=True),
+    Tool("send_telegram", "Send a Telegram message, as the user, to one of their chats.", (
+        Param("chat_id", "telegram_chat", description="an id from read_telegram's chat list"),
+        Param("text", "text", resolve=frozenset(CONTENT_TYPES)),
+    ), side_effect=True),
     Tool("web_search", "Search the public web. The query leaves the device, so it stays masked, except a value the user "
                        "has already chosen to share in full in this chat (ask with NEED_CONTEXT first).", (
         Param("query", "text"),

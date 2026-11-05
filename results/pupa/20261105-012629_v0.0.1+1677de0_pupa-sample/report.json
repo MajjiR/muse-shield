@@ -1,0 +1,86 @@
+{
+ "Muse Glimmer + er-v2b (ours)": {
+  "name": "Muse Glimmer + er-v2b (ours)",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v2b#accounts/rohan-majji/deployments/ms-pupa-er-1105-012346",
+  "prompts": 114,
+  "units": 241,
+  "leak_rate": 0.44398340248962653,
+  "prompts_fully_protected": 0.49122807017543857,
+  "valid": 1.0,
+  "seconds": 28.7,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.4125,
+    "units": 80
+   },
+   "healthcare information": {
+    "leak_rate": 0.25925925925925924,
+    "units": 27
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.5535714285714286,
+    "units": 112
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.22727272727272727,
+    "units": 22
+   }
+  }
+ },
+ "Muse Glimmer + v2 (ours, PII + context)": {
+  "name": "Muse Glimmer + v2 (ours, PII + context)",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-lora-v2#accounts/rohan-majji/deployments/ms-pupa-v2-1105-012346",
+  "prompts": 114,
+  "units": 241,
+  "leak_rate": 0.24066390041493776,
+  "prompts_fully_protected": 0.6929824561403509,
+  "valid": 1.0,
+  "seconds": 13.7,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.35,
+    "units": 80
+   },
+   "healthcare information": {
+    "leak_rate": 0.18518518518518517,
+    "units": 27
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.17857142857142858,
+    "units": 112
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.22727272727272727,
+    "units": 22
+   }
+  }
+ },
+ "Muse Spark": {
+  "name": "Muse Spark",
+  "model": "muse-spark-1.3",
+  "prompts": 114,
+  "units": 241,
+  "leak_rate": 0.05394190871369295,
+  "prompts_fully_protected": 0.9035087719298246,
+  "valid": 1.0,
+  "seconds": 30.8,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.0375,
+    "units": 80
+   },
+   "healthcare information": {
+    "leak_rate": 0.037037037037037035,
+    "units": 27
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.08035714285714286,
+    "units": 112
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.0,
+    "units": 22
+   }
+  }
+ }
+}

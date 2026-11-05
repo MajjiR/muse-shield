@@ -1,7 +1,8 @@
 """What each tool actually does once the user has confirmed it. These see real values.
 
-Email goes over SMTP when MUSE_SHIELD_SMTP_HOST is set; otherwise it's kept in the
-vault's encrypted outbox only, so prototyping never sends real mail by accident.
+With Google connected (Connections in the app), email and calendar go through your Gmail and
+Google Calendar. Otherwise email goes over SMTP when MUSE_SHIELD_SMTP_HOST is set, else it's
+kept in the vault's encrypted outbox only, so prototyping never sends real mail by accident.
 """
 
 from __future__ import annotations
@@ -15,11 +16,16 @@ from email.message import EmailMessage
 
 from ..app.vault import Vault
 from ..connectors import SAMPLES, data_path
-from ..connectors import folder, personal
+from ..connectors import folder, google, personal, telegram
 from ..connectors.compute import compute
 
 
 def send_email(vault: Vault, chat_id: str, args: dict) -> dict:
+    if google.connected(vault):
+        sent = google.send_email(vault, args)
+        vault.add_outbox(chat_id, "send_email", {"to": args["to"], "subject": args["subject"], "body": args["body"],
+                                                 "message_id": sent["message_id"], "delivered": True, "via": "gmail"})
+        return sent
     msg = EmailMessage()
     msg["From"] = os.environ.get("MUSE_SHIELD_SMTP_FROM", "me@localhost")
     msg["To"] = ", ".join(args["to"])
@@ -42,6 +48,10 @@ def send_email(vault: Vault, chat_id: str, args: dict) -> dict:
 
 
 def create_calendar_event(vault: Vault, chat_id: str, args: dict) -> dict:
+    if google.connected(vault):
+        made = google.create_event(vault, args)
+        vault.add_outbox(chat_id, "create_calendar_event", {**args, "via": "google", "link": made["link"]})
+        return {k: v for k, v in made.items() if k != "link"}
     try:
         start = datetime.fromisoformat(args["start"])
     except ValueError:
@@ -74,6 +84,8 @@ MOCK_INBOX = SAMPLES / "inbox.json"  # invented mail, including one prompt-injec
 
 
 def read_inbox(vault: Vault, chat_id: str, args: dict) -> dict:
+    if google.connected(vault):
+        return google.read_inbox(vault, args)
     """Prototype mailbox: a JSON file (MUSE_SHIELD_INBOX or MUSE_SHIELD_DATA_DIR, else the bundled sample). IMAP slots in here."""
     mails = json.loads(data_path("inbox.json", "MUSE_SHIELD_INBOX").read_text())
     words = (args.get("query") or "").casefold().split()
@@ -87,4 +99,5 @@ RUNNERS = {"send_email": send_email, "create_calendar_event": create_calendar_ev
            **{name: getattr(personal, name) for name in ("search_contacts", "list_events", "reschedule_event",
                                                          "read_transactions", "read_health_records", "read_channel",
                                                          "post_message")},
-           **{name: getattr(folder, name) for name in ("list_folder", "search_files", "read_file", "query_table")}}
+           **{name: getattr(folder, name) for name in ("list_folder", "search_files", "read_file", "query_table")},
+           "read_telegram": telegram.read_telegram, "send_telegram": telegram.send_telegram}

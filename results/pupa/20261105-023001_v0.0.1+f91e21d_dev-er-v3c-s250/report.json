@@ -1,0 +1,30 @@
+{
+ "Muse Glimmer + er-v3c-s250 (ours)": {
+  "name": "Muse Glimmer + er-v3c-s250 (ours)",
+  "model": "accounts/rohan-majji/models/muse-shield-glimmer-er-v3c-s250#accounts/rohan-majji/deployments/ms-ck-er-v3c-s250-022649",
+  "prompts": 101,
+  "units": 231,
+  "leak_rate": 0.19913419913419914,
+  "prompts_fully_protected": 0.6831683168316832,
+  "valid": 1.0,
+  "seconds": 14.4,
+  "by_category": {
+   "financial and corporate info": {
+    "leak_rate": 0.16842105263157894,
+    "units": 95
+   },
+   "healthcare information": {
+    "leak_rate": 0.17857142857142858,
+    "units": 28
+   },
+   "job, visa, and other applications": {
+    "leak_rate": 0.24175824175824176,
+    "units": 91
+   },
+   "quoted emails and messages": {
+    "leak_rate": 0.17647058823529413,
+    "units": 17
+   }
+  }
+ }
+}

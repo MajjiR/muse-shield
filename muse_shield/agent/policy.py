@@ -143,6 +143,8 @@ def check(vault: Vault, chat_id: str, tool_name: str, args: dict) -> Checked:
             out.real[p.name] = _recipients(vault, chat_id, value, where, out)
         elif p.kind == "channel":
             out.real[p.name] = _channel(str(value), where, out)
+        elif p.kind == "telegram_chat":
+            out.real[p.name] = _telegram_chat(vault, str(value), where, out)
         else:
             approved = approved_labels(vault, chat_id) if tool.name in SEARCH_WITH_APPROVED else frozenset()
             out.real[p.name] = _text(vault, chat_id, str(value), p.resolve, where, out, tool.external, approved)
@@ -152,6 +154,19 @@ def check(vault: Vault, chat_id: str, tool_name: str, args: dict) -> Checked:
                               f"({', '.join(sorted(set(out.unmasked)))}) can't be posted there")
     out.unmasked = sorted(set(out.unmasked))
     return out
+
+
+def _telegram_chat(vault: Vault, value: str, where: str, out: Checked) -> str:
+    """Only a chat you already have (from the last read_telegram listing): never a username a message suggested."""
+    from ..connectors.telegram import chat_info
+
+    chat = chat_info(vault, value)
+    if not chat:
+        out.violations.append(f"{where}: '{value}' isn't one of your Telegram chats; list your chats first")
+        return value
+    kind = {"private": "private chat", "group": "group chat", "channel": "channel"}[chat["kind"]]
+    out.recipients.append({"label": value, "via": "", "person": chat["title"], "address": f"Telegram · {kind}"})
+    return value
 
 
 def _channel(value: str, where: str, out: Checked) -> str:

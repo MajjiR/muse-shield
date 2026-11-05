@@ -1,0 +1,12 @@
+{
+ "run_id": "20261105-020427_v0.0.1+f91e21d_dev-spark",
+ "eval": "pupa",
+ "dataset": "Columbia-NLP/PUPA (PUPA_New.csv, PUPA_TNB.csv)",
+ "n": 101,
+ "max_chars": 3000,
+ "seed": 7,
+ "prompts_file": "runs/er/v3/pupa-dev.jsonl",
+ "models": {
+  "Muse Spark": "muse-spark-1.3"
+ }
+}

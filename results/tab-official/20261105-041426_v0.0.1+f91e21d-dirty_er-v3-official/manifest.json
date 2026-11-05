@@ -1,0 +1,14 @@
+{
+ "run_id": "20261105-041426_v0.0.1+f91e21d-dirty_er-v3-official",
+ "eval": "tab-official",
+ "dataset": "/Volumes/MajjiR/ai/datasets/tab/test.parquet",
+ "window_chars": 6000,
+ "runs": {
+  "Muse Glimmer + er-v3a (ours)": "20261105-033430_v0.0.1+f91e21d-dirty_official-tab-er-v3a",
+  "Muse Spark (same instructions)": "20261105-033151_v0.0.1+f91e21d-dirty_official-tab-spark-v3prompt",
+  "Base Muse Glimmer (same instructions)": "20261105-033814_v0.0.1+f91e21d-dirty_official-tab-base-v3prompt",
+  "Muse Glimmer + er-v2b (previous)": "20261104-194604_v0.0.1+db0f3f8_er-v2b"
+ },
+ "set": "v3",
+ "script": "scripts/tab_official.py"
+}

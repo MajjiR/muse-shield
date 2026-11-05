@@ -1,0 +1,18 @@
+{
+ "base_model": "accounts/fireworks/models/muse-glimmer-30b",
+ "tokenizer_model": "meta-models/Muse-Glimmer-30B",
+ "renderer_name": "muse_glimmer",
+ "train_file": "runs/er/v3/C/train.jsonl",
+ "eval_file": "/Users/majjir/muse-shield/.worktrees/er-v3/runs/er/v3/C/val.jsonl",
+ "lora_rank": 16,
+ "learning_rate": 0.0001,
+ "epochs": 1,
+ "batch_size": 16,
+ "max_seq_len": 6144,
+ "warmup_steps": 0,
+ "checkpoint_every": 250,
+ "save_final_checkpoint": true,
+ "output_model_id": "muse-shield-glimmer-er-v3c",
+ "max_examples": null,
+ "training_shape": "accounts/fireworks/trainingShapes/muse-glimmer-30b-131k-lora"
+}

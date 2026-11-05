@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS entity_links (
 CREATE TABLE IF NOT EXISTS entity_origin (
     entity_id TEXT PRIMARY KEY, origin TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS secrets (
+    name TEXT PRIMARY KEY, nonce BLOB NOT NULL, value_ct BLOB NOT NULL, updated_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS outbox (
     id TEXT PRIMARY KEY, chat_id TEXT NOT NULL, tool TEXT NOT NULL, nonce BLOB NOT NULL, payload_ct BLOB NOT NULL, created_at REAL NOT NULL
 );
@@ -411,6 +414,21 @@ class Vault:
             kind = "email" if "@" in value and "." in value.split("@")[-1] else "phone" if digits >= 7 else "other"
             out.append({"label": self._mint(chat_id, "CONTACT", "entity", eid), "kind": kind, "value": value})
         return out
+
+    # -- connected accounts ------------------------------------------------------
+    def save_secret(self, name: str, value: dict) -> None:
+        """A connected account's sign-in (tokens, a Telegram session), encrypted with the row name bound."""
+        nonce, ct = self._seal(f"secret:{name}", json.dumps(value).encode())
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO secrets VALUES (?,?,?,?)", (name, nonce, ct, time.time()))
+
+    def secret(self, name: str) -> dict | None:
+        row = self._db.execute("SELECT nonce, value_ct FROM secrets WHERE name=?", (name,)).fetchone()
+        return json.loads(self._open(f"secret:{name}", row[0], row[1])) if row else None
+
+    def delete_secret(self, name: str) -> None:
+        with self._lock, self._db:
+            self._db.execute("DELETE FROM secrets WHERE name=?", (name,))  # secure_delete overwrites the row
 
     def add_outbox(self, chat_id: str, tool: str, payload: dict) -> str:
         """What a tool actually did, with real values, encrypted (the local record of sent mail, events, notes)."""

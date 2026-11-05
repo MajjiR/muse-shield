@@ -4,7 +4,7 @@ import { modeShort } from "@/lib/modes"
 import { cn, modelLabel } from "@/lib/utils"
 import type { ChatSummary } from "@muse-shield/core"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { PenSquare, Search, ShieldCheck, Trash2 } from "lucide-react"
+import { PenSquare, Plug, Search, ShieldCheck, Trash2 } from "lucide-react"
 import { motion } from "motion/react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -19,10 +19,13 @@ function groupChats(chats: ChatSummary[]) {
   return groups.filter(([, list]) => list.length)
 }
 
-export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; onSelect: (id: string) => void; onNew: () => void }) {
+export function Sidebar({ chatId, onSelect, onNew, onConnections }: {
+  chatId: string | null; onSelect: (id: string) => void; onNew: () => void; onConnections: () => void
+}) {
+  const connections = useQuery({ queryKey: ["connections"], queryFn: engine.connections })
+  const linked = connections.data ? [connections.data.google, connections.data.telegram, connections.data.folder].filter((c) => c.connected).length : 0
   const chats = useQuery({ queryKey: ["chats"], queryFn: engine.chats })
   const health = useQuery({ queryKey: ["health"], queryFn: engine.health, refetchInterval: 15000 })
-  const metrics = useQuery({ queryKey: ["metrics"], queryFn: engine.metrics })
   const [q, setQ] = useState("")
   const qc = useQueryClient()
   const remove = async (id: string, title: string) => {
@@ -103,20 +106,20 @@ export function Sidebar({ chatId, onSelect, onNew }: { chatId: string | null; on
         ))}
       </nav>
 
+      <button type="button" onClick={onConnections}
+        className="mx-3 flex items-center justify-between gap-2 rounded-md border border-sidebar-border bg-card px-3 py-2 text-left text-[13px] transition-colors hover:bg-subtle">
+        <span className="flex items-center gap-2"><Plug className="size-4" aria-hidden /> Connections</span>
+        <span className="tabular text-[11.5px] text-muted-foreground">{linked ? `${linked} connected` : "Sample data"}</span>
+      </button>
+
       <div className="m-3 space-y-2 rounded-md border border-sidebar-border bg-card p-3 text-[12px]">
         {health.isError && <p className="font-medium">Engine unreachable</p>}
         {h && (
           <>
             <Status ok={h.analysis} label="Masking" value={modelLabel(h.analysis_model)} />
             <Status ok={h.chat} label="Answers" value={h.chat_model ?? "off"} />
-            {/* image_model is "<vision> + <segmentation>": Spark reads the picture, SAM outlines faces and plates */}
-            <Status ok={!!h.images} label="Images" value={h.image_model?.split(" + ")[0] ?? "off"} />
-            {h.image_model?.includes(" + ") && <Status ok label="Faces" value={h.image_model.split(" + ")[1]} />}
           </>
         )}
-        <div className="flex items-center justify-between border-t pt-2 text-muted-foreground">
-          <span className="tabular">{metrics.data ? `$${metrics.data.cost_total.toFixed(4)} · ${metrics.data.inspector.requests} calls` : "–"}</span>
-        </div>
       </div>
     </aside>
   )

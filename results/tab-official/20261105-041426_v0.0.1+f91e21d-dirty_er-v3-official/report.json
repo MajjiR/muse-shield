@@ -1,0 +1,282 @@
+{
+ "Muse Glimmer + er-v3a (ours)": {
+  "docs": 127,
+  "annotations": 555,
+  "valid_outputs": 126,
+  "ER_di": 0.9887152777777778,
+  "ER_qi": 0.772197962154294,
+  "token_recall": 0.8039466764228386,
+  "precision": 0.8510010725777619,
+  "counts": {
+   "direct_entities": [
+    1139,
+    1152
+   ],
+   "quasi_entities": [
+    10610,
+    13740
+   ],
+   "tokens": [
+    35159,
+    43733
+   ],
+   "masked_words": [
+    9521,
+    11188
+   ]
+  },
+  "by_type": {
+   "DIRECT:CODE": {
+    "recall": 0.9982394366197183,
+    "n": 568
+   },
+   "DIRECT:PERSON": {
+    "recall": 0.9843478260869565,
+    "n": 575
+   },
+   "QUASI:CODE": {
+    "recall": 0.48904382470119523,
+    "n": 1004
+   },
+   "QUASI:DATETIME": {
+    "recall": 0.8648648648648649,
+    "n": 7067
+   },
+   "QUASI:DEM": {
+    "recall": 0.2375776397515528,
+    "n": 644
+   },
+   "QUASI:LOC": {
+    "recall": 0.8761514841351075,
+    "n": 977
+   },
+   "QUASI:MISC": {
+    "recall": 0.042071197411003236,
+    "n": 309
+   },
+   "QUASI:ORG": {
+    "recall": 0.5364526659412405,
+    "n": 919
+   },
+   "QUASI:PERSON": {
+    "recall": 0.948018747337026,
+    "n": 2347
+   },
+   "QUASI:QUANTITY": {
+    "recall": 0.5644820295983086,
+    "n": 473
+   }
+  },
+  "run": "20261105-033430_v0.0.1+f91e21d-dirty_official-tab-er-v3a"
+ },
+ "Muse Spark (same instructions)": {
+  "docs": 127,
+  "annotations": 555,
+  "valid_outputs": 127,
+  "ER_di": 0.8255208333333334,
+  "ER_qi": 0.8149199417758369,
+  "token_recall": 0.828116067957835,
+  "precision": 0.776793893129771,
+  "counts": {
+   "direct_entities": [
+    951,
+    1152
+   ],
+   "quasi_entities": [
+    11197,
+    13740
+   ],
+   "tokens": [
+    36216,
+    43733
+   ],
+   "masked_words": [
+    10176,
+    13100
+   ]
+  },
+  "by_type": {
+   "DIRECT:CODE": {
+    "recall": 0.6602112676056338,
+    "n": 568
+   },
+   "DIRECT:PERSON": {
+    "recall": 0.991304347826087,
+    "n": 575
+   },
+   "QUASI:CODE": {
+    "recall": 0.5159362549800797,
+    "n": 1004
+   },
+   "QUASI:DATETIME": {
+    "recall": 0.8993915381349936,
+    "n": 7067
+   },
+   "QUASI:DEM": {
+    "recall": 0.4798136645962733,
+    "n": 644
+   },
+   "QUASI:LOC": {
+    "recall": 0.946775844421699,
+    "n": 977
+   },
+   "QUASI:MISC": {
+    "recall": 0.1262135922330097,
+    "n": 309
+   },
+   "QUASI:ORG": {
+    "recall": 0.6387377584330794,
+    "n": 919
+   },
+   "QUASI:PERSON": {
+    "recall": 0.9245845760545377,
+    "n": 2347
+   },
+   "QUASI:QUANTITY": {
+    "recall": 0.6194503171247357,
+    "n": 473
+   }
+  },
+  "run": "20261105-033151_v0.0.1+f91e21d-dirty_official-tab-spark-v3prompt"
+ },
+ "Base Muse Glimmer (same instructions)": {
+  "docs": 127,
+  "annotations": 555,
+  "valid_outputs": 48,
+  "ER_di": 0.3967013888888889,
+  "ER_qi": 0.25829694323144103,
+  "token_recall": 0.26965906752338054,
+  "precision": 0.774564851207187,
+  "counts": {
+   "direct_entities": [
+    457,
+    1152
+   ],
+   "quasi_entities": [
+    3549,
+    13740
+   ],
+   "tokens": [
+    11793,
+    43733
+   ],
+   "masked_words": [
+    2759,
+    3562
+   ]
+  },
+  "by_type": {
+   "DIRECT:CODE": {
+    "recall": 0.3503521126760563,
+    "n": 568
+   },
+   "DIRECT:PERSON": {
+    "recall": 0.44173913043478263,
+    "n": 575
+   },
+   "QUASI:CODE": {
+    "recall": 0.00796812749003984,
+    "n": 1004
+   },
+   "QUASI:DATETIME": {
+    "recall": 0.2889486344983727,
+    "n": 7067
+   },
+   "QUASI:DEM": {
+    "recall": 0.07453416149068323,
+    "n": 644
+   },
+   "QUASI:LOC": {
+    "recall": 0.40122824974411464,
+    "n": 977
+   },
+   "QUASI:MISC": {
+    "recall": 0.02912621359223301,
+    "n": 309
+   },
+   "QUASI:ORG": {
+    "recall": 0.27421109902067464,
+    "n": 919
+   },
+   "QUASI:PERSON": {
+    "recall": 0.31870472944184064,
+    "n": 2347
+   },
+   "QUASI:QUANTITY": {
+    "recall": 0.10570824524312897,
+    "n": 473
+   }
+  },
+  "run": "20261105-033814_v0.0.1+f91e21d-dirty_official-tab-base-v3prompt"
+ },
+ "Muse Glimmer + er-v2b (previous)": {
+  "docs": 127,
+  "annotations": 555,
+  "valid_outputs": 127,
+  "ER_di": 0.4982638888888889,
+  "ER_qi": 0.5713245997088792,
+  "token_recall": 0.6209955868566072,
+  "precision": 0.97933139131641,
+  "counts": {
+   "direct_entities": [
+    574,
+    1152
+   ],
+   "quasi_entities": [
+    7850,
+    13740
+   ],
+   "tokens": [
+    27158,
+    43733
+   ],
+   "masked_words": [
+    7060,
+    7209
+   ]
+  },
+  "by_type": {
+   "DIRECT:CODE": {
+    "recall": 0.0,
+    "n": 568
+   },
+   "DIRECT:PERSON": {
+    "recall": 0.9878260869565217,
+    "n": 575
+   },
+   "QUASI:CODE": {
+    "recall": 0.0049800796812749,
+    "n": 1004
+   },
+   "QUASI:DATETIME": {
+    "recall": 0.7155794537993491,
+    "n": 7067
+   },
+   "QUASI:DEM": {
+    "recall": 0.06055900621118013,
+    "n": 644
+   },
+   "QUASI:LOC": {
+    "recall": 0.021494370522006142,
+    "n": 977
+   },
+   "QUASI:MISC": {
+    "recall": 0.042071197411003236,
+    "n": 309
+   },
+   "QUASI:ORG": {
+    "recall": 0.21436343852013057,
+    "n": 919
+   },
+   "QUASI:PERSON": {
+    "recall": 0.9663400085215168,
+    "n": 2347
+   },
+   "QUASI:QUANTITY": {
+    "recall": 0.5285412262156448,
+    "n": 473
+   }
+  },
+  "run": "20261104-194604_v0.0.1+db0f3f8_er-v2b"
+ }
+}
