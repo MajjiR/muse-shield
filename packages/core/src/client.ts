@@ -54,6 +54,7 @@ export function createEngine(baseUrl = "") {
     audit: () => call<LeakAudit>("/inspector/audit"),
     metrics: () => call<Metrics>("/metrics"),
     actions: (chatId: string) => call<AgentAction[]>(`/chats/${chatId}/actions`),
+    progress: (chatId: string) => call<{ stage?: "thinking" | "tool"; tool?: string }>(`/chats/${chatId}/progress`),
     /** Runs the action on this device; for a call Muse Spark planned, the reply comes back as a Turn. */
     decideAction: (actionId: string, decision: "confirm" | "deny") => call<Turn>(`/agent/actions/${actionId}/${decision}`, {}),
     outbox: (chatId: string) => call<OutboxItem[]>(`/chats/${chatId}/outbox`),

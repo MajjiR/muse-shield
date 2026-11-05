@@ -113,6 +113,10 @@ def modes_from_env(client: httpx.Client | None = None) -> tuple[dict[str, tuple[
         analyzer, off = analyzer_from_env(client)
         if analyzer:
             modes = _mode_entries(analyzer)
+        elif os.environ.get("MUSE_SHIELD_GLIMMER_STARTING"):
+            off = "starting: bringing up the fine-tuned Glimmer masking model (a few minutes)"
+        elif os.environ.get("MUSE_SHIELD_GLIMMER_FAILED"):
+            off = f"the fine-tuned Glimmer didn't start: {os.environ['MUSE_SHIELD_GLIMMER_FAILED']}"
     default = os.environ.get("MUSE_SHIELD_DEFAULT_MODE", "")
     return modes, default if default in modes else next(iter(modes), ""), off
 
@@ -342,6 +346,11 @@ def create_app(vault: Vault | None = None, analyzer: Backend | None = None, chat
         except KeyError as exc:
             raise HTTPException(404, "unknown or already handled action") from exc
         return {"chat_id": a.chat_id, "action": a.for_user()}
+
+    @app.get("/chats/{chat_id}/progress")
+    def chat_progress(chat_id: str):
+        """What the running turn is doing (Muse Spark thinking, or which tool runs on this device), for the UI."""
+        return engine.progress.get(chat_id, {}) if engine else {}
 
     @app.get("/chats/{chat_id}/actions")
     def chat_actions(chat_id: str):
