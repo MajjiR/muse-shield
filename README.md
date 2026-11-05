@@ -25,6 +25,9 @@ vault. When Spark genuinely needs a hidden value, it has to **ask**, and you cho
 > a LoRA on Muse Glimmer 30B. **Its training data:**
 > [TheEmperor2/muse-shield-er-v3-data](https://huggingface.co/datasets/TheEmperor2/muse-shield-er-v3-data).
 > **Full release record:** [`results/er-v3-release/`](results/er-v3-release/README.md).
+>
+> **Judges:** [docs/judges.md](docs/judges.md) covers getting the LoRA from Hugging Face onto Fireworks and running
+> the app, in about 15 minutes.
 
 ### Which models run where
 
